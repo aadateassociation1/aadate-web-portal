@@ -23,7 +23,7 @@ npm run dev
 
 ## Built with
 
-- TanStack Start
+- Vite React
 - TypeScript
 - React
 - Tailwind CSS

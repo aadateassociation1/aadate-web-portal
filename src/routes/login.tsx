@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@/lib/simple-router";
 import { useState } from "react";
 import { SiteLayout } from "@/components/public/SiteLayout";
 import { Card, CardContent } from "@/components/ui/card";

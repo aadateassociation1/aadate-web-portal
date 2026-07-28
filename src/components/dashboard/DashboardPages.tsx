@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/lib/simple-router";
 import { useState, type FormEvent } from "react";
 import {
   AlertTriangle, Bell, Camera, CheckCircle2, ClipboardList, Download, Eye, FileText,

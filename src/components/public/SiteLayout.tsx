@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState } from "@/lib/simple-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   Menu, X,

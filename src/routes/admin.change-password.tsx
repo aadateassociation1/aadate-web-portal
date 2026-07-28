@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@/lib/simple-router";
 import { AdminChangePasswordPage } from "@/components/dashboard/DashboardPages";
 
 export const Route = createFileRoute("/admin/change-password")({

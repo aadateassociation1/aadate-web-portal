@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@/lib/simple-router";
 import { OwnerGalaPage } from "@/components/dashboard/DashboardPages";
 
 export const Route = createFileRoute("/owner/gala")({

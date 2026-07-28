@@ -1,4 +1,4 @@
-import { Link, useRouter, useRouterState } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@/lib/simple-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, User, FileText, Bell, MessageSquare, Phone, ImagePlus, LifeBuoy,

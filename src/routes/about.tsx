@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@/lib/simple-router";
 import { SiteLayout } from "@/components/public/SiteLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Target, Eye, Heart, Trophy, Users, Building2 } from "lucide-react";
