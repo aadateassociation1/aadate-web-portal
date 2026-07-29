@@ -77,7 +77,7 @@ function Notices() {
       <section className="py-10">
         <div className="container-page">
           <div className="grid gap-3 sm:flex sm:flex-wrap">
-            <div className="relative flex-1 min-w-[200px]">
+            <div className="relative min-w-0 flex-1 sm:min-w-[200px]">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search noticesâ€¦" className="pl-9" />
             </div>
@@ -91,7 +91,7 @@ function Notices() {
             {filtered.map((n) => (
               <Card key={n.id} className="border-border/60">
                 <CardContent className="p-5 sm:p-6">
-                  <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 sm:gap-6">
+                  <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-6">
                     <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-secondary text-primary sm:h-14 sm:w-14">
                       <FileText className="h-6 w-6" />
                     </div>
@@ -104,9 +104,9 @@ function Notices() {
                       <h3 className="mt-1.5 font-display font-semibold text-primary-dark">{n.title}</h3>
                       <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{n.description}</p>
                     </div>
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      <Button size="sm" variant="outline" onClick={() => setSelected(n)}><Eye className="h-4 w-4 sm:mr-1" /> <span className="hidden sm:inline">View</span></Button>
-                      <Button size="sm" className="bg-primary" onClick={() => downloadNotice(n)}><Download className="h-4 w-4 sm:mr-1" /> <span className="hidden sm:inline">Download</span></Button>
+                    <div className="col-span-2 grid grid-cols-2 gap-2 sm:col-span-1 sm:flex sm:flex-row">
+                      <Button size="sm" variant="outline" onClick={() => setSelected(n)}><Eye className="h-4 w-4 sm:mr-1" /> <span>View</span></Button>
+                      <Button size="sm" className="bg-primary" onClick={() => downloadNotice(n)}><Download className="h-4 w-4 sm:mr-1" /> <span>Download</span></Button>
                     </div>
                   </div>
                 </CardContent>

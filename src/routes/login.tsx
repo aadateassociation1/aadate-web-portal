@@ -60,7 +60,7 @@ function LoginPage() {
   return (
     <SiteLayout>
       <section className="bg-leaf py-12 md:py-16">
-        <div className="container-page grid gap-8 lg:grid-cols-[1fr_460px] lg:items-start">
+        <div className="container-page grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,460px)] lg:items-start">
           <div>
             <h1 className="font-display text-3xl font-bold text-primary-dark sm:text-4xl">Sign in to the portal</h1>
             <p className="mt-3 text-muted-foreground">Access market updates, notices, complaints and administration.</p>
@@ -86,10 +86,10 @@ function LoginPage() {
                 <div className="font-display font-bold text-primary-dark">Choose your role</div>
               </div>
               <Tabs defaultValue="owner">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="owner">Member</TabsTrigger>
-                  <TabsTrigger value="user_admin">User Admin</TabsTrigger>
-                  <TabsTrigger value="main_admin">Main Admin</TabsTrigger>
+                <TabsList className="grid h-auto w-full grid-cols-3">
+                  <TabsTrigger value="owner" className="px-1.5 text-xs sm:px-3 sm:text-sm">Member</TabsTrigger>
+                  <TabsTrigger value="user_admin" className="px-1.5 text-xs sm:px-3 sm:text-sm">User Admin</TabsTrigger>
+                  <TabsTrigger value="main_admin" className="px-1.5 text-xs sm:px-3 sm:text-sm">Main Admin</TabsTrigger>
                 </TabsList>
                 <TabsContent value="owner" className="mt-5"><LoginForm role="owner" /></TabsContent>
                 <TabsContent value="user_admin" className="mt-5"><LoginForm role="user_admin" /></TabsContent>

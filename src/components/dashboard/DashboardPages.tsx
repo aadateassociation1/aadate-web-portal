@@ -31,11 +31,11 @@ const CHART_COLORS = ["#176B3A", "#F59E0B", "#38A169", "#D92D20", "#7C3AED", "#0
 function PageTitle({ title, subtitle, action }: { title: string; subtitle: string; action?: React.ReactNode }) {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
+      <div className="min-w-0">
         <h1 className="font-display text-2xl font-bold text-primary-dark">{title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
       </div>
-      {action}
+      {action && <div className="w-full sm:w-auto [&>*]:w-full sm:[&>*]:w-auto">{action}</div>}
     </div>
   );
 }
@@ -83,7 +83,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function SearchBar({ placeholder = "Search..." }: { placeholder?: string }) {
   return (
-    <div className="relative min-w-[220px] flex-1">
+    <div className="relative min-w-0 flex-1 sm:min-w-[220px]">
       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <Input className="pl-9" placeholder={placeholder} />
     </div>
@@ -210,7 +210,7 @@ export function AdminUpdatesPage() {
   return (
     <DashLayout kind="admin">
       <PageTitle title="Market Updates" subtitle="Publish daily rates, arrivals, emergency alerts, and general market news." />
-      <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
         <Card className="border-border/60">
           <CardContent className="p-6">
             <div className="space-y-3">
@@ -234,7 +234,7 @@ export function AdminNoticesPage() {
   return (
     <DashLayout kind="admin">
       <PageTitle title="Notices & Documents" subtitle="Upload circulars, meeting notices, PDFs, images, and video announcements." />
-      <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
         <Card className="border-border/60">
           <CardContent className="grid gap-3 p-6 md:grid-cols-2">
             {NOTICES.map((n) => (
@@ -523,7 +523,7 @@ export function AdminOwnerPostsPage() {
         <StatCard icon={ClipboardList} label="Waiting for review" value={pendingPosts.length} tone="warning" />
         <StatCard icon={Send} label="Reshared posts" value={resharedPosts.length} tone="success" />
       </div>
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
         <Card className="border-border/60">
           <CardContent className="p-6">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -671,7 +671,7 @@ export function OwnerProfilePage() {
   return (
     <DashLayout kind="owner">
       <PageTitle title="My Profile" subtitle="Manage personal, contact, and business identity details." action={<Button>Save changes</Button>} />
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
         <Card className="border-border/60"><CardContent className="p-6 text-center"><div className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-secondary font-display text-3xl font-bold text-primary">RS</div><h2 className="mt-4 font-display text-xl font-bold text-primary-dark">{me.name}</h2><p className="text-sm text-muted-foreground">{me.business}</p><Badge className="mt-3 bg-success/15 text-success">Verified Owner</Badge></CardContent></Card>
         <Card className="border-border/60"><CardContent className="grid gap-4 p-6 sm:grid-cols-2"><Field label="Full name" value={me.name} /><Field label="Email" value={me.email} /><Field label="Registered mobile" value={me.mobile} /><Field label="Username" value={me.username} /><Field label="Address" value={me.address} wide /></CardContent></Card>
       </div>
@@ -738,7 +738,7 @@ export function OwnerPostPage() {
   return (
     <DashLayout kind="owner">
       <PageTitle title="Create Post" subtitle="Share a market update, gala announcement, or request with image and video attachments." />
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
         <Card className="border-border/60">
           <CardContent className="p-6">
             <form
@@ -1061,7 +1061,7 @@ export function OwnerMobileChangePage() {
   return (
     <DashLayout kind="owner">
       <PageTitle title="Mobile Number Change Application" subtitle="Submit a formal request to update your registered mobile number." />
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
         <Card className="border-border/60">
           <CardContent className="p-6">
             <form

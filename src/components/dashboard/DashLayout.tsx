@@ -54,17 +54,19 @@ function HeaderLangSwitcher() {
     <div className="inline-flex shrink-0 overflow-hidden rounded-full border border-border bg-background text-xs font-semibold" aria-label="Language selector">
       <button
         onClick={() => setLang("en")}
-        className={`px-3 py-1.5 transition ${lang === "en" ? active : inactive}`}
+        className={`px-2.5 py-1.5 transition sm:px-3 ${lang === "en" ? active : inactive}`}
         aria-label="English"
       >
-        English
+        <span className="sm:hidden">EN</span>
+        <span className="hidden sm:inline">English</span>
       </button>
       <button
         onClick={() => setLang("mr")}
-        className={`px-3 py-1.5 transition ${lang === "mr" ? active : inactive}`}
+        className={`px-2.5 py-1.5 transition sm:px-3 ${lang === "mr" ? active : inactive}`}
         aria-label="Marathi"
       >
-        {"\u092e\u0930\u093e\u0920\u0940"}
+        <span className="sm:hidden">MR</span>
+        <span className="hidden sm:inline">{"\u092e\u0930\u093e\u0920\u0940"}</span>
       </button>
     </div>
   );
@@ -150,7 +152,7 @@ export function DashLayout({ kind, children }: Props) {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background px-4 sm:px-6">
+        <header className="sticky top-0 z-20 flex min-h-16 items-center gap-2 border-b border-border bg-background px-3 py-2 sm:gap-3 sm:px-6">
           <button
             onClick={() => setOpen(!open)}
             className="lg:hidden grid h-10 w-10 place-items-center rounded-md border border-border"

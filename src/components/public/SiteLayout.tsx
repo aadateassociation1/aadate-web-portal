@@ -64,7 +64,6 @@ function TopBar() {
         </div>
         <div className="flex items-center gap-3">
           <span className="hidden sm:inline">{now.toLocaleString(lang === "mr" ? "mr-IN" : "en-IN", { dateStyle: "medium", timeStyle: "medium" })}</span>
-          <LangSwitcher />
         </div>
       </div>
     </div>
@@ -86,22 +85,22 @@ function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 shadow-sm backdrop-blur-sm">
-      <div className="container-page flex min-h-[66px] items-center gap-5 py-2">
-        <Link to="/" className="flex min-w-[250px] shrink-0 items-center gap-2.5">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl saffron-gradient shadow-sm">
+      <div className="container-page flex min-h-[66px] items-center gap-3 py-2 xl:gap-5">
+        <Link to="/" className="flex min-w-0 shrink items-center gap-2.5 sm:min-w-[250px] xl:shrink-0">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl saffron-gradient shadow-sm sm:h-12 sm:w-12">
             <Sprout className="h-6 w-6 text-primary-dark" strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
-            <div className="font-display text-base font-bold leading-tight text-primary-dark">
+            <div className="truncate font-display text-sm font-bold leading-tight text-primary-dark sm:text-base">
               {t("assoc.name")}
             </div>
-            <div className="text-[11px] font-medium leading-tight text-muted-foreground">
+            <div className="truncate text-[11px] font-medium leading-tight text-muted-foreground">
               {t("assoc.short")}
             </div>
           </div>
         </Link>
 
-        <nav className="ml-auto hidden items-center gap-1 lg:flex">
+        <nav className="ml-auto hidden min-w-0 items-center justify-end gap-0.5 xl:flex">
           {NAV.map((n) => (
             <Link
               key={n.to}
@@ -115,7 +114,7 @@ function Header() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 lg:ml-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2 xl:ml-2">
           <div className="hidden sm:inline-flex">
             <LangSwitcher tone="light" />
           </div>
@@ -135,7 +134,7 @@ function Header() {
           )}
           <button
             onClick={() => setOpen((value) => !value)}
-            className="grid h-10 w-10 place-items-center rounded-md border border-border text-foreground lg:hidden"
+            className="grid h-10 w-10 place-items-center rounded-md border border-border text-foreground xl:hidden"
             aria-label="Toggle menu"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -143,20 +142,20 @@ function Header() {
         </div>
       </div>
       {open && (
-        <div className="border-t border-border bg-background lg:hidden">
+        <div className="border-t border-border bg-background xl:hidden">
           <div className="container-page grid gap-1 py-3">
             {NAV.map((n) => (
               <Link key={n.to} to={n.to} className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-secondary">
                 {t(n.key)}
               </Link>
             ))}
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
               {dashLink ? (
                 <Button asChild className="flex-1"><Link to={dashLink}>Dashboard</Link></Button>
               ) : (
                 <>
-                  <Button asChild variant="outline" className="flex-1"><Link to="/login">{t("nav.login")}</Link></Button>
-                  <Button asChild className="flex-1 bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/register">{t("nav.register")}</Link></Button>
+                  <Button asChild variant="outline"><Link to="/login">{t("nav.login")}</Link></Button>
+                  <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/register">{t("nav.register")}</Link></Button>
                 </>
               )}
             </div>
