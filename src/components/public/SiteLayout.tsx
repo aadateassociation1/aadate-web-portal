@@ -19,23 +19,25 @@ const NAV = [
   { to: "/contact", key: "nav.contact" as const },
 ];
 
-function LangSwitcher() {
+function LangSwitcher({ tone = "dark" }: { tone?: "dark" | "light" }) {
   const { lang, setLang } = useI18n();
-  const active = "bg-saffron text-saffron-foreground";
-  const inactive = "text-white/90 hover:bg-white/10";
+  const isLight = tone === "light";
+  const active = isLight ? "bg-saffron text-saffron-foreground" : "bg-saffron text-saffron-foreground";
+  const inactive = isLight ? "text-foreground/70 hover:bg-secondary hover:text-primary" : "text-white/90 hover:bg-white/10";
+  const border = isLight ? "border-border bg-background shadow-sm" : "border-white/30";
 
   return (
-    <div className="inline-flex overflow-hidden rounded-full border border-white/30 text-xs font-semibold" aria-label="Language selector">
+    <div className={`inline-flex overflow-hidden rounded-full border text-xs font-semibold ${border}`} aria-label="Language selector">
       <button
         onClick={() => setLang("en")}
-        className={`px-3 py-1 transition ${lang === "en" ? active : inactive}`}
+        className={`px-3 py-1.5 transition ${lang === "en" ? active : inactive}`}
         aria-label="English"
       >
         English
       </button>
       <button
         onClick={() => setLang("mr")}
-        className={`px-3 py-1 transition ${lang === "mr" ? active : inactive}`}
+        className={`px-3 py-1.5 transition ${lang === "mr" ? active : inactive}`}
         aria-label="Marathi"
       >
         {"\u092e\u0930\u093e\u0920\u0940"}
@@ -104,8 +106,8 @@ function Header() {
             <Link
               key={n.to}
               to={n.to}
-              className="rounded-md px-3 py-2 text-sm font-medium text-foreground/75 transition hover:bg-secondary hover:text-primary"
-              activeProps={{ className: "rounded-md bg-secondary px-3 py-2 text-sm font-semibold text-primary" }}
+              className="whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-medium text-foreground/75 transition hover:bg-secondary hover:text-primary xl:px-3"
+              activeProps={{ className: "whitespace-nowrap rounded-md bg-secondary px-2.5 py-2 text-sm font-semibold text-primary xl:px-3" }}
               activeOptions={{ exact: n.to === "/" }}
             >
               {t(n.key)}
@@ -114,6 +116,9 @@ function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 lg:ml-2">
+          <div className="hidden sm:inline-flex">
+            <LangSwitcher tone="light" />
+          </div>
           {dashLink ? (
             <Button asChild size="sm" className="hidden sm:inline-flex">
               <Link to={dashLink}>Dashboard</Link>
@@ -154,6 +159,9 @@ function Header() {
                   <Button asChild className="flex-1 bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/register">{t("nav.register")}</Link></Button>
                 </>
               )}
+            </div>
+            <div className="mt-2">
+              <LangSwitcher tone="light" />
             </div>
           </div>
         </div>
