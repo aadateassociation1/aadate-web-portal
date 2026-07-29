@@ -6,6 +6,7 @@ import {
   ShieldAlert, ChartBar, Home, Store,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -26,7 +27,7 @@ const OWNER_NAV = [
 
 const ADMIN_NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/admin/users", label: "Gala Owner Management", icon: Users },
+  { to: "/admin/users", label: "Member Management", icon: Users },
   { to: "/admin/registrations", label: "Registration Approvals", icon: ClipboardList },
   { to: "/admin/complaints", label: "Complaint Management", icon: MessageSquare },
   { to: "/admin/posts", label: "Owner Posts", icon: ImagePlus },
@@ -42,6 +43,31 @@ const ADMIN_NAV = [
 interface Props {
   kind: "owner" | "admin";
   children: ReactNode;
+}
+
+function HeaderLangSwitcher() {
+  const { lang, setLang } = useI18n();
+  const active = "bg-primary text-primary-foreground";
+  const inactive = "text-muted-foreground hover:bg-secondary hover:text-foreground";
+
+  return (
+    <div className="inline-flex shrink-0 overflow-hidden rounded-full border border-border bg-background text-xs font-semibold" aria-label="Language selector">
+      <button
+        onClick={() => setLang("en")}
+        className={`px-3 py-1.5 transition ${lang === "en" ? active : inactive}`}
+        aria-label="English"
+      >
+        English
+      </button>
+      <button
+        onClick={() => setLang("mr")}
+        className={`px-3 py-1.5 transition ${lang === "mr" ? active : inactive}`}
+        aria-label="Marathi"
+      >
+        {"\u092e\u0930\u093e\u0920\u0940"}
+      </button>
+    </div>
+  );
 }
 
 export function DashLayout({ kind, children }: Props) {
@@ -60,11 +86,11 @@ export function DashLayout({ kind, children }: Props) {
   }, [user, loading, kind, router]);
 
   if (loading || !user) {
-    return <div className="grid min-h-screen place-items-center text-muted-foreground">Loading…</div>;
+    return <div className="grid min-h-screen place-items-center text-muted-foreground">Loading...</div>;
   }
 
   const nav = kind === "owner" ? OWNER_NAV : ADMIN_NAV;
-  const title = kind === "owner" ? "Gala Owner Portal" : user.role === "main_admin" ? "Main Admin Portal" : "User Admin Portal";
+  const title = kind === "owner" ? "Member Portal" : user.role === "main_admin" ? "Main Admin Portal" : "User Admin Portal";
   const helpLink = kind === "owner" ? "/owner/help" : "/admin/help";
   const passwordLink = kind === "owner" ? "/owner/change-password" : "/admin/change-password";
 
@@ -139,8 +165,9 @@ export function DashLayout({ kind, children }: Props) {
             </div>
           </div>
           <Badge variant="secondary" className="hidden sm:inline-flex bg-secondary text-primary-dark">
-            {user.role === "main_admin" ? "Main Admin" : user.role === "user_admin" ? "User Admin" : "Gala Owner"}
+            {user.role === "main_admin" ? "Main Admin" : user.role === "user_admin" ? "User Admin" : "Member"}
           </Badge>
+          <HeaderLangSwitcher />
           <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex shrink-0">
             <Link to="/"><Home className="h-4 w-4 mr-1" /><span className="hidden md:inline">Public Site</span><span className="md:hidden">Site</span></Link>
           </Button>

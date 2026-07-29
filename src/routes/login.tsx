@@ -13,7 +13,7 @@ import { DEMO_CREDS, type UserRole } from "@/lib/mock";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Login — VPP Market Yard Portal" }, { name: "description", content: "Sign in to the VPP Market Yard portal as gala owner or admin." }] }),
+  head: () => ({ meta: [{ title: "Login â€” VPP Market Yard Portal" }, { name: "description", content: "Sign in to the VPP Market Yard portal as member or admin." }] }),
   component: LoginPage,
 });
 
@@ -39,7 +39,7 @@ function LoginForm({ role }: { role: UserRole }) {
       <Alert className="border-saffron/40 bg-saffron/10">
         <Info className="h-4 w-4 text-saffron" />
         <AlertDescription className="text-xs">
-          <span className="font-semibold">Demo credentials:</span> {creds.mobile} / {creds.username} · <code className="rounded bg-primary/10 px-1">{creds.password}</code>
+          <span className="font-semibold">Demo credentials:</span> {creds.mobile} / {creds.username} Â· <code className="rounded bg-primary/10 px-1">{creds.password}</code>
         </AlertDescription>
       </Alert>
       <div>
@@ -66,7 +66,7 @@ function LoginPage() {
             <p className="mt-3 text-muted-foreground">Access market updates, notices, complaints and administration.</p>
             <div className="mt-6 space-y-3">
               {[
-                { icon: User, title: "Gala owners", body: "Sign in with your registered mobile number." },
+                { icon: User, title: "Members", body: "Sign in with your registered mobile number." },
                 { icon: ShieldCheck, title: "User Admin", body: "Support complaints, users and content." },
                 { icon: Shield, title: "Main Admin", body: "Full portal administration and approvals." },
               ].map((r) => (
@@ -87,7 +87,7 @@ function LoginPage() {
               </div>
               <Tabs defaultValue="owner">
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="owner">Gala Owner</TabsTrigger>
+                  <TabsTrigger value="owner">Member</TabsTrigger>
                   <TabsTrigger value="user_admin">User Admin</TabsTrigger>
                   <TabsTrigger value="main_admin">Main Admin</TabsTrigger>
                 </TabsList>

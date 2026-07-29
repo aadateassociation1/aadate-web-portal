@@ -9,7 +9,7 @@ import {
 import { MARKET_UPDATES, NOTICES, COMPLAINTS, NOTIFICATIONS, OWNERS } from "@/lib/mock";
 
 export const Route = createFileRoute("/owner")({
-  head: () => ({ meta: [{ title: "Gala Owner Dashboard — VPP Market Yard" }] }),
+  head: () => ({ meta: [{ title: "Member Dashboard â€” VPP Market Yard" }] }),
   component: OwnerDash,
 });
 
@@ -81,7 +81,7 @@ function OwnerDash() {
                 <div key={c.id} className="flex items-start gap-3 rounded-lg border p-3">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><MessageSquare className="h-4 w-4" /></div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="font-mono">{c.id}</span> · {c.category}</div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="font-mono">{c.id}</span> Â· {c.category}</div>
                     <div className="truncate text-sm font-medium text-primary-dark">{c.subject}</div>
                   </div>
                   <Badge className="capitalize" variant={c.status === "resolved" ? "default" : "secondary"}>{c.status.replace("_", " ")}</Badge>
@@ -103,7 +103,7 @@ function OwnerDash() {
                 <div key={u.id} className="flex items-start gap-3 rounded-lg border p-3">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><Newspaper className="h-4 w-4" /></div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs text-muted-foreground">{u.category} · {new Date(u.date).toLocaleDateString("en-IN")}</div>
+                    <div className="text-xs text-muted-foreground">{u.category} Â· {new Date(u.date).toLocaleDateString("en-IN")}</div>
                     <div className="truncate text-sm font-medium text-primary-dark">{u.title}</div>
                   </div>
                   {u.emergency && <Badge className="bg-destructive text-white">Alert</Badge>}
@@ -126,7 +126,7 @@ function OwnerDash() {
               <div key={n.id} className="flex items-start gap-3 rounded-lg border p-3">
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><FileText className="h-4 w-4" /></div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs text-muted-foreground">#{n.number} · <Clock className="inline h-3 w-3" /> {new Date(n.date).toLocaleDateString("en-IN")}</div>
+                  <div className="text-xs text-muted-foreground">#{n.number} Â· <Clock className="inline h-3 w-3" /> {new Date(n.date).toLocaleDateString("en-IN")}</div>
                   <div className="truncate text-sm font-medium text-primary-dark">{n.title}</div>
                 </div>
               </div>

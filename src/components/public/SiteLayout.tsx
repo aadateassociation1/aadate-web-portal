@@ -21,23 +21,32 @@ const NAV = [
 
 function LangSwitcher() {
   const { lang, setLang } = useI18n();
+  const active = "bg-saffron text-saffron-foreground";
+  const inactive = "text-white/90 hover:bg-white/10";
+
   return (
-    <div className="inline-flex overflow-hidden rounded-full border border-white/30 text-xs font-semibold">
+    <div className="inline-flex overflow-hidden rounded-full border border-white/30 text-xs font-semibold" aria-label="Language selector">
       <button
         onClick={() => setLang("en")}
-        className={`px-2.5 py-1 transition ${lang === "en" ? "bg-saffron text-saffron-foreground" : "text-white/90 hover:bg-white/10"}`}
+        className={`px-3 py-1 transition ${lang === "en" ? active : inactive}`}
         aria-label="English"
-      >EN</button>
+      >
+        English
+      </button>
       <button
         onClick={() => setLang("mr")}
-        className={`px-2.5 py-1 transition ${lang === "mr" ? "bg-saffron text-saffron-foreground" : "text-white/90 hover:bg-white/10"}`}
-        aria-label="मराठी"
-      >मराठी</button>
+        className={`px-3 py-1 transition ${lang === "mr" ? active : inactive}`}
+        aria-label="Marathi"
+      >
+        {"\u092e\u0930\u093e\u0920\u0940"}
+      </button>
     </div>
   );
 }
 
+
 function TopBar() {
+  const { lang } = useI18n();
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
@@ -49,10 +58,10 @@ function TopBar() {
         <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
           <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> +91 20 2645 1122</span>
           <span className="hidden sm:inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> office@vpp-marketyard.in</span>
-          <span className="hidden md:inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Mon–Sat, 8 AM – 6 PM</span>
+          <span className="hidden md:inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Mon-Sat, 8 AM - 6 PM</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="hidden sm:inline">{now.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "medium" })}</span>
+          <span className="hidden sm:inline">{now.toLocaleString(lang === "mr" ? "mr-IN" : "en-IN", { dateStyle: "medium", timeStyle: "medium" })}</span>
           <LangSwitcher />
         </div>
       </div>
@@ -166,7 +175,7 @@ function Footer() {
             <div className="font-display font-bold text-white">{t("assoc.short")}</div>
           </div>
           <p className="text-sm text-white/70 leading-relaxed">
-            Serving 850+ gala owners with transparent digital administration since 2009.
+            Serving 850+ members with transparent digital administration since 2009.
           </p>
           <div className="mt-4 flex gap-3">
             <a className="grid h-9 w-9 place-items-center rounded-full bg-white/10 hover:bg-saffron hover:text-primary-dark transition"><Facebook className="h-4 w-4" /></a>
@@ -204,7 +213,7 @@ function Footer() {
             <li className="flex gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> Market Yard Road, Saswad, Purandar, Pune 412301</li>
             <li className="flex gap-2"><Phone className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> +91 20 2645 1122</li>
             <li className="flex gap-2"><Mail className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> office@vpp-marketyard.in</li>
-            <li className="flex gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> Mon–Sat, 8 AM – 6 PM</li>
+            <li className="flex gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> Mon-Sat, 8 AM - 6 PM</li>
           </ul>
         </div>
       </div>

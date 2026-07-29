@@ -7,10 +7,10 @@ import heroImg from "@/assets/market-hero.jpg";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About Us — VPP Market Yard Portal" },
+      { title: "About Us â€” VPP Market Yard Portal" },
       { name: "description", content: "History, mission, vision and objectives of Vishal Purandhar Patasanstha Market Yard Owners Association." },
-      { property: "og:title", content: "About Us — VPP Market Yard Portal" },
-      { property: "og:description", content: "Serving 850+ gala owners with transparent digital administration since 2009." },
+      { property: "og:title", content: "About Us â€” VPP Market Yard Portal" },
+      { property: "og:description", content: "Serving 850+ members with transparent digital administration since 2009." },
     ],
   }),
   component: About,
@@ -23,7 +23,7 @@ function About() {
         <div className="container-page">
           <h1 className="font-display text-3xl font-bold sm:text-5xl">About Our Association</h1>
           <p className="mt-4 max-w-2xl text-white/85">
-            The digital face of Vishal Purandhar Patasanstha Market Yard Owners Association — connecting traders, farmers and administrators since 2009.
+            The digital face of Vishal Purandhar Patasanstha Market Yard Owners Association â€” connecting traders, farmers and administrators since 2009.
           </p>
         </div>
       </section>
@@ -34,14 +34,14 @@ function About() {
           <div>
             <h2 className="font-display text-3xl font-bold text-primary-dark">Our Story</h2>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              Founded in 2009, our association was established to unify the shopkeepers, wholesalers and traders operating within the Purandhar Market Yard. Today we represent 852 registered gala owners across ten market sections — vegetables, fruits, grains, flowers, agricultural goods, packaging services and more.
+              Founded in 2009, our association was established to unify the shopkeepers, wholesalers and traders operating within the Purandhar Market Yard. Today we represent 852 registered members across ten market sections â€” vegetables, fruits, grains, flowers, agricultural goods, packaging services and more.
             </p>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              With the launch of this digital portal in 2026, every gala owner now has 24/7 access to market updates, official notices, complaint filing and administration in both English and Marathi.
+              With the launch of this digital portal in 2026, every member now has 24/7 access to market updates, official notices, complaint filing and administration in both English and Marathi.
             </p>
             <div className="mt-6 grid grid-cols-3 gap-4">
               {[
-                { n: "852", l: "Gala Owners" },
+                { n: "852", l: "Members" },
                 { n: "10", l: "Market Sections" },
                 { n: "15+", l: "Years of service" },
               ].map((s) => (
@@ -58,7 +58,7 @@ function About() {
       <section className="bg-leaf py-16">
         <div className="container-page grid gap-6 md:grid-cols-3">
           {[
-            { icon: Target, title: "Mission", body: "Empower every gala owner with transparent, digital and timely administration." },
+            { icon: Target, title: "Mission", body: "Empower every member with transparent, digital and timely administration." },
             { icon: Eye, title: "Vision", body: "To be Maharashtra's most connected and farmer-friendly market yard." },
             { icon: Heart, title: "Values", body: "Trust, transparency, cooperation and continuous improvement." },
           ].map((v) => (
@@ -83,7 +83,7 @@ function About() {
               { icon: Building2, title: "Cold storage", body: "500 MT capacity for perishables" },
               { icon: Users, title: "Committee training", body: "Monthly farmer awareness camps" },
               { icon: Trophy, title: "State award", body: "Best market yard, Pune district 2026" },
-              { icon: Target, title: "24×7 security", body: "CCTV across all sections" },
+              { icon: Target, title: "24Ã—7 security", body: "CCTV across all sections" },
             ].map((f) => (
               <Card key={f.title} className="border-border/60">
                 <CardContent className="p-5">

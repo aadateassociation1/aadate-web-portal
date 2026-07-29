@@ -175,7 +175,7 @@ export const MARKET_UPDATES: MarketUpdate[] = [
   { id: "MU-004", title: "Market closure notice — Sunday", titleMr: "बाजार बंद सूचना — रविवार", category: "Market holiday", summary: "Market will remain fully closed on Sunday, August 3.", date: "2026-07-27", publishedBy: "Main Admin", views: 890, featured: true, emergency: true },
   { id: "MU-005", title: "Water supply maintenance", titleMr: "पाणीपुरवठा देखभाल", category: "Water or electricity update", summary: "Water supply will be interrupted 10 AM – 2 PM on July 30.", date: "2026-07-27", publishedBy: "Main Admin", views: 621 },
   { id: "MU-006", title: "New parking arrangement", titleMr: "नवीन पार्किंग व्यवस्था", category: "Traffic or parking update", summary: "Revised parking zones effective August 1.", date: "2026-07-26", publishedBy: "Main Admin", views: 402 },
-  { id: "MU-007", title: "Cleanliness drive announcement", titleMr: "स्वच्छता मोहीम घोषणा", category: "General market news", summary: "Cleanliness drive on August 5, all gala owners invited.", date: "2026-07-25", publishedBy: "User Admin", views: 288 },
+  { id: "MU-007", title: "Cleanliness drive announcement", titleMr: "स्वच्छता मोहीम घोषणा", category: "General market news", summary: "Cleanliness drive on August 5, all members invited.", date: "2026-07-25", publishedBy: "User Admin", views: 288 },
   { id: "MU-008", title: "Monthly committee meeting", titleMr: "मासिक समिती बैठक", category: "General market news", summary: "Monthly meeting scheduled August 8, 10 AM at association hall.", date: "2026-07-25", publishedBy: "Main Admin", views: 356 },
   { id: "MU-009", title: "Rain alert for traders", titleMr: "व्यापाऱ्यांसाठी पाऊस इशारा", category: "Weather alert", summary: "Heavy rain expected next 3 days — cover perishable stock.", date: "2026-07-24", publishedBy: "User Admin", views: 723, emergency: true },
   { id: "MU-010", title: "Revised loading/unloading timing", titleMr: "सुधारित माल चढ-उतार वेळ", category: "Traffic or parking update", summary: "Loading now 4 AM – 8 AM, unloading 8 PM – 11 PM.", date: "2026-07-23", publishedBy: "Main Admin", views: 512 },
@@ -195,7 +195,7 @@ export const NOTICES: Notice[] = [
   { id: "N-6", number: "VPP/2026/40", title: "Electricity meter reading schedule", category: "Electricity Notice", description: "Meter reading on July 31.", date: "2026-07-18", attachment: "meter-reading.pdf" },
   { id: "N-7", number: "VPP/2026/39", title: "COVID prevention guidelines", category: "Health and Safety Notice", description: "Follow health advisory in crowded market areas.", date: "2026-07-15", attachment: "health-advisory.pdf" },
   { id: "N-8", number: "VPP/2026/38", title: "Government market circular", category: "Government Circular", description: "APMC circular regarding trader compliance.", date: "2026-07-14", attachment: "govt-circular.pdf" },
-  { id: "N-9", number: "VPP/2026/37", title: "Revised market rules", category: "Rules and Regulations", description: "Updated code of conduct for all gala owners.", date: "2026-07-12", attachment: "market-rules.pdf" },
+  { id: "N-9", number: "VPP/2026/37", title: "Revised market rules", category: "Rules and Regulations", description: "Updated code of conduct for all members.", date: "2026-07-12", attachment: "market-rules.pdf" },
   { id: "N-10", number: "VPP/2026/36", title: "Cleanliness drive participation", category: "General Notice", description: "Volunteer participation invited for cleanliness drive.", date: "2026-07-10", attachment: "clean-drive.pdf" },
   { id: "N-11", number: "VPP/2026/35", title: "Fire safety compliance", category: "Health and Safety Notice", description: "Fire extinguisher check mandatory before August 5.", date: "2026-07-08", attachment: "fire-safety.pdf" },
   { id: "N-12", number: "VPP/2026/34", title: "Committee sub-election notice", category: "Meeting Notice", description: "Sub-election for 2 vacant committee positions.", date: "2026-07-05", attachment: "election-notice.pdf" },
@@ -215,7 +215,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
 
 export const NEWS = [
   { id: "NEWS-1", title: "New cold storage facility inaugurated", date: "2026-07-25", summary: "500 MT capacity cold storage for perishables now operational at Section C." },
-  { id: "NEWS-2", title: "Digital portal launched for gala owners", date: "2026-07-15", summary: "Association launches secure digital portal for all 850+ members." },
+  { id: "NEWS-2", title: "Digital portal launched for members", date: "2026-07-15", summary: "Association launches secure digital portal for all 850+ members." },
   { id: "NEWS-3", title: "Solar panels installed on market roof", date: "2026-07-01", summary: "50 kW rooftop solar reduces electricity cost by 30%." },
   { id: "NEWS-4", title: "Farmer awareness camp organised", date: "2026-06-20", summary: "Awareness camp on modern trading practices held for 200+ farmers." },
   { id: "NEWS-5", title: "New drinking water RO plant", date: "2026-06-10", summary: "RO drinking water plant installed for traders and visitors." },
@@ -244,8 +244,8 @@ export const CURRENT_CHAIRMAN = {
   nameMr: "सौरभ कुंजीर",
   designation: "Chairman",
   term: "2024 – 2027",
-  message: "Our mission is to empower every gala owner with digital tools and transparent administration. Together we will build a modern, farmer-friendly market yard.",
-  messageMr: "प्रत्येक गाळा मालकाला डिजिटल साधने आणि पारदर्शक प्रशासन देणे हे आमचे ध्येय आहे.",
+  message: "Our mission is to empower every member with digital tools and transparent administration. Together we will build a modern, farmer-friendly market yard.",
+  messageMr: "प्रत्येक सभासदाला डिजिटल साधने आणि पारदर्शक प्रशासन देणे हे आमचे ध्येय आहे.",
 };
 
 export const LOBBY_CHAIRMAN = {

@@ -2,7 +2,7 @@ import { createFileRoute } from "@/lib/simple-router";
 import { OwnerComplaintsPage } from "@/components/dashboard/DashboardPages";
 
 export const Route = createFileRoute("/owner/complaints")({
-  head: () => ({ meta: [{ title: "My Complaints - Gala Owner" }] }),
+  head: () => ({ meta: [{ title: "My Complaints - Member" }] }),
   component: OwnerComplaintsPage,
 });
 

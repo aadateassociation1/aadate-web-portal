@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { translateDocumentToMarathi } from "@/lib/marathi";
 
 export type Lang = "en" | "mr";
 
@@ -12,17 +13,17 @@ const dict = {
     "nav.notices": "Notices",
     "nav.gallery": "Gallery",
     "nav.contact": "Contact",
-    "nav.login": "Gala Owner Login",
+    "nav.login": "Members",
     "nav.register": "Register",
     "nav.logout": "Logout",
     "assoc.name": "Vishal Purandhar Patasanstha",
     "assoc.short": "Market Yard Owners Association",
-    "hero.title": "Connecting Every Gala Owner with the Market Yard Administration",
+    "hero.title": "Connecting Every Member with the Market Yard Administration",
     "hero.sub": "A secure digital platform for market updates, complaints, official notices, documents and communication.",
-    "hero.cta.login": "Gala Owner Login",
+    "hero.cta.login": "Members",
     "hero.cta.register": "Register Your Gala",
     "hero.cta.updates": "View Latest Market Updates",
-    "stats.owners": "Registered Gala Owners",
+    "stats.owners": "Registered Members",
     "stats.portal": "Digital Market Yard Portal",
     "stats.access": "Access to Notices",
     "stats.resolution": "Faster Complaint Resolution",
@@ -45,17 +46,17 @@ const dict = {
     "nav.notices": "सूचना",
     "nav.gallery": "गॅलरी",
     "nav.contact": "संपर्क",
-    "nav.login": "गाळा मालक लॉगिन",
+    "nav.login": "सभासद लॉगिन",
     "nav.register": "नोंदणी",
     "nav.logout": "बाहेर पडा",
     "assoc.name": "विशाल पुरंदर पतसंस्था मार्केट यार्ड",
-    "assoc.short": "मार्केट यार्ड गाळा मालक संघटना",
-    "hero.title": "प्रत्येक गाळा मालकाला मार्केट यार्ड प्रशासनाशी जोडणे",
+    "assoc.short": "मार्केट यार्ड सभासद संघटना",
+    "hero.title": "प्रत्येक सभासदाला मार्केट यार्ड प्रशासनाशी जोडणे",
     "hero.sub": "बाजार अद्यतने, तक्रारी, अधिकृत सूचना, कागदपत्रे आणि संवादासाठी सुरक्षित डिजिटल व्यासपीठ.",
-    "hero.cta.login": "गाळा मालक लॉगिन",
+    "hero.cta.login": "सभासद लॉगिन",
     "hero.cta.register": "गाळा नोंदणी करा",
     "hero.cta.updates": "नवीनतम बाजार अद्यतने पहा",
-    "stats.owners": "नोंदणीकृत गाळा मालक",
+    "stats.owners": "नोंदणीकृत सभासद",
     "stats.portal": "डिजिटल मार्केट यार्ड पोर्टल",
     "stats.access": "सूचनांसाठी प्रवेश",
     "stats.resolution": "जलद तक्रार निवारण",
@@ -85,6 +86,31 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const saved = typeof window !== "undefined" ? (localStorage.getItem("lang") as Lang | null) : null;
     if (saved === "en" || saved === "mr") setLangState(saved);
   }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.lang = lang;
+
+    let frame = 0;
+    const translate = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => translateDocumentToMarathi(document.body, lang));
+    };
+
+    translate();
+    if (lang !== "mr") {
+      return () => cancelAnimationFrame(frame);
+    }
+
+    const observer = new MutationObserver(translate);
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [lang]);
+
   const setLang = (l: Lang) => {
     setLangState(l);
     if (typeof window !== "undefined") localStorage.setItem("lang", l);

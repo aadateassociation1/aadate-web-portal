@@ -12,7 +12,7 @@ import { CheckCircle2, ChevronLeft, ChevronRight, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/register")({
-  head: () => ({ meta: [{ title: "Register Your Gala — VPP Market Yard Portal" }, { name: "description", content: "Multi-step gala owner registration form." }] }),
+  head: () => ({ meta: [{ title: "Register Your Gala â€” VPP Market Yard Portal" }, { name: "description", content: "Multi-step member registration form." }] }),
   component: Register,
 });
 
@@ -48,7 +48,7 @@ function Register() {
               <CardContent className="p-10">
                 <CheckCircle2 className="mx-auto h-16 w-16 text-success" />
                 <h1 className="mt-5 font-display text-2xl font-bold text-primary-dark">Registration submitted</h1>
-                <p className="mt-3 text-muted-foreground">Your application <span className="font-mono font-bold text-primary">{done}</span> has been received. You will be able to log in after admin approval — typically within 48 hours.</p>
+                <p className="mt-3 text-muted-foreground">Your application <span className="font-mono font-bold text-primary">{done}</span> has been received. You will be able to log in after admin approval â€” typically within 48 hours.</p>
                 <div className="mt-6 flex justify-center gap-3">
                   <Button asChild variant="outline"><Link to="/">Back to Home</Link></Button>
                   <Button asChild className="bg-primary"><Link to="/login">Go to Login</Link></Button>
@@ -83,7 +83,7 @@ function Register() {
               {step === 0 && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="sm:col-span-2"><Label>Full name *</Label><Input required onChange={(e) => set("name", e.target.value)} defaultValue={data.name} /></div>
-                  <div><Label>Name in Marathi</Label><Input onChange={(e) => set("nameMr", e.target.value)} defaultValue={data.nameMr} placeholder="मराठीत नाव" /></div>
+                  <div><Label>Name in Marathi</Label><Input onChange={(e) => set("nameMr", e.target.value)} defaultValue={data.nameMr} placeholder="à¤®à¤°à¤¾à¤ à¥€à¤¤ à¤¨à¤¾à¤µ" /></div>
                   <div><Label>Date of birth</Label><Input type="date" onChange={(e) => set("dob", e.target.value)} defaultValue={data.dob} /></div>
                   <div><Label>Gender</Label>
                     <Select onValueChange={(v) => set("gender", v)}>
@@ -146,7 +146,7 @@ function Register() {
                   <h3 className="font-display font-semibold text-primary-dark">Review your details</h3>
                   <div className="grid gap-2 rounded-xl border p-4 text-sm sm:grid-cols-2">
                     {Object.entries(data).filter(([, v]) => v).map(([k, v]) => (
-                      <div key={k}><span className="text-muted-foreground capitalize">{k}: </span><span className="font-medium">{k === "password" || k === "confirm" ? "••••••••" : v}</span></div>
+                      <div key={k}><span className="text-muted-foreground capitalize">{k}: </span><span className="font-medium">{k === "password" || k === "confirm" ? "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" : v}</span></div>
                     ))}
                   </div>
                   <label className="flex gap-3 rounded-xl border p-4 cursor-pointer">

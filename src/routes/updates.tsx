@@ -19,9 +19,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/updates")({
   head: () => ({
     meta: [
-      { title: "Market Updates — Daily Rates & News | VPP Market Yard" },
+      { title: "Market Updates â€” Daily Rates & News | VPP Market Yard" },
       { name: "description", content: "Daily vegetable, fruit, grain prices and market yard news." },
-      { property: "og:title", content: "Market Updates — VPP Market Yard" },
+      { property: "og:title", content: "Market Updates â€” VPP Market Yard" },
       { property: "og:description", content: "Live market rates and yard news." },
     ],
   }),
@@ -86,7 +86,7 @@ function Updates() {
           <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search updates…" className="pl-9" />
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search updatesâ€¦" className="pl-9" />
             </div>
             <Select value={cat} onValueChange={setCat}>
               <SelectTrigger className="w-full sm:w-64"><SelectValue /></SelectTrigger>
@@ -165,7 +165,7 @@ function Updates() {
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{selected.summary}</p>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  This update is published by the market yard administration for gala owners, traders, and visitors. Download the report for offline reference.
+                  This update is published by the market yard administration for members, traders, and visitors. Download the report for offline reference.
                 </p>
               </div>
               <div className="flex flex-wrap justify-end gap-2">

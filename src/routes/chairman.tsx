@@ -8,10 +8,10 @@ import sourabhKunjirImg from "@/assets/sourabh kunjir.jpeg";
 export const Route = createFileRoute("/chairman")({
   head: () => ({
     meta: [
-      { title: "Chairman & Committee — VPP Market Yard" },
+      { title: "Chairman & Committee â€” VPP Market Yard" },
       { name: "description", content: "Meet our current chairman, lobby chairman, past chairmen and committee members." },
-      { property: "og:title", content: "Chairman & Committee — VPP Market Yard" },
-      { property: "og:description", content: "Leadership serving 850+ gala owners." },
+      { property: "og:title", content: "Chairman & Committee â€” VPP Market Yard" },
+      { property: "og:description", content: "Leadership serving 850+ members." },
     ],
   }),
   component: Chairman,
@@ -23,7 +23,7 @@ function Chairman() {
       <section className="hero-gradient text-white py-16">
         <div className="container-page">
           <h1 className="font-display text-3xl font-bold sm:text-5xl">Chairman &amp; Committee</h1>
-          <p className="mt-4 max-w-2xl text-white/85">Meet the leaders serving our 850+ gala owners.</p>
+          <p className="mt-4 max-w-2xl text-white/85">Meet the leaders serving our 850+ members.</p>
         </div>
       </section>
 
