@@ -165,7 +165,7 @@ function Updates() {
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{selected.summary}</p>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  This update is published by the market yard administration for members, traders, and visitors. Download the report for offline reference.
+                  This update is published by the market yard administration for traders and visitors. Download the report for offline reference.
                 </p>
               </div>
               <div className="flex flex-wrap justify-end gap-2">

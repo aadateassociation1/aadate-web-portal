@@ -18,10 +18,10 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "VPP Market Yard — Digital Portal for Members" },
-      { name: "description", content: "Connecting 850+ members with market yard administration. Market updates, notices, complaints, official documents." },
-      { property: "og:title", content: "VPP Market Yard — Digital Portal for Members" },
-      { property: "og:description", content: "Secure digital platform for members of Vishal Purandhar Patasanstha Market Yard." },
+      { title: "VPP Market Yard — Digital Portal for Traders" },
+      { name: "description", content: "Connecting 850+ traders with market yard administration. Market updates, notices, complaints, official documents." },
+      { property: "og:title", content: "VPP Market Yard — Digital Portal for Traders" },
+      { property: "og:description", content: "Secure digital platform for traders of Vishal Purandhar Patasanstha Market Yard." },
     ],
   }),
   component: Home,
@@ -142,13 +142,13 @@ function Home() {
               Serving Maharashtra's farmers &amp; traders since 2009
             </h2>
             <p className="mt-5 text-muted-foreground leading-relaxed">
-              Vishal Purandhar Patasanstha Market Yard Owners Association represents over 850 members
+              Vishal Purandhar Patasanstha Market Yard Owners Association represents over 850 traders
               operating across vegetable, fruit, grain, flower and agricultural sections. Our digital
               transformation initiative delivers transparent administration, faster complaint resolution
               and instant access to notices — all in Marathi and English.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              {["Transparent complaint workflow", "Digital notice archive", "Bilingual EN / मराठी", "Verified member accounts"].map((f) => (
+              {["Transparent complaint workflow", "Digital notice archive", "Bilingual EN / मराठी", "Verified trader accounts"].map((f) => (
                 <div key={f} className="flex items-start gap-2 text-sm">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary-fresh" /> {f}
                 </div>
@@ -172,7 +172,7 @@ function Home() {
           <div className="max-w-2xl">
             <span className="text-xs font-bold uppercase tracking-wider text-primary">{t("section.services")}</span>
             <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">
-              Everything a member needs, in one portal
+              Everything a trader needs, in one portal
             </h2>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -387,7 +387,7 @@ function Home() {
                 <Link to="/register">Register Your Gala</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white hover:text-primary-dark">
-                <Link to="/login">Members</Link>
+                <Link to="/login">Traders</Link>
               </Button>
             </div>
           </div>

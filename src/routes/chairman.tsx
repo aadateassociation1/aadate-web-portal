@@ -9,9 +9,9 @@ export const Route = createFileRoute("/chairman")({
   head: () => ({
     meta: [
       { title: "Chairman & Committee â€” VPP Market Yard" },
-      { name: "description", content: "Meet our current chairman, lobby chairman, past chairmen and committee members." },
+      { name: "description", content: "Meet our current chairman, lobby chairman, past chairmen and committee traders." },
       { property: "og:title", content: "Chairman & Committee â€” VPP Market Yard" },
-      { property: "og:description", content: "Leadership serving 850+ members." },
+      { property: "og:description", content: "Leadership serving 850+ traders." },
     ],
   }),
   component: Chairman,
@@ -23,7 +23,7 @@ function Chairman() {
       <section className="hero-gradient text-white py-16">
         <div className="container-page">
           <h1 className="font-display text-3xl font-bold sm:text-5xl">Chairman &amp; Committee</h1>
-          <p className="mt-4 max-w-2xl text-white/85">Meet the leaders serving our 850+ members.</p>
+          <p className="mt-4 max-w-2xl text-white/85">Meet the leaders serving our 850+ traders.</p>
         </div>
       </section>
 
@@ -62,7 +62,7 @@ function Chairman() {
 
       <section className="bg-leaf py-14">
         <div className="container-page">
-          <h2 className="font-display text-2xl font-bold text-primary-dark">Committee Members</h2>
+          <h2 className="font-display text-2xl font-bold text-primary-dark">Committee Traders</h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {COMMITTEE.map((m) => (
               <Card key={m.id} className="text-center border-border/60">

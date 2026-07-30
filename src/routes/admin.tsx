@@ -59,7 +59,7 @@ function AdminDash() {
       <Tabs defaultValue="overview">
         <TabsList className="w-full flex-wrap justify-start h-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="owners">Members</TabsTrigger>
+          <TabsTrigger value="owners">Traders</TabsTrigger>
           <TabsTrigger value="complaints">Complaints</TabsTrigger>
           <TabsTrigger value="updates">Market Updates</TabsTrigger>
           <TabsTrigger value="notices">Notices</TabsTrigger>
@@ -70,7 +70,7 @@ function AdminDash() {
         <TabsContent value="overview" className="mt-6 space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { icon: Users, label: "Total Members", value: DASHBOARD_STATS.totalOwners, color: "bg-primary text-white" },
+              { icon: Users, label: "Total Traders", value: DASHBOARD_STATS.totalOwners, color: "bg-primary text-white" },
               { icon: CheckCircle2, label: "Approved", value: DASHBOARD_STATS.approved, color: "bg-success text-white" },
               { icon: ClipboardList, label: "Pending", value: DASHBOARD_STATS.pending, color: "bg-warning text-white" },
               { icon: Ban, label: "Blacklisted", value: DASHBOARD_STATS.blacklisted, color: "bg-destructive text-white" },

@@ -19,7 +19,7 @@ export const Route = createFileRoute("/notices")({
   head: () => ({
     meta: [
       { title: "Notices & Documents â€” VPP Market Yard" },
-      { name: "description", content: "Official notices, circulars and downloadable documents for members." },
+      { name: "description", content: "Official notices, circulars and downloadable documents for traders." },
       { property: "og:title", content: "Notices & Documents â€” VPP Market Yard" },
       { property: "og:description", content: "Access all official notices and market yard documents." },
     ],
@@ -153,7 +153,7 @@ function Notices() {
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{selected.description}</p>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  This notice is issued by the association for members and market yard members. Download the notice for offline reference.
+                  This notice is issued by the association for traders and market yard traders. Download the notice for offline reference.
                 </p>
               </div>
 

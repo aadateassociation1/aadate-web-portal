@@ -12,7 +12,7 @@ import { CheckCircle2, ChevronLeft, ChevronRight, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/register")({
-  head: () => ({ meta: [{ title: "Register Your Gala â€” VPP Market Yard Portal" }, { name: "description", content: "Multi-step member registration form." }] }),
+  head: () => ({ meta: [{ title: "Register Your Gala â€” VPP Market Yard Portal" }, { name: "description", content: "Multi-step trader registration form." }] }),
   component: Register,
 });
 

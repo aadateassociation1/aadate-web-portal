@@ -182,7 +182,7 @@ function Footer() {
             <div className="font-display font-bold text-white">{t("assoc.short")}</div>
           </div>
           <p className="text-sm text-white/70 leading-relaxed">
-            Serving 850+ members with transparent digital administration since 2009.
+            Serving 850+ traders with transparent digital administration since 2009.
           </p>
           <div className="mt-4 flex gap-3">
             <a className="grid h-9 w-9 place-items-center rounded-full bg-white/10 hover:bg-saffron hover:text-primary-dark transition"><Facebook className="h-4 w-4" /></a>

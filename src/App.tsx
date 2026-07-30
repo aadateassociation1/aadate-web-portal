@@ -19,6 +19,7 @@ import { Route as OwnerUpdatesRoute } from "@/routes/owner.updates";
 import { Route as OwnerNoticesRoute } from "@/routes/owner.notices";
 import { Route as OwnerComplaintsRoute } from "@/routes/owner.complaints";
 import { Route as OwnerNewComplaintRoute } from "@/routes/owner.new-complaint";
+import { Route as OwnerKycRoute } from "@/routes/owner.kyc";
 import { Route as OwnerPostRoute } from "@/routes/owner.post";
 import { Route as OwnerSharedPostsRoute } from "@/routes/owner.shared-posts";
 import { Route as OwnerMobileChangeRoute } from "@/routes/owner.mobile-change";
@@ -64,6 +65,7 @@ const ROUTES: Record<string, LocalRoute> = {
   "/owner/notices": OwnerNoticesRoute,
   "/owner/complaints": OwnerComplaintsRoute,
   "/owner/new-complaint": OwnerNewComplaintRoute,
+  "/owner/kyc": OwnerKycRoute,
   "/owner/post": OwnerPostRoute,
   "/owner/shared-posts": OwnerSharedPostsRoute,
   "/owner/mobile-change": OwnerMobileChangeRoute,

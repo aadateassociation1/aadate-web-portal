@@ -85,6 +85,18 @@ export interface MobileChangeRequest {
   status: "pending" | "approved" | "rejected" | "under_review";
 }
 
+export interface CustomerKyc {
+  id: string;
+  ownerId: string;
+  ownerName: string;
+  customerName: string;
+  phone: string;
+  aadhaar: string;
+  pan: string;
+  date: string;
+  status: "verified" | "pending";
+}
+
 export interface CommitteeMember {
   id: string;
   name: string;
@@ -175,7 +187,7 @@ export const MARKET_UPDATES: MarketUpdate[] = [
   { id: "MU-004", title: "Market closure notice — Sunday", titleMr: "बाजार बंद सूचना — रविवार", category: "Market holiday", summary: "Market will remain fully closed on Sunday, August 3.", date: "2026-07-27", publishedBy: "Main Admin", views: 890, featured: true, emergency: true },
   { id: "MU-005", title: "Water supply maintenance", titleMr: "पाणीपुरवठा देखभाल", category: "Water or electricity update", summary: "Water supply will be interrupted 10 AM – 2 PM on July 30.", date: "2026-07-27", publishedBy: "Main Admin", views: 621 },
   { id: "MU-006", title: "New parking arrangement", titleMr: "नवीन पार्किंग व्यवस्था", category: "Traffic or parking update", summary: "Revised parking zones effective August 1.", date: "2026-07-26", publishedBy: "Main Admin", views: 402 },
-  { id: "MU-007", title: "Cleanliness drive announcement", titleMr: "स्वच्छता मोहीम घोषणा", category: "General market news", summary: "Cleanliness drive on August 5, all members invited.", date: "2026-07-25", publishedBy: "User Admin", views: 288 },
+  { id: "MU-007", title: "Cleanliness drive announcement", titleMr: "स्वच्छता मोहीम घोषणा", category: "General market news", summary: "Cleanliness drive on August 5, all traders invited.", date: "2026-07-25", publishedBy: "User Admin", views: 288 },
   { id: "MU-008", title: "Monthly committee meeting", titleMr: "मासिक समिती बैठक", category: "General market news", summary: "Monthly meeting scheduled August 8, 10 AM at association hall.", date: "2026-07-25", publishedBy: "Main Admin", views: 356 },
   { id: "MU-009", title: "Rain alert for traders", titleMr: "व्यापाऱ्यांसाठी पाऊस इशारा", category: "Weather alert", summary: "Heavy rain expected next 3 days — cover perishable stock.", date: "2026-07-24", publishedBy: "User Admin", views: 723, emergency: true },
   { id: "MU-010", title: "Revised loading/unloading timing", titleMr: "सुधारित माल चढ-उतार वेळ", category: "Traffic or parking update", summary: "Loading now 4 AM – 8 AM, unloading 8 PM – 11 PM.", date: "2026-07-23", publishedBy: "Main Admin", views: 512 },
@@ -187,7 +199,7 @@ export const MARKET_UPDATES: MarketUpdate[] = [
 ];
 
 export const NOTICES: Notice[] = [
-  { id: "N-1", number: "VPP/2026/45", title: "Annual General Meeting notice", category: "Meeting Notice", description: "AGM scheduled August 15 at association hall. All members must attend.", date: "2026-07-26", attachment: "AGM-notice.pdf" },
+  { id: "N-1", number: "VPP/2026/45", title: "Annual General Meeting notice", category: "Meeting Notice", description: "AGM scheduled August 15 at association hall. All traders must attend.", date: "2026-07-26", attachment: "AGM-notice.pdf" },
   { id: "N-2", number: "VPP/2026/44", title: "Market closure on public holiday", category: "Market Holiday Notice", description: "Market will remain closed August 15 on account of Independence Day.", date: "2026-07-25", attachment: "holiday-notice.pdf" },
   { id: "N-3", number: "VPP/2026/43", title: "Monthly maintenance fee due", category: "Payment Notice", description: "Maintenance fee for July 2026 due by 31st. Pay at office counter.", date: "2026-07-22", attachment: "fee-notice.pdf" },
   { id: "N-4", number: "VPP/2026/42", title: "Revised parking guidelines", category: "Parking Notice", description: "New parking layout effective August 1.", date: "2026-07-20", attachment: "parking-guidelines.pdf" },
@@ -195,7 +207,7 @@ export const NOTICES: Notice[] = [
   { id: "N-6", number: "VPP/2026/40", title: "Electricity meter reading schedule", category: "Electricity Notice", description: "Meter reading on July 31.", date: "2026-07-18", attachment: "meter-reading.pdf" },
   { id: "N-7", number: "VPP/2026/39", title: "COVID prevention guidelines", category: "Health and Safety Notice", description: "Follow health advisory in crowded market areas.", date: "2026-07-15", attachment: "health-advisory.pdf" },
   { id: "N-8", number: "VPP/2026/38", title: "Government market circular", category: "Government Circular", description: "APMC circular regarding trader compliance.", date: "2026-07-14", attachment: "govt-circular.pdf" },
-  { id: "N-9", number: "VPP/2026/37", title: "Revised market rules", category: "Rules and Regulations", description: "Updated code of conduct for all members.", date: "2026-07-12", attachment: "market-rules.pdf" },
+  { id: "N-9", number: "VPP/2026/37", title: "Revised market rules", category: "Rules and Regulations", description: "Updated code of conduct for all traders.", date: "2026-07-12", attachment: "market-rules.pdf" },
   { id: "N-10", number: "VPP/2026/36", title: "Cleanliness drive participation", category: "General Notice", description: "Volunteer participation invited for cleanliness drive.", date: "2026-07-10", attachment: "clean-drive.pdf" },
   { id: "N-11", number: "VPP/2026/35", title: "Fire safety compliance", category: "Health and Safety Notice", description: "Fire extinguisher check mandatory before August 5.", date: "2026-07-08", attachment: "fire-safety.pdf" },
   { id: "N-12", number: "VPP/2026/34", title: "Committee sub-election notice", category: "Meeting Notice", description: "Sub-election for 2 vacant committee positions.", date: "2026-07-05", attachment: "election-notice.pdf" },
@@ -215,7 +227,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
 
 export const NEWS = [
   { id: "NEWS-1", title: "New cold storage facility inaugurated", date: "2026-07-25", summary: "500 MT capacity cold storage for perishables now operational at Section C." },
-  { id: "NEWS-2", title: "Digital portal launched for members", date: "2026-07-15", summary: "Association launches secure digital portal for all 850+ members." },
+  { id: "NEWS-2", title: "Digital portal launched for traders", date: "2026-07-15", summary: "Association launches secure digital portal for all 850+ traders." },
   { id: "NEWS-3", title: "Solar panels installed on market roof", date: "2026-07-01", summary: "50 kW rooftop solar reduces electricity cost by 30%." },
   { id: "NEWS-4", title: "Farmer awareness camp organised", date: "2026-06-20", summary: "Awareness camp on modern trading practices held for 200+ farmers." },
   { id: "NEWS-5", title: "New drinking water RO plant", date: "2026-06-10", summary: "RO drinking water plant installed for traders and visitors." },
@@ -239,12 +251,19 @@ export const MOBILE_REQUESTS: MobileChangeRequest[] = Array.from({ length: 10 })
   };
 });
 
+export const CUSTOMER_KYC: CustomerKyc[] = [
+  { id: "KYC-001", ownerId: "GO-001", ownerName: "Ramesh Shinde", customerName: "Vishwas Borate", phone: "9822011122", aadhaar: "432156789012", pan: "ABCDE1234F", date: "2026-07-20", status: "verified" },
+  { id: "KYC-002", ownerId: "GO-001", ownerName: "Ramesh Shinde", customerName: "Meena Thorat", phone: "9822011133", aadhaar: "543267890123", pan: "BCDEF2345G", date: "2026-07-22", status: "verified" },
+  { id: "KYC-003", ownerId: "GO-002", ownerName: "Suresh Jadhav", customerName: "Aniket Pawar", phone: "9822011144", aadhaar: "654378901234", pan: "CDEFG3456H", date: "2026-07-23", status: "verified" },
+  { id: "KYC-004", ownerId: "GO-003", ownerName: "Mahesh Pawar", customerName: "Rahul Kadam", phone: "9822011155", aadhaar: "765489012345", pan: "DEFGH4567I", date: "2026-07-24", status: "verified" },
+];
+
 export const CURRENT_CHAIRMAN = {
   name: "Shri. Sourabh Kunjir",
   nameMr: "सौरभ कुंजीर",
   designation: "Chairman",
   term: "2024 – 2027",
-  message: "Our mission is to empower every member with digital tools and transparent administration. Together we will build a modern, farmer-friendly market yard.",
+  message: "Our mission is to empower every trader with digital tools and transparent administration. Together we will build a modern, farmer-friendly market yard.",
   messageMr: "प्रत्येक सभासदाला डिजिटल साधने आणि पारदर्शक प्रशासन देणे हे आमचे ध्येय आहे.",
 };
 
@@ -268,8 +287,8 @@ export const COMMITTEE: CommitteeMember[] = [
   { id: "C-3", name: "Shri. Vijay Salunke", designation: "Vice President", gala: "B-105" },
   { id: "C-4", name: "Shri. Rajaram Patil", designation: "Secretary", gala: "C-210" },
   { id: "C-5", name: "Shri. Shivaji Bhosale", designation: "Treasurer", gala: "A-115" },
-  { id: "C-6", name: "Smt. Sunita Jadhav", designation: "Committee Member", gala: "D-305" },
-  { id: "C-7", name: "Shri. Manohar Chavan", designation: "Committee Member", gala: "E-402" },
+  { id: "C-6", name: "Smt. Sunita Jadhav", designation: "Committee Trader", gala: "D-305" },
+  { id: "C-7", name: "Shri. Manohar Chavan", designation: "Committee Trader", gala: "E-402" },
   { id: "C-8", name: "Shri. Suryakant Ghadge", designation: "User Admin" },
 ];
 

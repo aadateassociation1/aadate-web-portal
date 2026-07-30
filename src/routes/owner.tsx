@@ -4,12 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  ClipboardList, FileText, Newspaper, Phone, MessageSquare, Bell, CheckCircle2, Clock, ImagePlus,
+  ClipboardList, FileText, Newspaper, Phone, MessageSquare, Bell, CheckCircle2, Clock, ImagePlus, IdCard,
 } from "lucide-react";
 import { MARKET_UPDATES, NOTICES, COMPLAINTS, NOTIFICATIONS, OWNERS } from "@/lib/mock";
 
 export const Route = createFileRoute("/owner")({
-  head: () => ({ meta: [{ title: "Member Dashboard â€” VPP Market Yard" }] }),
+  head: () => ({ meta: [{ title: "Trader Dashboard â€” VPP Market Yard" }] }),
   component: OwnerDash,
 });
 
@@ -54,6 +54,7 @@ function OwnerDash() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {[
               { to: "/owner/new-complaint", icon: ClipboardList, label: "Raise Complaint" },
+              { to: "/owner/kyc", icon: IdCard, label: "Customer KYC" },
               { to: "/owner/post", icon: ImagePlus, label: "Submit Post" },
               { to: "/owner/shared-posts", icon: Newspaper, label: "Shared Posts" },
               { to: "/owner/notices", icon: FileText, label: "Download Notice" },

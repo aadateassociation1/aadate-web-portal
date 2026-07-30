@@ -10,7 +10,7 @@ export const Route = createFileRoute("/about")({
       { title: "About Us â€” VPP Market Yard Portal" },
       { name: "description", content: "History, mission, vision and objectives of Vishal Purandhar Patasanstha Market Yard Owners Association." },
       { property: "og:title", content: "About Us â€” VPP Market Yard Portal" },
-      { property: "og:description", content: "Serving 850+ members with transparent digital administration since 2009." },
+      { property: "og:description", content: "Serving 850+ traders with transparent digital administration since 2009." },
     ],
   }),
   component: About,
@@ -34,14 +34,14 @@ function About() {
           <div>
             <h2 className="font-display text-3xl font-bold text-primary-dark">Our Story</h2>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              Founded in 2009, our association was established to unify the shopkeepers, wholesalers and traders operating within the Purandhar Market Yard. Today we represent 852 registered members across ten market sections â€” vegetables, fruits, grains, flowers, agricultural goods, packaging services and more.
+              Founded in 2009, our association was established to unify the shopkeepers, wholesalers and traders operating within the Purandhar Market Yard. Today we represent 852 registered traders across ten market sections â€” vegetables, fruits, grains, flowers, agricultural goods, packaging services and more.
             </p>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              With the launch of this digital portal in 2026, every member now has 24/7 access to market updates, official notices, complaint filing and administration in both English and Marathi.
+              With the launch of this digital portal in 2026, every trader now has 24/7 access to market updates, official notices, complaint filing and administration in both English and Marathi.
             </p>
             <div className="mt-6 grid grid-cols-3 gap-4">
               {[
-                { n: "852", l: "Members" },
+                { n: "852", l: "Traders" },
                 { n: "10", l: "Market Sections" },
                 { n: "15+", l: "Years of service" },
               ].map((s) => (
@@ -58,7 +58,7 @@ function About() {
       <section className="bg-leaf py-16">
         <div className="container-page grid gap-6 md:grid-cols-3">
           {[
-            { icon: Target, title: "Mission", body: "Empower every member with transparent, digital and timely administration." },
+            { icon: Target, title: "Mission", body: "Empower every trader with transparent, digital and timely administration." },
             { icon: Eye, title: "Vision", body: "To be Maharashtra's most connected and farmer-friendly market yard." },
             { icon: Heart, title: "Values", body: "Trust, transparency, cooperation and continuous improvement." },
           ].map((v) => (

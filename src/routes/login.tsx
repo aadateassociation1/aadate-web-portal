@@ -13,7 +13,7 @@ import { DEMO_CREDS, type UserRole } from "@/lib/mock";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Login â€” VPP Market Yard Portal" }, { name: "description", content: "Sign in to the VPP Market Yard portal as member or admin." }] }),
+  head: () => ({ meta: [{ title: "Login â€” VPP Market Yard Portal" }, { name: "description", content: "Sign in to the VPP Market Yard portal as trader or admin." }] }),
   component: LoginPage,
 });
 
@@ -66,7 +66,7 @@ function LoginPage() {
             <p className="mt-3 text-muted-foreground">Access market updates, notices, complaints and administration.</p>
             <div className="mt-6 space-y-3">
               {[
-                { icon: User, title: "Members", body: "Sign in with your registered mobile number." },
+                { icon: User, title: "Traders", body: "Sign in with your registered mobile number." },
                 { icon: ShieldCheck, title: "User Admin", body: "Support complaints, users and content." },
                 { icon: Shield, title: "Main Admin", body: "Full portal administration and approvals." },
               ].map((r) => (
@@ -87,7 +87,7 @@ function LoginPage() {
               </div>
               <Tabs defaultValue="owner">
                 <TabsList className="grid h-auto w-full grid-cols-3">
-                  <TabsTrigger value="owner" className="px-1.5 text-xs sm:px-3 sm:text-sm">Member</TabsTrigger>
+                  <TabsTrigger value="owner" className="px-1.5 text-xs sm:px-3 sm:text-sm">Trader</TabsTrigger>
                   <TabsTrigger value="user_admin" className="px-1.5 text-xs sm:px-3 sm:text-sm">User Admin</TabsTrigger>
                   <TabsTrigger value="main_admin" className="px-1.5 text-xs sm:px-3 sm:text-sm">Main Admin</TabsTrigger>
                 </TabsList>

@@ -1,9 +1,9 @@
 import { Link } from "@/lib/simple-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   AlertTriangle, Bell, Camera, CheckCircle2, ClipboardList, Download, Eye, FileText,
   HelpCircle, History, ImagePlus, KeyRound, Mail, MessageSquare, Newspaper, Phone, Plus, Search,
-  Send, ShieldAlert, Store, ThumbsDown, ThumbsUp, Upload, User, Users, Video,
+  Send, ShieldAlert, Store, ThumbsDown, ThumbsUp, Trash2, Upload, User, Users, Video, IdCard,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
@@ -21,8 +21,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 import {
   CHART_COMPLAINTS_CATEGORY, CHART_DOWNLOADS, CHART_REGISTRATIONS, COMMITTEE, COMPLAINTS,
-  DASHBOARD_STATS, GALLERY_ITEMS, MARKET_UPDATES, MOBILE_REQUESTS, NOTICES, NOTIFICATIONS, OWNERS,
-  type GalleryItem,
+  CUSTOMER_KYC, DASHBOARD_STATS, GALLERY_ITEMS, MARKET_UPDATES, MOBILE_REQUESTS, NOTICES, NOTIFICATIONS, OWNERS,
+  type CustomerKyc, type GalleryItem,
 } from "@/lib/mock";
 import { useAuth } from "@/lib/auth";
 
@@ -93,7 +93,7 @@ function SearchBar({ placeholder = "Search..." }: { placeholder?: string }) {
 export function AdminUsersPage() {
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Member Management" subtitle="Search, verify, approve, reject, or blacklist member accounts." action={<Button><Plus className="mr-1 h-4 w-4" /> Add Owner</Button>} />
+      <PageTitle title="Trader Management" subtitle="Search, verify, approve, reject, or blacklist trader accounts." action={<Button><Plus className="mr-1 h-4 w-4" /> Add Owner</Button>} />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Users} label="Total owners" value={DASHBOARD_STATS.totalOwners} />
         <StatCard icon={CheckCircle2} label="Approved" value={DASHBOARD_STATS.approved} tone="success" />
@@ -138,7 +138,7 @@ export function AdminRegistrationsPage() {
   const pending = OWNERS.filter((o) => o.status === "pending");
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Registration Approvals" subtitle="Review new member registrations and document verification status." />
+      <PageTitle title="Registration Approvals" subtitle="Review new trader registrations and document verification status." />
       <div className="grid gap-4 lg:grid-cols-2">
         {pending.map((o) => (
           <Card key={o.id} className="border-border/60">
@@ -517,7 +517,7 @@ export function AdminOwnerPostsPage() {
 
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Owner Posts" subtitle="Review member posts and reshare approved posts to all members." />
+      <PageTitle title="Owner Posts" subtitle="Review trader posts and reshare approved posts to all traders." />
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <StatCard icon={ImagePlus} label="Submitted posts" value={OWNER_POSTS.length} />
         <StatCard icon={ClipboardList} label="Waiting for review" value={pendingPosts.length} tone="warning" />
@@ -538,7 +538,7 @@ export function AdminOwnerPostsPage() {
                 <div key={post.id} className="rounded-lg border bg-background p-4">
                   <SharedPostCard post={post} adminView framed={false} />
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button className="bg-primary" onClick={() => toast.success(`${post.title} reshared to all members`)}>
+                    <Button className="bg-primary" onClick={() => toast.success(`${post.title} reshared to all traders`)}>
                       <Send className="mr-1 h-4 w-4" /> Reshare Post
                     </Button>
                     <Button variant="outline" onClick={() => toast.error(`${post.id} rejected`)}>Reject</Button>
@@ -552,7 +552,7 @@ export function AdminOwnerPostsPage() {
         <Card className="border-border/60">
           <CardContent className="p-6">
             <h2 className="font-display font-bold text-primary-dark">Already reshared</h2>
-            <p className="mt-1 text-sm text-muted-foreground">These are visible in Member Shared Posts.</p>
+            <p className="mt-1 text-sm text-muted-foreground">These are visible in Trader Shared Posts.</p>
             <div className="mt-4 space-y-3">
               {resharedPosts.map((post) => (
                 <div key={post.id} className="rounded-lg border p-3 text-sm">
@@ -609,7 +609,7 @@ export function AdminMobileRequestsPage() {
 export function AdminCommitteePage() {
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Chairman & Committee" subtitle="Maintain association leadership details shown on the public site." action={<Button><Plus className="mr-1 h-4 w-4" /> Add Member</Button>} />
+      <PageTitle title="Chairman & Committee" subtitle="Maintain association leadership details shown on the public site." action={<Button><Plus className="mr-1 h-4 w-4" /> Add Trader</Button>} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {COMMITTEE.map((m) => (
           <Card key={m.id} className="border-border/60">
@@ -651,7 +651,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactEl
 }
 
 export function AdminAuditPage() {
-  const rows = ["Approved GO-012 registration", "Published market closure notice", "Assigned CMP-2408 to Security Department", "Rejected mobile request MCR-105", "Updated committee member profile", "Downloaded monthly complaint report"];
+  const rows = ["Approved GO-012 registration", "Published market closure notice", "Assigned CMP-2408 to Security Department", "Rejected mobile request MCR-105", "Updated committee trader profile", "Downloaded monthly complaint report"];
   return (
     <DashLayout kind="admin">
       <PageTitle title="Audit Logs" subtitle="Transparent activity trail for admin decisions and portal changes." />
@@ -681,6 +681,140 @@ export function OwnerProfilePage() {
 
 function Field({ label, value, wide }: { label: string; value: string; wide?: boolean }) {
   return <div className={wide ? "sm:col-span-2" : ""}><Label>{label}</Label><Input defaultValue={value} /></div>;
+}
+
+export function OwnerKycPage() {
+  const { user } = useAuth();
+  const trader = OWNERS.find((owner) => owner.username === user?.username || owner.mobile === user?.mobile) ?? me;
+  const storageKey = `customer_kyc_${trader.id}`;
+  const seedRecords = CUSTOMER_KYC.filter((record) => record.ownerId === trader.id);
+  const [records, setRecords] = useState<CustomerKyc[]>(seedRecords);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(storageKey);
+      setRecords(stored ? JSON.parse(stored) : seedRecords);
+    } catch {
+      setRecords(seedRecords);
+    }
+  }, [storageKey]);
+
+  const saveRecords = (nextRecords: CustomerKyc[]) => {
+    setRecords(nextRecords);
+    localStorage.setItem(storageKey, JSON.stringify(nextRecords));
+  };
+
+  const addKycRecord = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const customerName = String(data.get("customerName") || "").trim();
+    const phone = String(data.get("phone") || "").replace(/\D/g, "");
+    const aadhaar = String(data.get("aadhaar") || "").replace(/\D/g, "");
+    const pan = String(data.get("pan") || "").trim().toUpperCase();
+
+    if (!customerName || !/^\d{10}$/.test(phone) || !/^\d{12}$/.test(aadhaar) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) {
+      toast.error("Enter valid customer name, phone, Aadhaar, and PAN details");
+      return;
+    }
+
+    const nextRecord: CustomerKyc = {
+      id: `KYC-${String(Date.now()).slice(-6)}`,
+      ownerId: trader.id,
+      ownerName: trader.name,
+      customerName,
+      phone,
+      aadhaar,
+      pan,
+      date: new Date().toISOString().slice(0, 10),
+      status: "verified",
+    };
+
+    saveRecords([nextRecord, ...records]);
+    form.reset();
+    toast.success(`${customerName} KYC saved`);
+  };
+
+  const removeKycRecord = (record: CustomerKyc) => {
+    saveRecords(records.filter((item) => item.id !== record.id));
+    toast.success(`${record.customerName} KYC removed`);
+  };
+
+  return (
+    <DashLayout kind="owner">
+      <PageTitle title="Customer KYC" subtitle="Add and manage customer identity details for your own trader account." />
+      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+        <StatCard icon={IdCard} label="Total KYC" value={records.length} />
+        <StatCard icon={CheckCircle2} label="Verified" value={records.filter((record) => record.status === "verified").length} tone="success" />
+        <StatCard icon={Store} label="Trader Gala" value={trader.gala} tone="saffron" />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)]">
+        <Card className="border-border/60">
+          <CardContent className="p-6">
+            <h2 className="font-display text-lg font-bold text-primary-dark">Add Customer KYC</h2>
+            <form className="mt-5 grid gap-4" onSubmit={addKycRecord}>
+              <div>
+                <Label>Customer name *</Label>
+                <Input name="customerName" required placeholder="Full customer name" />
+              </div>
+              <div>
+                <Label>Phone number *</Label>
+                <Input name="phone" required type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10-digit mobile number" />
+              </div>
+              <div>
+                <Label>Aadhaar number *</Label>
+                <Input name="aadhaar" required inputMode="numeric" maxLength={12} pattern="\d{12}" placeholder="12-digit Aadhaar number" />
+              </div>
+              <div>
+                <Label>PAN number *</Label>
+                <Input name="pan" required maxLength={10} pattern="[A-Za-z]{5}\d{4}[A-Za-z]" placeholder="ABCDE1234F" className="uppercase" />
+              </div>
+              <Button className="bg-primary"><IdCard className="mr-1 h-4 w-4" /> Save KYC</Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/60">
+          <CardContent className="p-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-display text-lg font-bold text-primary-dark">My Customer KYC Records</h2>
+              <SearchBar placeholder="Search customer KYC..." />
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Aadhaar</TableHead>
+                    <TableHead>PAN</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {records.map((record) => (
+                    <TableRow key={record.id}>
+                      <TableCell><div className="font-medium text-primary-dark">{record.customerName}</div><div className="font-mono text-xs text-muted-foreground">{record.id}</div></TableCell>
+                      <TableCell>{record.phone}</TableCell>
+                      <TableCell className="font-mono">{record.aadhaar}</TableCell>
+                      <TableCell className="font-mono">{record.pan}</TableCell>
+                      <TableCell><StatusBadge status={record.status} /></TableCell>
+                      <TableCell>{new Date(record.date).toLocaleDateString("en-IN")}</TableCell>
+                      <TableCell className="text-right"><Button size="sm" variant="ghost" onClick={() => removeKycRecord(record)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {records.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No customer KYC records yet.</div>}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </DashLayout>
+  );
 }
 
 export function OwnerGalaPage() {
@@ -820,7 +954,7 @@ export function OwnerPostPage() {
               </label>
 
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs text-muted-foreground">Your post will go only to admin. Other members can see it only after admin reshares it.</p>
+                <p className="text-xs text-muted-foreground">Your post will go only to admin. Other traders can see it only after admin reshares it.</p>
                 <Button className="bg-primary"><Upload className="mr-1 h-4 w-4" /> Submit Post</Button>
               </div>
             </form>
@@ -861,7 +995,7 @@ export function OwnerPostPage() {
           <Card className="border-border/60">
             <CardContent className="p-6">
               <h2 className="font-display font-bold text-primary-dark">Visible after reshare</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Admin-approved posts appear on the Shared Posts page for all members with owner name and download options.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Admin-approved posts appear on the Shared Posts page for all traders with owner name and download options.</p>
               <Button asChild className="mt-4 w-full bg-primary">
                 <Link to="/owner/shared-posts"><Newspaper className="mr-1 h-4 w-4" /> Open Shared Posts</Link>
               </Button>
@@ -878,7 +1012,7 @@ export function OwnerSharedPostsPage() {
 
   return (
     <DashLayout kind="owner">
-      <PageTitle title="Shared Posts" subtitle="Admin-approved posts visible to all members." action={<Button asChild><Link to="/owner/post"><Plus className="mr-1 h-4 w-4" /> Submit Post</Link></Button>} />
+      <PageTitle title="Shared Posts" subtitle="Admin-approved posts visible to all traders." action={<Button asChild><Link to="/owner/post"><Plus className="mr-1 h-4 w-4" /> Submit Post</Link></Button>} />
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <StatCard icon={Newspaper} label="Shared posts" value={resharedPosts.length} />
         <StatCard icon={Camera} label="Images available" value={resharedPosts.reduce((total, post) => total + post.images.length, 0)} tone="saffron" />
