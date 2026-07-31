@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@/lib/simple-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   Menu, X,
-  Clock, Mail, MessageCircle, Phone, Sprout,
+  Clock, Mail, Phone, Sprout,
   Facebook, Twitter, Youtube, MapPin, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -267,7 +267,14 @@ function WhatsAppFAB() {
       className="fixed bottom-5 right-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl hover:scale-105 transition"
       aria-label="Contact on WhatsApp"
     >
-      <MessageCircle className="h-6 w-6" />
+      <svg
+        className="h-7 w-7"
+        viewBox="0 0 32 32"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M16.04 3.2A12.72 12.72 0 0 0 5.22 22.6L3.8 28.8l6.34-1.48A12.72 12.72 0 1 0 16.04 3.2Zm0 22.9c-2.05 0-3.95-.6-5.55-1.65l-.4-.26-3.76.88.84-3.68-.27-.42A10.2 10.2 0 1 1 16.04 26.1Zm5.62-7.63c-.3-.16-1.82-.9-2.1-1-.28-.1-.48-.16-.68.16-.2.3-.78 1-.96 1.2-.18.22-.36.24-.66.08-.3-.16-1.28-.47-2.44-1.5-.9-.8-1.5-1.78-1.68-2.08-.18-.3-.02-.47.14-.62.14-.14.3-.36.46-.54.16-.18.2-.3.3-.5.1-.2.06-.38-.02-.54-.08-.16-.68-1.64-.94-2.24-.24-.58-.5-.5-.68-.5h-.58c-.2 0-.52.08-.8.38-.28.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.88 1.22 3.08.16.2 2.1 3.2 5.08 4.48.7.3 1.26.48 1.7.62.72.22 1.36.18 1.88.12.58-.08 1.82-.74 2.08-1.46.26-.72.26-1.34.18-1.46-.08-.12-.28-.2-.58-.36Z" />
+      </svg>
     </a>
   );
 }
