@@ -667,6 +667,15 @@ export function AdminAuditPage() {
 const me = OWNERS[0];
 const myComplaints = COMPLAINTS.filter((c) => c.ownerId === me.id);
 
+const getStoredKycRecords = (ownerId: string, seedRecords: CustomerKyc[]) => {
+  try {
+    const stored = localStorage.getItem(`customer_kyc_${ownerId}`);
+    return stored ? JSON.parse(stored) as CustomerKyc[] : seedRecords;
+  } catch {
+    return seedRecords;
+  }
+};
+
 export function OwnerProfilePage() {
   return (
     <DashLayout kind="owner">
@@ -691,12 +700,7 @@ export function OwnerKycPage() {
   const [records, setRecords] = useState<CustomerKyc[]>(seedRecords);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      setRecords(stored ? JSON.parse(stored) : seedRecords);
-    } catch {
-      setRecords(seedRecords);
-    }
+    setRecords(getStoredKycRecords(trader.id, seedRecords));
   }, [storageKey]);
 
   const saveRecords = (nextRecords: CustomerKyc[]) => {
@@ -809,6 +813,157 @@ export function OwnerKycPage() {
                 </TableBody>
               </Table>
               {records.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No customer KYC records yet.</div>}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </DashLayout>
+  );
+}
+
+export function AdminTraderKycPage() {
+  const approvedOwners = OWNERS.filter((owner) => owner.status === "approved");
+  const [selectedOwnerId, setSelectedOwnerId] = useState(approvedOwners[0]?.id ?? OWNERS[0].id);
+  const [records, setRecords] = useState<CustomerKyc[]>([]);
+  const selectedOwner = OWNERS.find((owner) => owner.id === selectedOwnerId) ?? approvedOwners[0] ?? OWNERS[0];
+
+  const loadAllKycRecords = () => {
+    setRecords(OWNERS.flatMap((owner) => getStoredKycRecords(owner.id, CUSTOMER_KYC.filter((record) => record.ownerId === owner.id))));
+  };
+
+  useEffect(() => {
+    loadAllKycRecords();
+  }, []);
+
+  const saveOwnerRecords = (ownerId: string, nextOwnerRecords: CustomerKyc[]) => {
+    localStorage.setItem(`customer_kyc_${ownerId}`, JSON.stringify(nextOwnerRecords));
+    loadAllKycRecords();
+  };
+
+  const addTraderKycRecord = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const customerName = String(data.get("customerName") || "").trim();
+    const phone = String(data.get("phone") || "").replace(/\D/g, "");
+    const aadhaar = String(data.get("aadhaar") || "").replace(/\D/g, "");
+    const pan = String(data.get("pan") || "").trim().toUpperCase();
+
+    if (!customerName || !/^\d{10}$/.test(phone) || !/^\d{12}$/.test(aadhaar) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) {
+      toast.error("Enter valid customer name, phone, Aadhaar, and PAN details");
+      return;
+    }
+
+    const ownerRecords = records.filter((record) => record.ownerId === selectedOwner.id);
+    const nextRecord: CustomerKyc = {
+      id: `KYC-${String(Date.now()).slice(-6)}`,
+      ownerId: selectedOwner.id,
+      ownerName: selectedOwner.name,
+      customerName,
+      phone,
+      aadhaar,
+      pan,
+      date: new Date().toISOString().slice(0, 10),
+      status: "verified",
+    };
+
+    saveOwnerRecords(selectedOwner.id, [nextRecord, ...ownerRecords]);
+    form.reset();
+    toast.success(`${customerName} KYC saved for ${selectedOwner.name}`);
+  };
+
+  const removeTraderKycRecord = (record: CustomerKyc) => {
+    const ownerSeedRecords = CUSTOMER_KYC.filter((item) => item.ownerId === record.ownerId);
+    const ownerRecords = getStoredKycRecords(record.ownerId, ownerSeedRecords);
+    saveOwnerRecords(record.ownerId, ownerRecords.filter((item) => item.id !== record.id));
+    toast.success(`${record.customerName} KYC removed`);
+  };
+
+  return (
+    <DashLayout kind="admin">
+      <PageTitle title="Trader KYC" subtitle="Add and manage customer KYC records on behalf of registered traders." />
+      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+        <StatCard icon={IdCard} label="Total KYC" value={records.length} />
+        <StatCard icon={CheckCircle2} label="Verified" value={records.filter((record) => record.status === "verified").length} tone="success" />
+        <StatCard icon={Users} label="Traders with KYC" value={new Set(records.map((record) => record.ownerId)).size} tone="saffron" />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)]">
+        <Card className="border-border/60">
+          <CardContent className="p-6">
+            <h2 className="font-display text-lg font-bold text-primary-dark">Add Trader Customer KYC</h2>
+            <form className="mt-5 grid gap-4" onSubmit={addTraderKycRecord}>
+              <div>
+                <Label>Trader *</Label>
+                <Select value={selectedOwnerId} onValueChange={setSelectedOwnerId}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {approvedOwners.map((owner) => (
+                      <SelectItem key={owner.id} value={owner.id}>{owner.name} - Gala {owner.gala}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Customer name *</Label>
+                <Input name="customerName" required placeholder="Full customer name" />
+              </div>
+              <div>
+                <Label>Phone number *</Label>
+                <Input name="phone" required type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10-digit mobile number" />
+              </div>
+              <div>
+                <Label>Aadhaar number *</Label>
+                <Input name="aadhaar" required inputMode="numeric" maxLength={12} pattern="\d{12}" placeholder="12-digit Aadhaar number" />
+              </div>
+              <div>
+                <Label>PAN number *</Label>
+                <Input name="pan" required maxLength={10} pattern="[A-Za-z]{5}\d{4}[A-Za-z]" placeholder="ABCDE1234F" className="uppercase" />
+              </div>
+              <Button className="bg-primary"><IdCard className="mr-1 h-4 w-4" /> Save KYC</Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/60">
+          <CardContent className="p-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-display text-lg font-bold text-primary-dark">All Trader KYC Records</h2>
+              <SearchBar placeholder="Search trader or customer KYC..." />
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Trader</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Aadhaar</TableHead>
+                    <TableHead>PAN</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {records.map((record) => {
+                    const owner = OWNERS.find((item) => item.id === record.ownerId);
+                    return (
+                      <TableRow key={record.id}>
+                        <TableCell><div className="font-medium text-primary-dark">{record.ownerName}</div><div className="text-xs text-muted-foreground">Gala {owner?.gala ?? "-"}</div></TableCell>
+                        <TableCell><div className="font-medium">{record.customerName}</div><div className="font-mono text-xs text-muted-foreground">{record.id}</div></TableCell>
+                        <TableCell>{record.phone}</TableCell>
+                        <TableCell className="font-mono">{record.aadhaar}</TableCell>
+                        <TableCell className="font-mono">{record.pan}</TableCell>
+                        <TableCell><StatusBadge status={record.status} /></TableCell>
+                        <TableCell>{new Date(record.date).toLocaleDateString("en-IN")}</TableCell>
+                        <TableCell className="text-right"><Button size="sm" variant="ghost" onClick={() => removeTraderKycRecord(record)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              {records.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No trader KYC records yet.</div>}
             </div>
           </CardContent>
         </Card>

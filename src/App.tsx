@@ -28,6 +28,7 @@ import { Route as OwnerHelpRoute } from "@/routes/owner.help";
 import { Route as OwnerChangePasswordRoute } from "@/routes/owner.change-password";
 import { Route as AdminRoute } from "@/routes/admin";
 import { Route as AdminUsersRoute } from "@/routes/admin.users";
+import { Route as AdminKycRoute } from "@/routes/admin.kyc";
 import { Route as AdminRegistrationsRoute } from "@/routes/admin.registrations";
 import { Route as AdminComplaintsRoute } from "@/routes/admin.complaints";
 import { Route as AdminPostsRoute } from "@/routes/admin.posts";
@@ -74,6 +75,7 @@ const ROUTES: Record<string, LocalRoute> = {
   "/owner/change-password": OwnerChangePasswordRoute,
   "/admin": AdminRoute,
   "/admin/users": AdminUsersRoute,
+  "/admin/kyc": AdminKycRoute,
   "/admin/registrations": AdminRegistrationsRoute,
   "/admin/complaints": AdminComplaintsRoute,
   "/admin/posts": AdminPostsRoute,

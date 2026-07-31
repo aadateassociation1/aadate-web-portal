@@ -9,7 +9,7 @@ import {
   CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera,
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
-import sourabhKunjirImg from "@/assets/sourabh kunjir.jpeg";
+import sourabhKunjirImg from "@/assets/sourabh Kunjir.png";
 import { useI18n } from "@/lib/i18n";
 import {
   MARKET_UPDATES, NOTICES, CURRENT_CHAIRMAN, LOBBY_CHAIRMAN, COMMITTEE,
@@ -204,7 +204,7 @@ function Home() {
                 <img
                   src={sourabhKunjirImg}
                   alt="Sourabh Kunjir"
-                  className="h-full w-full object-cover object-center"
+                  className="h-full w-full object-cover object-[center_18%]"
                 />
                 <div className="absolute left-5 top-5">
                   <Badge className="bg-saffron text-saffron-foreground hover:bg-saffron">Current Chairman</Badge>

@@ -3,7 +3,7 @@ import { SiteLayout } from "@/components/public/SiteLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CURRENT_CHAIRMAN, LOBBY_CHAIRMAN, PAST_CHAIRMEN, COMMITTEE } from "@/lib/mock";
-import sourabhKunjirImg from "@/assets/sourabh kunjir.jpeg";
+import sourabhKunjirImg from "@/assets/sourabh Kunjir.png";
 
 export const Route = createFileRoute("/chairman")({
   head: () => ({
@@ -34,7 +34,7 @@ function Chairman() {
               <img
                 src={sourabhKunjirImg}
                 alt="Sourabh Kunjir"
-                className="h-full w-full object-cover object-center"
+                className="h-full w-full object-cover object-[center_18%]"
               />
               <div className="absolute left-5 top-5">
                 <Badge className="bg-saffron text-saffron-foreground hover:bg-saffron">Current Chairman</Badge>
@@ -69,7 +69,7 @@ function Chairman() {
                 <CardContent className="p-6">
                   <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-secondary font-display text-xl font-bold text-primary">
                     {m.name === CURRENT_CHAIRMAN.name ? (
-                      <img src={sourabhKunjirImg} alt={m.name} className="h-full w-full rounded-full object-cover" />
+                      <img src={sourabhKunjirImg} alt={m.name} className="h-full w-full rounded-full object-cover object-[center_18%]" />
                     ) : (
                       m.name.split(" ").slice(-1)[0][0]
                     )}

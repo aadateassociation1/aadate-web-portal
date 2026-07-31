@@ -29,6 +29,7 @@ const OWNER_NAV = [
 const ADMIN_NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/users", label: "Trader Management", icon: Users },
+  { to: "/admin/kyc", label: "Trader KYC", icon: IdCard },
   { to: "/admin/registrations", label: "Registration Approvals", icon: ClipboardList },
   { to: "/admin/complaints", label: "Complaint Management", icon: MessageSquare },
   { to: "/admin/posts", label: "Owner Posts", icon: ImagePlus },
