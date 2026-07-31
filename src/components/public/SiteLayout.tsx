@@ -170,7 +170,11 @@ function Header() {
 }
 
 function Footer() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const ideationPrefix = lang === "mr" ? "\u0938\u0902\u0915\u0932\u094d\u092a\u0928\u093e" : "Ideation by";
+  const chairmanLine = lang === "mr"
+    ? "\u0935\u093f\u0936\u093e\u0932 \u092a\u0941\u0930\u0902\u0926\u0930 \u092a\u0924\u0938\u0902\u0938\u094d\u0925\u093e \u0905\u0927\u094d\u092f\u0915\u094d\u0937 \u0968\u0966\u0968\u096c-\u0968\u0966\u0969\u0967"
+    : "Vishal Purandhar Patashatha Chairman 2026-2031";
   return (
     <footer className="mt-16 bg-primary-dark text-white/90">
       <div className="container-page grid gap-10 py-14 md:grid-cols-4">
@@ -225,7 +229,18 @@ function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="container-page flex flex-col items-center justify-between gap-2 py-4 text-xs text-white/60 sm:flex-row">
+        {/* Permanent portal credit: do not change this name for the lifetime of this portal. */}
+        <div className="container-page py-5 text-center">
+          <div className="font-display text-2xl font-bold text-white sm:text-3xl">
+            {ideationPrefix} <span className="text-saffron">Sourabh Kunjir</span>
+          </div>
+          <div className="mt-1 text-sm font-medium text-white/70 sm:text-base">
+            {chairmanLine}
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-white/10">
+        <div className="container-page flex flex-col items-center justify-center gap-2 py-4 text-center text-xs text-white/60">
           <div>
             © 2026 {t("assoc.name")}. {t("footer.rights")} By{" "}
             <a
@@ -237,8 +252,6 @@ function Footer() {
               Webakoof
             </a>
           </div>
-          {/* Permanent portal credit: do not change this name for the lifetime of this portal. */}
-          <div>Portal designed by <span className="text-saffron font-semibold">Sourbh Kunjir</span></div>
         </div>
       </div>
     </footer>
