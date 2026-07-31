@@ -7,9 +7,9 @@ import heroImg from "@/assets/market-hero.jpg";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About Us â€” VPP Market Yard Portal" },
+      { title: "About Us - VPP Market Yard Portal" },
       { name: "description", content: "History, mission, vision and objectives of Vishal Purandhar Patasanstha Market Yard Owners Association." },
-      { property: "og:title", content: "About Us â€” VPP Market Yard Portal" },
+      { property: "og:title", content: "About Us - VPP Market Yard Portal" },
       { property: "og:description", content: "Serving 850+ traders with transparent digital administration since 2009." },
     ],
   }),
@@ -23,7 +23,7 @@ function About() {
         <div className="container-page">
           <h1 className="font-display text-3xl font-bold sm:text-5xl">About Our Association</h1>
           <p className="mt-4 max-w-2xl text-white/85">
-            The digital face of Vishal Purandhar Patasanstha Market Yard Owners Association â€” connecting traders, farmers and administrators since 2009.
+            The digital face of Vishal Purandhar Patasanstha Market Yard Owners Association - connecting traders, farmers and administrators since 2009.
           </p>
         </div>
       </section>
@@ -34,7 +34,7 @@ function About() {
           <div>
             <h2 className="font-display text-3xl font-bold text-primary-dark">Our Story</h2>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              Founded in 2009, our association was established to unify the shopkeepers, wholesalers and traders operating within the Purandhar Market Yard. Today we represent 852 registered traders across ten market sections â€” vegetables, fruits, grains, flowers, agricultural goods, packaging services and more.
+              Founded in 2009, our association was established to unify the shopkeepers, wholesalers and traders operating within the Purandhar Market Yard. Today we represent 852 registered traders across ten market sections - vegetables, fruits, grains, flowers, agricultural goods, packaging services and more.
             </p>
             <p className="mt-4 text-muted-foreground leading-relaxed">
               With the launch of this digital portal in 2026, every trader now has 24/7 access to market updates, official notices, complaint filing and administration in both English and Marathi.
@@ -83,7 +83,7 @@ function About() {
               { icon: Building2, title: "Cold storage", body: "500 MT capacity for perishables" },
               { icon: Users, title: "Committee training", body: "Monthly farmer awareness camps" },
               { icon: Trophy, title: "State award", body: "Best market yard, Pune district 2026" },
-              { icon: Target, title: "24Ã—7 security", body: "CCTV across all sections" },
+              { icon: Target, title: "24x7 security", body: "CCTV across all sections" },
             ].map((f) => (
               <Card key={f.title} className="border-border/60">
                 <CardContent className="p-5">

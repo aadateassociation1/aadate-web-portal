@@ -13,7 +13,7 @@ import { DEMO_CREDS, type UserRole } from "@/lib/mock";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Login â€” VPP Market Yard Portal" }, { name: "description", content: "Sign in to the VPP Market Yard portal as trader or admin." }] }),
+  head: () => ({ meta: [{ title: "Login - VPP Market Yard Portal" }, { name: "description", content: "Sign in to the VPP Market Yard portal as trader or admin." }] }),
   component: LoginPage,
 });
 
@@ -39,7 +39,7 @@ function LoginForm({ role }: { role: UserRole }) {
       <Alert className="border-saffron/40 bg-saffron/10">
         <Info className="h-4 w-4 text-saffron" />
         <AlertDescription className="text-xs">
-          <span className="font-semibold">Demo credentials:</span> {creds.mobile} / {creds.username} Â· <code className="rounded bg-primary/10 px-1">{creds.password}</code>
+          <span className="font-semibold">Demo credentials:</span> {creds.mobile} / {creds.username} - <code className="rounded bg-primary/10 px-1">{creds.password}</code>
         </AlertDescription>
       </Alert>
       <div>

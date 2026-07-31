@@ -7,9 +7,9 @@ import { GALLERY_ITEMS } from "@/lib/mock";
 export const Route = createFileRoute("/gallery")({
   head: () => ({
     meta: [
-      { title: "Photo & Video Gallery — VPP Market Yard" },
+      { title: "Photo & Video Gallery - VPP Market Yard" },
       { name: "description", content: "Photographs and videos of market yard events, meetings and activities." },
-      { property: "og:title", content: "Gallery — VPP Market Yard" },
+      { property: "og:title", content: "Gallery - VPP Market Yard" },
       { property: "og:description", content: "Moments from the market yard." },
     ],
   }),

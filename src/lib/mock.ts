@@ -182,20 +182,20 @@ export const COMPLAINTS: Complaint[] = complaintSeeds.map(([subject, category, p
 
 export const MARKET_UPDATES: MarketUpdate[] = [
   { id: "MU-001", title: "Today's vegetable arrival report", titleMr: "आजचा भाजीपाला आवक अहवाल", category: "Market arrivals", summary: "Total 420 quintals of mixed vegetables arrived this morning.", date: "2026-07-28", publishedBy: "User Admin", views: 342, featured: true },
-  { id: "MU-002", title: "Onion wholesale price update", titleMr: "कांदा घाऊक दर अद्यतन", category: "Vegetable prices", summary: "Onion trading between ₹22-28/kg wholesale.", date: "2026-07-28", publishedBy: "User Admin", views: 512 },
-  { id: "MU-003", title: "Tomato wholesale rate update", titleMr: "टोमॅटो घाऊक दर", category: "Vegetable prices", summary: "Tomato ₹35-42/kg wholesale, arrivals steady.", date: "2026-07-28", publishedBy: "User Admin", views: 428 },
-  { id: "MU-004", title: "Market closure notice — Sunday", titleMr: "बाजार बंद सूचना — रविवार", category: "Market holiday", summary: "Market will remain fully closed on Sunday, August 3.", date: "2026-07-27", publishedBy: "Main Admin", views: 890, featured: true, emergency: true },
-  { id: "MU-005", title: "Water supply maintenance", titleMr: "पाणीपुरवठा देखभाल", category: "Water or electricity update", summary: "Water supply will be interrupted 10 AM – 2 PM on July 30.", date: "2026-07-27", publishedBy: "Main Admin", views: 621 },
+  { id: "MU-002", title: "Onion wholesale price update", titleMr: "कांदा घाऊक दर अद्यतन", category: "Vegetable prices", summary: "Onion trading between Rs.22-28/kg wholesale.", date: "2026-07-28", publishedBy: "User Admin", views: 512 },
+  { id: "MU-003", title: "Tomato wholesale rate update", titleMr: "टोमॅटो घाऊक दर", category: "Vegetable prices", summary: "Tomato Rs.35-42/kg wholesale, arrivals steady.", date: "2026-07-28", publishedBy: "User Admin", views: 428 },
+  { id: "MU-004", title: "Market closure notice - Sunday", titleMr: "बाजार बंद सूचना - रविवार", category: "Market holiday", summary: "Market will remain fully closed on Sunday, August 3.", date: "2026-07-27", publishedBy: "Main Admin", views: 890, featured: true, emergency: true },
+  { id: "MU-005", title: "Water supply maintenance", titleMr: "पाणीपुरवठा देखभाल", category: "Water or electricity update", summary: "Water supply will be interrupted 10 AM - 2 PM on July 30.", date: "2026-07-27", publishedBy: "Main Admin", views: 621 },
   { id: "MU-006", title: "New parking arrangement", titleMr: "नवीन पार्किंग व्यवस्था", category: "Traffic or parking update", summary: "Revised parking zones effective August 1.", date: "2026-07-26", publishedBy: "Main Admin", views: 402 },
   { id: "MU-007", title: "Cleanliness drive announcement", titleMr: "स्वच्छता मोहीम घोषणा", category: "General market news", summary: "Cleanliness drive on August 5, all traders invited.", date: "2026-07-25", publishedBy: "User Admin", views: 288 },
   { id: "MU-008", title: "Monthly committee meeting", titleMr: "मासिक समिती बैठक", category: "General market news", summary: "Monthly meeting scheduled August 8, 10 AM at association hall.", date: "2026-07-25", publishedBy: "Main Admin", views: 356 },
-  { id: "MU-009", title: "Rain alert for traders", titleMr: "व्यापाऱ्यांसाठी पाऊस इशारा", category: "Weather alert", summary: "Heavy rain expected next 3 days — cover perishable stock.", date: "2026-07-24", publishedBy: "User Admin", views: 723, emergency: true },
-  { id: "MU-010", title: "Revised loading/unloading timing", titleMr: "सुधारित माल चढ-उतार वेळ", category: "Traffic or parking update", summary: "Loading now 4 AM – 8 AM, unloading 8 PM – 11 PM.", date: "2026-07-23", publishedBy: "Main Admin", views: 512 },
-  { id: "MU-011", title: "Grain prices weekly summary", titleMr: "धान्य दर साप्ताहिक सारांश", category: "Grain prices", summary: "Wheat ₹2,600/qtl, jowar ₹2,850/qtl, bajra ₹2,400/qtl.", date: "2026-07-22", publishedBy: "User Admin", views: 234 },
-  { id: "MU-012", title: "Flower market Ganeshotsav rates", titleMr: "गणेशोत्सव फुल बाजार दर", category: "General market news", summary: "Marigold ₹80-120/kg, jasmine ₹250/kg, rose ₹180/kg.", date: "2026-07-21", publishedBy: "User Admin", views: 445 },
+  { id: "MU-009", title: "Rain alert for traders", titleMr: "व्यापाऱ्यांसाठी पाऊस इशारा", category: "Weather alert", summary: "Heavy rain expected next 3 days - cover perishable stock.", date: "2026-07-24", publishedBy: "User Admin", views: 723, emergency: true },
+  { id: "MU-010", title: "Revised loading/unloading timing", titleMr: "सुधारित माल चढ-उतार वेळ", category: "Traffic or parking update", summary: "Loading now 4 AM - 8 AM, unloading 8 PM - 11 PM.", date: "2026-07-23", publishedBy: "Main Admin", views: 512 },
+  { id: "MU-011", title: "Grain prices weekly summary", titleMr: "धान्य दर साप्ताहिक सारांश", category: "Grain prices", summary: "Wheat Rs.2,600/qtl, jowar Rs.2,850/qtl, bajra Rs.2,400/qtl.", date: "2026-07-22", publishedBy: "User Admin", views: 234 },
+  { id: "MU-012", title: "Flower market Ganeshotsav rates", titleMr: "गणेशोत्सव फुल बाजार दर", category: "General market news", summary: "Marigold Rs.80-120/kg, jasmine Rs.250/kg, rose Rs.180/kg.", date: "2026-07-21", publishedBy: "User Admin", views: 445 },
   { id: "MU-013", title: "Fire safety inspection scheduled", titleMr: "अग्निसुरक्षा तपासणी", category: "General market news", summary: "Fire department inspection August 2. Keep documents ready.", date: "2026-07-20", publishedBy: "Main Admin", views: 312 },
-  { id: "MU-014", title: "License renewal reminder", titleMr: "परवाना नूतनीकरण स्मरणपत्र", category: "General market news", summary: "Trade licenses expiring in August — renew before July 31.", date: "2026-07-19", publishedBy: "Main Admin", views: 678 },
-  { id: "MU-015", title: "Electricity maintenance in Section C", titleMr: "सेक्शन C वीज देखभाल", category: "Water or electricity update", summary: "Power outage 11 AM – 1 PM on July 31 in Section C.", date: "2026-07-19", publishedBy: "User Admin", views: 289 },
+  { id: "MU-014", title: "License renewal reminder", titleMr: "परवाना नूतनीकरण स्मरणपत्र", category: "General market news", summary: "Trade licenses expiring in August - renew before July 31.", date: "2026-07-19", publishedBy: "Main Admin", views: 678 },
+  { id: "MU-015", title: "Electricity maintenance in Section C", titleMr: "सेक्शन C वीज देखभाल", category: "Water or electricity update", summary: "Power outage 11 AM - 1 PM on July 31 in Section C.", date: "2026-07-19", publishedBy: "User Admin", views: 289 },
 ];
 
 export const NOTICES: Notice[] = [
@@ -203,7 +203,7 @@ export const NOTICES: Notice[] = [
   { id: "N-2", number: "VPP/2026/44", title: "Market closure on public holiday", category: "Market Holiday Notice", description: "Market will remain closed August 15 on account of Independence Day.", date: "2026-07-25", attachment: "holiday-notice.pdf" },
   { id: "N-3", number: "VPP/2026/43", title: "Monthly maintenance fee due", category: "Payment Notice", description: "Maintenance fee for July 2026 due by 31st. Pay at office counter.", date: "2026-07-22", attachment: "fee-notice.pdf" },
   { id: "N-4", number: "VPP/2026/42", title: "Revised parking guidelines", category: "Parking Notice", description: "New parking layout effective August 1.", date: "2026-07-20", attachment: "parking-guidelines.pdf" },
-  { id: "N-5", number: "VPP/2026/41", title: "Water supply maintenance", category: "Water Supply Notice", description: "Scheduled maintenance July 30, 10 AM – 2 PM.", date: "2026-07-19", attachment: "water-notice.pdf" },
+  { id: "N-5", number: "VPP/2026/41", title: "Water supply maintenance", category: "Water Supply Notice", description: "Scheduled maintenance July 30, 10 AM - 2 PM.", date: "2026-07-19", attachment: "water-notice.pdf" },
   { id: "N-6", number: "VPP/2026/40", title: "Electricity meter reading schedule", category: "Electricity Notice", description: "Meter reading on July 31.", date: "2026-07-18", attachment: "meter-reading.pdf" },
   { id: "N-7", number: "VPP/2026/39", title: "COVID prevention guidelines", category: "Health and Safety Notice", description: "Follow health advisory in crowded market areas.", date: "2026-07-15", attachment: "health-advisory.pdf" },
   { id: "N-8", number: "VPP/2026/38", title: "Government market circular", category: "Government Circular", description: "APMC circular regarding trader compliance.", date: "2026-07-14", attachment: "govt-circular.pdf" },
@@ -262,7 +262,7 @@ export const CURRENT_CHAIRMAN = {
   name: "Shri. Sourabh Kunjir",
   nameMr: "सौरभ कुंजीर",
   designation: "Chairman",
-  term: "2024 – 2027",
+  term: "2024 - 2027",
   message: "Our mission is to empower every trader with digital tools and transparent administration. Together we will build a modern, farmer-friendly market yard.",
   messageMr: "प्रत्येक सभासदाला डिजिटल साधने आणि पारदर्शक प्रशासन देणे हे आमचे ध्येय आहे.",
 };
@@ -274,11 +274,11 @@ export const LOBBY_CHAIRMAN = {
 };
 
 export const PAST_CHAIRMEN = [
-  { name: "Shri. Vitthalrao Jagtap", period: "2021 – 2024", contribution: "Modernised market infrastructure." },
-  { name: "Shri. Dattatray Kale", period: "2018 – 2021", contribution: "Established cold storage facilities." },
-  { name: "Shri. Namdev Patil", period: "2015 – 2018", contribution: "Expanded market to 850+ galas." },
-  { name: "Shri. Ramchandra Shinde", period: "2012 – 2015", contribution: "Introduced weekly farmer training." },
-  { name: "Shri. Bhausaheb More", period: "2009 – 2012", contribution: "Founded the modern association bylaws." },
+  { name: "Shri. Vitthalrao Jagtap", period: "2021 - 2024", contribution: "Modernised market infrastructure." },
+  { name: "Shri. Dattatray Kale", period: "2018 - 2021", contribution: "Established cold storage facilities." },
+  { name: "Shri. Namdev Patil", period: "2015 - 2018", contribution: "Expanded market to 850+ galas." },
+  { name: "Shri. Ramchandra Shinde", period: "2012 - 2015", contribution: "Introduced weekly farmer training." },
+  { name: "Shri. Bhausaheb More", period: "2009 - 2012", contribution: "Founded the modern association bylaws." },
 ];
 
 export const COMMITTEE: CommitteeMember[] = [
@@ -295,7 +295,7 @@ export const COMMITTEE: CommitteeMember[] = [
 export const NOTIFICATIONS = [
   { id: "NT-1", title: "New notice: AGM scheduled", date: "2026-07-26", read: false, type: "notice" },
   { id: "NT-2", title: "Your complaint CMP-2401 is now In Progress", date: "2026-07-26", read: false, type: "complaint" },
-  { id: "NT-3", title: "Market closure on Sunday — Aug 3", date: "2026-07-27", read: false, type: "update" },
+  { id: "NT-3", title: "Market closure on Sunday - Aug 3", date: "2026-07-27", read: false, type: "update" },
   { id: "NT-4", title: "Water supply maintenance July 30", date: "2026-07-27", read: true, type: "update" },
   { id: "NT-5", title: "Monthly meeting reminder", date: "2026-07-25", read: true, type: "notice" },
 ];

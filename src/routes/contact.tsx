@@ -12,9 +12,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact Us — VPP Market Yard" },
+      { title: "Contact Us - VPP Market Yard" },
       { name: "description", content: "Reach our office, submit an enquiry or use emergency contacts." },
-      { property: "og:title", content: "Contact Us — VPP Market Yard" },
+      { property: "og:title", content: "Contact Us - VPP Market Yard" },
       { property: "og:description", content: "Office address, phone, email and enquiry form." },
     ],
   }),
@@ -39,8 +39,8 @@ function Contact() {
               { icon: MapPin, title: "Office Address", body: "Market Yard Road, Saswad, Purandar, Pune 412301, Maharashtra" },
               { icon: Phone, title: "Phone", body: "+91 20 2645 1122 / +91 98765 43200" },
               { icon: Mail, title: "Email", body: "office@vpp-marketyard.in" },
-              { icon: Clock, title: "Office Hours", body: "Mon – Sat, 8:00 AM – 6:00 PM" },
-              { icon: AlertCircle, title: "Emergency Contact", body: "+91 98765 00000 (24×7)" },
+              { icon: Clock, title: "Office Hours", body: "Mon - Sat, 8:00 AM - 6:00 PM" },
+              { icon: AlertCircle, title: "Emergency Contact", body: "+91 98765 00000 (24x7)" },
             ].map((c) => (
               <Card key={c.title} className="border-border/60">
                 <CardContent className="p-5 flex gap-3">
@@ -62,7 +62,7 @@ function Contact() {
                 <h2 className="font-display text-xl font-bold text-primary-dark">Send us a message</h2>
                 <form
                   className="mt-5 grid gap-4"
-                  onSubmit={(e) => { e.preventDefault(); setSent(true); toast.success("Message sent — we'll reply within 24 hours"); (e.target as HTMLFormElement).reset(); setTimeout(() => setSent(false), 3000); }}
+                  onSubmit={(e) => { e.preventDefault(); setSent(true); toast.success("Message sent - we'll reply within 24 hours"); (e.target as HTMLFormElement).reset(); setTimeout(() => setSent(false), 3000); }}
                 >
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div><Label>Full name</Label><Input required placeholder="Your name" /></div>

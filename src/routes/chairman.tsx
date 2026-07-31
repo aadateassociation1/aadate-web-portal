@@ -8,9 +8,9 @@ import sourabhKunjirImg from "@/assets/sourabh Kunjir.png";
 export const Route = createFileRoute("/chairman")({
   head: () => ({
     meta: [
-      { title: "Chairman & Committee â€” VPP Market Yard" },
+      { title: "Chairman & Committee - VPP Market Yard" },
       { name: "description", content: "Meet our current chairman, lobby chairman, past chairmen and committee traders." },
-      { property: "og:title", content: "Chairman & Committee â€” VPP Market Yard" },
+      { property: "og:title", content: "Chairman & Committee - VPP Market Yard" },
       { property: "og:description", content: "Leadership serving 850+ traders." },
     ],
   }),

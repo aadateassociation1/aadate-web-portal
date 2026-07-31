@@ -18,9 +18,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/notices")({
   head: () => ({
     meta: [
-      { title: "Notices & Documents â€” VPP Market Yard" },
+      { title: "Notices & Documents - VPP Market Yard" },
       { name: "description", content: "Official notices, circulars and downloadable documents for traders." },
-      { property: "og:title", content: "Notices & Documents â€” VPP Market Yard" },
+      { property: "og:title", content: "Notices & Documents - VPP Market Yard" },
       { property: "og:description", content: "Access all official notices and market yard documents." },
     ],
   }),
@@ -79,7 +79,7 @@ function Notices() {
           <div className="grid gap-3 sm:flex sm:flex-wrap">
             <div className="relative min-w-0 flex-1 sm:min-w-[200px]">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search noticesâ€¦" className="pl-9" />
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search notices..." className="pl-9" />
             </div>
             <Select value={cat} onValueChange={setCat}>
               <SelectTrigger className="w-full sm:w-72"><SelectValue /></SelectTrigger>
@@ -99,7 +99,7 @@ function Notices() {
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <Badge variant="outline" className="border-primary/40 text-primary">{n.category}</Badge>
                         <span>#{n.number}</span>
-                        <span>Â· {new Date(n.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                        <span>- {new Date(n.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
                       </div>
                       <h3 className="mt-1.5 font-display font-semibold text-primary-dark">{n.title}</h3>
                       <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{n.description}</p>

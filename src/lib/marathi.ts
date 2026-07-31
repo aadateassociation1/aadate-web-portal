@@ -81,12 +81,16 @@ const replacements = Object.entries(textTranslations).sort((a, b) => b[0].length
 function normalizeText(value: string) {
   return value
     .replace(/\u00a0/g, " ")
-    .replace(/â€”/g, "-")
-    .replace(/â€“/g, "-")
-    .replace(/Â·/g, "·")
-    .replace(/Â©/g, "©")
-    .replace(/Ã—/g, "x")
-    .replace(/â€¦/g, "...")
+    .replace(/\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d/g, "-")
+    .replace(/\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u0153/g, "-")
+    .replace(/\u00e2\u20ac\u201d/g, "-")
+    .replace(/\u00e2\u20ac\u201c/g, "-")
+    .replace(/\u00c3\u00a2\u00e2\u201a\u00ac\u00c2\u00a6/g, "...")
+    .replace(/\u00e2\u20ac\u00a6/g, "...")
+    .replace(/\u00c3\u201a-/g, "-")
+    .replace(/\u00c2-/g, "-")
+    .replace(/\u00c3\u0192-/g, "x")
+    .replace(/\u00c3\u201a\(c\)/g, "(c)")
     .replace(/\s+/g, " ")
     .trim();
 }

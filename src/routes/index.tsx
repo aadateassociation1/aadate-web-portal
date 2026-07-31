@@ -18,9 +18,9 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "VPP Market Yard — Digital Portal for Traders" },
+      { title: "VPP Market Yard - Digital Portal for Traders" },
       { name: "description", content: "Connecting 850+ traders with market yard administration. Market updates, notices, complaints, official documents." },
-      { property: "og:title", content: "VPP Market Yard — Digital Portal for Traders" },
+      { property: "og:title", content: "VPP Market Yard - Digital Portal for Traders" },
       { property: "og:description", content: "Secure digital platform for traders of Vishal Purandhar Patasanstha Market Yard." },
     ],
   }),
@@ -145,7 +145,7 @@ function Home() {
               Vishal Purandhar Patasanstha Market Yard Owners Association represents over 850 traders
               operating across vegetable, fruit, grain, flower and agricultural sections. Our digital
               transformation initiative delivers transparent administration, faster complaint resolution
-              and instant access to notices — all in Marathi and English.
+              and instant access to notices - all in Marathi and English.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               {["Transparent complaint workflow", "Digital notice archive", "Bilingual EN / मराठी", "Verified trader accounts"].map((f) => (
@@ -303,7 +303,7 @@ function Home() {
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <Badge variant="outline" className="border-primary/40 text-primary">{n.category}</Badge>
                     <span>Notice #{n.number}</span>
-                    <span>· {new Date(n.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                    <span>- {new Date(n.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
                   </div>
                   <h3 className="mt-3 font-display font-semibold text-primary-dark">{n.title}</h3>
                   <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{n.description}</p>

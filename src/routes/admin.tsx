@@ -24,7 +24,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin Dashboard â€” VPP Market Yard" }] }),
+  head: () => ({ meta: [{ title: "Admin Dashboard - VPP Market Yard" }] }),
   component: AdminDash,
 });
 
@@ -150,7 +150,7 @@ function AdminDash() {
               <div className="mb-4 flex flex-wrap items-center gap-3">
                 <div className="relative min-w-0 flex-1 sm:min-w-[200px]">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name, gala, mobileâ€¦" className="pl-9" />
+                  <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name, gala, mobile..." className="pl-9" />
                 </div>
                 <Button variant="outline"><Download className="h-4 w-4 mr-1" /> Export</Button>
               </div>
@@ -243,7 +243,7 @@ function AdminDash() {
                   <div key={u.id} className="flex items-start gap-3 rounded-lg border p-3">
                     <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><Newspaper className="h-4 w-4" /></div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs text-muted-foreground">{u.category} Â· {u.views} views</div>
+                      <div className="text-xs text-muted-foreground">{u.category} - {u.views} views</div>
                       <div className="truncate font-medium text-primary-dark">{u.title}</div>
                     </div>
                     <Button size="sm" variant="ghost" onClick={() => toast.success(`${u.id} deleted`)}>Delete</Button>
@@ -283,7 +283,7 @@ function AdminDash() {
                   <div key={n.id} className="flex items-start gap-3 rounded-lg border p-3">
                     <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><FileText className="h-4 w-4" /></div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs text-muted-foreground">#{n.number} Â· {n.category}</div>
+                      <div className="text-xs text-muted-foreground">#{n.number} - {n.category}</div>
                       <div className="truncate font-medium text-primary-dark">{n.title}</div>
                     </div>
                     <Button size="sm" variant="outline"><Eye className="h-4 w-4" /></Button>
@@ -318,7 +318,7 @@ function AdminDash() {
                         <TableCell className="text-right">
                           {r.status === "pending" && (
                             <div className="inline-flex gap-1">
-                              <Button size="sm" className="bg-success text-white" onClick={() => toast.success(`${r.id} approved â€” mobile updated`)}>Approve</Button>
+                              <Button size="sm" className="bg-success text-white" onClick={() => toast.success(`${r.id} approved - mobile updated`)}>Approve</Button>
                               <Button size="sm" variant="outline" onClick={() => toast.error(`${r.id} rejected`)}>Reject</Button>
                             </div>
                           )}

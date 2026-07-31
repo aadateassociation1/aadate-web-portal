@@ -147,7 +147,7 @@ export function AdminRegistrationsPage() {
                 <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-secondary font-display font-bold text-primary">{o.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2"><h3 className="font-display font-bold text-primary-dark">{o.name}</h3><StatusBadge status={o.status} /></div>
-                  <div className="mt-1 text-sm text-muted-foreground">{o.business} Â· Gala {o.gala}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{o.business} - Gala {o.gala}</div>
                   <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
                     <div><span className="text-muted-foreground">Mobile:</span> {o.mobile}</div>
                     <div><span className="text-muted-foreground">Section:</span> {o.section}</div>
@@ -189,7 +189,7 @@ export function AdminComplaintsPage() {
                 {COMPLAINTS.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-mono text-xs">{c.id}</TableCell>
-                    <TableCell><div className="font-medium">{c.subject}</div><div className="text-xs text-muted-foreground">{c.category} Â· {c.attachments} attachments</div></TableCell>
+                    <TableCell><div className="font-medium">{c.subject}</div><div className="text-xs text-muted-foreground">{c.category} - {c.attachments} attachments</div></TableCell>
                     <TableCell><div>{c.ownerName}</div><div className="text-xs text-muted-foreground">{c.gala}</div></TableCell>
                     <TableCell><Badge className={c.priority === "emergency" ? "bg-destructive text-white" : c.priority === "high" ? "bg-warning text-white" : "bg-secondary text-primary-dark"}>{c.priority}</Badge></TableCell>
                     <TableCell><StatusBadge status={c.status} /></TableCell>
@@ -217,7 +217,7 @@ export function AdminUpdatesPage() {
               {MARKET_UPDATES.map((u) => (
                 <div key={u.id} className="flex items-start gap-3 rounded-lg border p-3">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><Newspaper className="h-4 w-4" /></div>
-                  <div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{u.category} Â· {u.views} views</div><div className="font-medium text-primary-dark">{u.title}</div><p className="mt-1 text-sm text-muted-foreground">{u.summary}</p></div>
+                  <div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{u.category} - {u.views} views</div><div className="font-medium text-primary-dark">{u.title}</div><p className="mt-1 text-sm text-muted-foreground">{u.summary}</p></div>
                   {u.emergency && <Badge className="bg-destructive text-white">Alert</Badge>}
                 </div>
               ))}
@@ -445,7 +445,7 @@ export function AdminGalleryPage() {
                   </div>
                   <div className="p-4">
                     <div className="font-display font-semibold text-primary-dark">{item.title}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">{item.section} Â· {new Date(item.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{item.section} - {new Date(item.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                       <Badge variant="outline" className="border-primary/40 text-primary">{item.count} {item.type === "video" ? "clips" : "photos"}</Badge>
                       <span className="text-xs text-muted-foreground">By {item.uploadedBy}</span>
@@ -495,7 +495,7 @@ function SharedPostCard({ post, adminView = false, framed = true }: { post: (typ
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{post.body}</p>
         <div className="mt-4 rounded-lg border bg-secondary/50 p-3">
           <div className="text-sm font-semibold text-primary-dark">Posted by {post.ownerName}</div>
-          <div className="text-xs text-muted-foreground">Gala {post.gala} Â· {post.section}</div>
+          <div className="text-xs text-muted-foreground">Gala {post.gala} - {post.section}</div>
         </div>
         {adminView && <PostMediaPreview images={post.images} videos={post.videos} />}
         <MediaDownloads images={post.images} videos={post.videos} />
@@ -561,7 +561,7 @@ export function AdminOwnerPostsPage() {
                     <StatusBadge status={post.status} />
                   </div>
                   <div className="mt-2 font-medium text-primary-dark">{post.title}</div>
-                  <div className="text-xs text-muted-foreground">Posted by {post.ownerName} Â· Gala {post.gala}</div>
+                  <div className="text-xs text-muted-foreground">Posted by {post.ownerName} - Gala {post.gala}</div>
                   <MediaDownloads images={post.images} videos={post.videos} />
                 </div>
               ))}
@@ -657,7 +657,7 @@ export function AdminAuditPage() {
       <PageTitle title="Audit Logs" subtitle="Transparent activity trail for admin decisions and portal changes." />
       <Card className="border-border/60">
         <CardContent className="p-6">
-          <div className="space-y-3">{rows.map((row, i) => <div key={row} className="flex items-center gap-3 rounded-lg border p-3"><div className="grid h-10 w-10 place-items-center rounded-lg bg-secondary text-primary"><History className="h-4 w-4" /></div><div className="flex-1"><div className="font-medium text-primary-dark">{row}</div><div className="text-xs text-muted-foreground">Admin Â· 2026-07-{28 - i} Â· {10 + i}:30 AM</div></div><Badge variant="outline">Recorded</Badge></div>)}</div>
+          <div className="space-y-3">{rows.map((row, i) => <div key={row} className="flex items-center gap-3 rounded-lg border p-3"><div className="grid h-10 w-10 place-items-center rounded-lg bg-secondary text-primary"><History className="h-4 w-4" /></div><div className="flex-1"><div className="font-medium text-primary-dark">{row}</div><div className="text-xs text-muted-foreground">Admin - 2026-07-{28 - i} - {10 + i}:30 AM</div></div><Badge variant="outline">Recorded</Badge></div>)}</div>
         </CardContent>
       </Card>
     </DashLayout>
@@ -987,11 +987,11 @@ export function OwnerGalaPage() {
 }
 
 export function OwnerUpdatesPage() {
-  return <OwnerListPage title="Market Updates" subtitle="Daily market prices, arrivals, weather alerts, and public announcements." icon={Newspaper} items={MARKET_UPDATES.map((u) => ({ id: u.id, title: u.title, meta: `${u.category} Â· ${new Date(u.date).toLocaleDateString("en-IN")}`, body: u.summary, alert: u.emergency }))} />;
+  return <OwnerListPage title="Market Updates" subtitle="Daily market prices, arrivals, weather alerts, and public announcements." icon={Newspaper} items={MARKET_UPDATES.map((u) => ({ id: u.id, title: u.title, meta: `${u.category} - ${new Date(u.date).toLocaleDateString("en-IN")}`, body: u.summary, alert: u.emergency }))} />;
 }
 
 export function OwnerNoticesPage() {
-  return <OwnerListPage title="Notices & Documents" subtitle="Official documents, circulars, meeting notices, and downloadable files." icon={FileText} items={NOTICES.map((n) => ({ id: n.id, title: n.title, meta: `#${n.number} Â· ${n.category}`, body: n.description, file: n.attachment }))} />;
+  return <OwnerListPage title="Notices & Documents" subtitle="Official documents, circulars, meeting notices, and downloadable files." icon={FileText} items={NOTICES.map((n) => ({ id: n.id, title: n.title, meta: `#${n.number} - ${n.category}`, body: n.description, file: n.attachment }))} />;
 }
 
 function OwnerListPage({ title, subtitle, icon: Icon, items }: { title: string; subtitle: string; icon: React.ElementType; items: Array<{ id: string; title: string; meta: string; body: string; alert?: boolean; file?: string }> }) {
@@ -1008,7 +1008,7 @@ export function OwnerComplaintsPage() {
     <DashLayout kind="owner">
       <PageTitle title="My Complaints" subtitle="Track complaint status, assigned department, and admin comments." action={<Button asChild><Link to="/owner/new-complaint"><Plus className="mr-1 h-4 w-4" /> New Complaint</Link></Button>} />
       <div className="grid gap-4">
-        {myComplaints.map((c) => <Card key={c.id} className="border-border/60"><CardContent className="p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="text-xs text-muted-foreground">{c.id} Â· {c.category}</div><h2 className="font-display font-semibold text-primary-dark">{c.subject}</h2><p className="mt-1 text-sm text-muted-foreground">{c.description}</p></div><StatusBadge status={c.status} /></div><div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground"><Badge variant="outline">{c.priority}</Badge><span>Assigned to {c.assignedTo}</span><span>{c.attachments} attachments</span></div></CardContent></Card>)}
+        {myComplaints.map((c) => <Card key={c.id} className="border-border/60"><CardContent className="p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="text-xs text-muted-foreground">{c.id} - {c.category}</div><h2 className="font-display font-semibold text-primary-dark">{c.subject}</h2><p className="mt-1 text-sm text-muted-foreground">{c.description}</p></div><StatusBadge status={c.status} /></div><div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground"><Badge variant="outline">{c.priority}</Badge><span>Assigned to {c.assignedTo}</span><span>{c.attachments} attachments</span></div></CardContent></Card>)}
       </div>
     </DashLayout>
   );
@@ -1141,7 +1141,7 @@ export function OwnerPostPage() {
                       <StatusBadge status={post.status} />
                     </div>
                     <div className="mt-2 font-medium text-primary-dark">{post.title}</div>
-                    <div className="text-xs text-muted-foreground">Sent to admin Â· Gala {post.gala}</div>
+                    <div className="text-xs text-muted-foreground">Sent to admin - Gala {post.gala}</div>
                   </div>
                 ))}
               </div>
