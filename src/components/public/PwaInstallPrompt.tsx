@@ -26,9 +26,26 @@ function detectPlatform() {
   return "other";
 }
 
+function isStandalonePwa() {
+  return window.matchMedia("(display-mode: standalone)").matches
+    || ("standalone" in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
+}
+
+function getDismissedUntil() {
+  const value = Number(localStorage.getItem("pwa_install_dismissed_until") || 0);
+  return Number.isFinite(value) ? value : 0;
+}
+
 export function PwaInstallPrompt() {
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
-  const [dismissed, setDismissed] = useState(() => localStorage.getItem("pwa_install_dismissed") === "true");
+  const [platform, setPlatform] = useState<ReturnType<typeof detectPlatform>>("other");
+  const [standalone, setStandalone] = useState(false);
+  const [dismissed, setDismissed] = useState(() => Date.now() < getDismissedUntil());
+
+  useEffect(() => {
+    setPlatform(detectPlatform());
+    setStandalone(isStandalonePwa());
+  }, []);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event: Event) => {
@@ -57,18 +74,26 @@ export function PwaInstallPrompt() {
     return () => window.removeEventListener("appinstalled", handleInstalled);
   }, []);
 
-  if (!promptEvent || dismissed) return null;
+  const canShowManualHelp = platform === "android" || platform === "ios";
+  if (standalone || dismissed || (!promptEvent && !canShowManualHelp)) return null;
 
   const install = async () => {
+    if (!promptEvent) return;
     await promptEvent.prompt();
     await promptEvent.userChoice;
     setPromptEvent(null);
   };
 
   const dismiss = () => {
-    localStorage.setItem("pwa_install_dismissed", "true");
+    localStorage.setItem("pwa_install_dismissed_until", String(Date.now() + 7 * 24 * 60 * 60 * 1000));
     setDismissed(true);
   };
+
+  const helpText = promptEvent
+    ? "Install this portal for faster app-style access."
+    : platform === "ios"
+      ? "Tap Share, then Add to Home Screen."
+      : "Open Chrome menu, then tap Install app or Add to Home screen.";
 
   return (
     <div className="fixed bottom-24 left-4 right-4 z-50 mx-auto flex max-w-md items-center gap-3 rounded-md border bg-background p-3 shadow-lg sm:left-auto sm:right-5">
@@ -77,10 +102,9 @@ export function PwaInstallPrompt() {
       </div>
       <div className="min-w-0 flex-1">
         <div className="text-sm font-semibold text-primary-dark">Install Market Yard app</div>
-        {/* iOS Safari requires manual "Add to Home Screen"; no auto-prompt is possible there. */}
-        <div className="text-xs text-muted-foreground">Install this portal for faster app-style access.</div>
+        <div className="text-xs text-muted-foreground">{helpText}</div>
       </div>
-      <Button size="sm" className="bg-primary" onClick={install}>Install</Button>
+      {promptEvent && <Button size="sm" className="bg-primary" onClick={install}>Install</Button>}
       <Button size="sm" variant="ghost" onClick={dismiss}>Later</Button>
     </div>
   );
