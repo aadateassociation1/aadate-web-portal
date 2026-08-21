@@ -2591,6 +2591,22 @@ function fileToUploadPayload(file: File): Promise<{ originalFilename: string; mi
   });
 }
 
+async function readApiResponse(response: Response) {
+  const contentType = response.headers.get("content-type") || "";
+  const body = contentType.includes("application/json")
+    ? await response.json().catch(() => null)
+    : await response.text().catch(() => "");
+
+  if (!response.ok) {
+    const message = typeof body === "string"
+      ? body.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+      : body?.message || body?.error;
+    throw new Error(message || `Request failed with status ${response.status}.`);
+  }
+
+  return body;
+}
+
 const PROFILE_DOCUMENT_LABELS: Record<string, string> = {
   profile_photo: "Profile photo",
   aadhaar_masked: "Aadhaar card",
@@ -2602,8 +2618,8 @@ const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 function isAllowedTraderDocumentFile(file: File, documentType: string) {
   const extension = file.name.split(".").pop()?.toLowerCase() || "";
   const imageOnly = documentType === "profile_photo";
-  const allowedMimeTypes = imageOnly ? ["image/jpeg", "image/png"] : ["image/jpeg", "image/png", "application/pdf"];
-  const allowedExtensions = imageOnly ? ["jpg", "jpeg", "png"] : ["jpg", "jpeg", "png", "pdf"];
+  const allowedMimeTypes = imageOnly ? ["image/jpeg", "image/jpg", "image/png", "image/webp"] : ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
+  const allowedExtensions = imageOnly ? ["jpg", "jpeg", "png", "webp"] : ["jpg", "jpeg", "png", "webp", "pdf"];
   return file.size > 0 && file.size <= 5 * 1024 * 1024 && allowedMimeTypes.includes(file.type) && allowedExtensions.includes(extension);
 }
 
@@ -2650,21 +2666,27 @@ export function OwnerProfilePage() {
 
   const uploadDocument = async (documentType: string, file: File | null) => {
     if (!file) return;
+    const extension = file.name.split(".").pop()?.toLowerCase() || "";
+    if (["heic", "heif"].includes(extension) || ["image/heic", "image/heif"].includes(file.type)) {
+      toast.error("HEIC/HEIF photos are not supported yet. Please upload JPG, PNG, or WebP.");
+      return;
+    }
     if (!isAllowedTraderDocumentFile(file, documentType)) {
-      toast.error(documentType === "profile_photo" ? "Profile photo must be JPG or PNG under 5 MB." : "Document must be JPG, PNG, or PDF under 5 MB.");
+      toast.error(documentType === "profile_photo" ? "Profile photo must be JPG, PNG, or WebP under 5 MB." : "Document must be JPG, PNG, WebP, or PDF under 5 MB.");
       return;
     }
     setUploadingType(documentType);
     try {
-      const payload = await fileToUploadPayload(file);
+      const formData = new FormData();
+      formData.append("documentType", documentType);
+      formData.append("file", file, file.name);
       const response = await fetch("/api/v1/trader/documents", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ documentType, ...payload }),
+        body: formData,
       });
-      const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.error || "Could not upload document.");
+      const result = await readApiResponse(response);
+      if (!result?.ok) throw new Error(result?.message || result?.error || "Could not upload document.");
       toast.success(`${PROFILE_DOCUMENT_LABELS[documentType] || "Document"} uploaded for verification.`);
       await reload();
     } catch (error) {
@@ -2767,7 +2789,7 @@ export function OwnerProfilePage() {
                   <Upload className="mr-2 h-4 w-4" /> Upload photo
                   <input
                     type="file"
-                    accept="image/jpeg,image/png"
+                    accept="image/jpeg,image/png,image/webp"
                     className="hidden"
                     onChange={(event) => {
                       uploadDocument("profile_photo", event.target.files?.[0] || null);
@@ -2800,7 +2822,7 @@ export function OwnerProfilePage() {
                           <Upload className="mr-1 h-4 w-4" /> {uploaded ? "Replace" : "Upload"}
                           <input
                             type="file"
-                            accept={document.documentType === "profile_photo" ? "image/jpeg,image/png" : "image/jpeg,image/png,application/pdf"}
+                            accept={document.documentType === "profile_photo" ? "image/jpeg,image/png,image/webp" : "image/jpeg,image/png,image/webp,application/pdf"}
                             className="hidden"
                             onChange={(event) => uploadDocument(document.documentType, event.target.files?.[0] || null)}
                           />

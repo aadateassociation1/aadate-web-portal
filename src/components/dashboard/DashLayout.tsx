@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { installNotificationSoundUnlock, playNotificationTone, unlockNotificationSound } from "@/lib/notification-sound";
+import { canUseWebPush, enableWebPush, getPushStatus } from "@/lib/push-notifications";
 
 const OWNER_NAV = [
   { to: "/member", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -86,6 +87,8 @@ export function DashLayout({ kind, children }: Props) {
   const [open, setOpen] = useState(false);
   const [adminCounts, setAdminCounts] = useState<Record<string, number>>({});
   const [memberUnreadCount, setMemberUnreadCount] = useState(0);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushChecking, setPushChecking] = useState(false);
   const previousMemberUnreadCount = useRef<number | null>(null);
 
   useEffect(() => setOpen(false), [pathname]);
@@ -165,6 +168,19 @@ export function DashLayout({ kind, children }: Props) {
     };
   }, [kind, loading, user, router]);
 
+  useEffect(() => {
+    if (kind !== "owner" || loading || !user || user.role !== "owner" || !canUseWebPush()) return;
+    let active = true;
+    getPushStatus()
+      .then((status) => {
+        if (active) setPushEnabled(status.permission === "granted" && Number(status.activeCount || 0) > 0);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [kind, loading, user]);
+
   if (loading || !user) {
     return <div className="grid min-h-screen place-items-center text-muted-foreground">Loading...</div>;
   }
@@ -178,6 +194,18 @@ export function DashLayout({ kind, children }: Props) {
     logout();
     toast.success("Signed out successfully");
     router.navigate({ to: "/" });
+  };
+  const handleEnablePush = async () => {
+    setPushChecking(true);
+    try {
+      await enableWebPush();
+      setPushEnabled(true);
+      toast.success("Phone notifications enabled");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not enable notifications.");
+    } finally {
+      setPushChecking(false);
+    }
   };
   const memberInitials = (user.name || "Member")
     .split(" ")
@@ -287,6 +315,21 @@ export function DashLayout({ kind, children }: Props) {
           <Badge variant="secondary" className="hidden sm:inline-flex bg-secondary text-primary-dark">
             {user.role === "main_admin" ? "Main Admin" : user.role === "user_admin" ? "User Admin" : "Member"}
           </Badge>
+          {kind === "owner" && canUseWebPush() && (
+            <Button
+              type="button"
+              variant={pushEnabled ? "secondary" : "outline"}
+              size="sm"
+              className="shrink-0"
+              onClick={handleEnablePush}
+              disabled={pushEnabled || pushChecking}
+              title="Get instant Market Yard notices and updates on your phone."
+            >
+              <Bell className="mr-1 h-4 w-4" />
+              <span className="hidden md:inline">{pushEnabled ? "Notifications Enabled" : "Enable Notifications"}</span>
+              <span className="md:hidden">{pushEnabled ? "On" : "Enable"}</span>
+            </Button>
+          )}
           <HeaderLangSwitcher />
           <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex shrink-0">
             <Link to="/"><Home className="h-4 w-4 mr-1" /><span className="hidden md:inline">Public Site</span><span className="md:hidden">Site</span></Link>

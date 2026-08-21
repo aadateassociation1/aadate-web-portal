@@ -1,5 +1,7 @@
-CREATE DATABASE IF NOT EXISTS market_yard_portal;
-USE market_yard_portal;
+-- Hostinger import file: schema, tables, views, permissions and master data.
+-- Open your Hostinger phpMyAdmin database first, then import this file.
+-- If you are importing through MySQL CLI, uncomment and update the next line:
+-- USE your_hostinger_database_name;
 
 
 

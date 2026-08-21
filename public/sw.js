@@ -47,3 +47,45 @@ self.addEventListener("fetch", (event) => {
     }),
   );
 });
+
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = {};
+  }
+
+  const title = data.title || "Market Yard";
+  const options = {
+    body: data.body || "A new update is available.",
+    icon: "/icons/favicon.png",
+    badge: "/icons/favicon.png",
+    tag: data.type && data.entityId ? `${data.type}-${data.entityId}` : "market-yard-notification",
+    data: {
+      url: data.url || "/member/notifications",
+      type: data.type || "notification",
+      entityId: data.entityId || null,
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = event.notification.data?.url || "/member/notifications";
+  const targetUrl = new URL(target, self.location.origin).href;
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ("focus" in client) {
+          if ("navigate" in client) client.navigate(targetUrl);
+          return client.focus();
+        }
+      }
+      return clients.openWindow(targetUrl);
+    }),
+  );
+});

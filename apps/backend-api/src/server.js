@@ -2,7 +2,9 @@ import cors from "cors";
 import crypto from "node:crypto";
 import express from "express";
 import fs from "node:fs/promises";
+import multer from "multer";
 import path from "node:path";
+import webPush from "web-push";
 import { config } from "./config.js";
 import { pingDatabase, pool } from "./db.js";
 
@@ -10,13 +12,15 @@ const app = express();
 const otpStore = new Map();
 const passwordResetStore = new Map();
 const SESSION_MAX_AGE_SECONDS = 365 * 24 * 60 * 60;
-const UPLOAD_ROOT = path.resolve(process.cwd(), "uploads", "trader-documents");
-const MOBILE_CHANGE_UPLOAD_ROOT = path.resolve(process.cwd(), "uploads", "mobile-change-documents");
-const COMPLAINT_UPLOAD_ROOT = path.resolve(process.cwd(), "uploads", "complaint-documents");
-const POST_UPLOAD_ROOT = path.resolve(process.cwd(), "uploads", "post-documents");
-const CONTENT_UPLOAD_ROOT = path.resolve(process.cwd(), "uploads", "content-documents");
-const COMMITTEE_UPLOAD_ROOT = path.resolve(process.cwd(), "uploads", "committee-photos");
-const MAX_MEDIA_UPLOAD_BYTES = 1 * 1024 * 1024;
+const PERSISTENT_UPLOAD_ROOT = path.resolve(process.cwd(), config.uploads.root);
+const UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "trader-documents");
+const MOBILE_CHANGE_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "mobile-change-documents");
+const COMPLAINT_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "complaint-documents");
+const POST_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "post-documents");
+const CONTENT_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "content-documents");
+const COMMITTEE_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "committee-photos");
+const MAX_MEDIA_UPLOAD_BYTES = 5 * 1024 * 1024;
+const MAX_DOCUMENT_UPLOAD_BYTES = 5 * 1024 * 1024;
 const REQUIRED_TRADER_DASHBOARD_DOCUMENT_TYPES = ["profile_photo", "aadhaar_masked", "pan", "market_registration"];
 const DATA_RETENTION_DAYS = 5;
 const DATA_RETENTION_MS = DATA_RETENTION_DAYS * 24 * 60 * 60 * 1000;
@@ -31,6 +35,14 @@ const DOCUMENT_TYPE_LABELS = {
 };
 const MARKET_PRICE_CATEGORIES = new Set(["vegetable", "fruit"]);
 const MARKET_PRICE_UNITS = new Set(["Kg", "Quintal", "Dozen", "Piece", "Bunch", "Bundle", "Crate", "Box", "Tray"]);
+const documentUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_DOCUMENT_UPLOAD_BYTES, files: 1 },
+});
+
+if (config.vapid.publicKey && config.vapid.privateKey) {
+  webPush.setVapidDetails(config.vapid.subject, config.vapid.publicKey, config.vapid.privateKey);
+}
 
 app.use(cors({
   credentials: true,
@@ -157,6 +169,25 @@ function detectMimeType(buffer) {
     && buffer[6] === 0x1a
     && buffer[7] === 0x0a
   ) return "image/png";
+  if (
+    buffer.length >= 12
+    && buffer[0] === 0x52
+    && buffer[1] === 0x49
+    && buffer[2] === 0x46
+    && buffer[3] === 0x46
+    && buffer[8] === 0x57
+    && buffer[9] === 0x45
+    && buffer[10] === 0x42
+    && buffer[11] === 0x50
+  ) return "image/webp";
+  if (
+    buffer.length >= 12
+    && buffer[4] === 0x66
+    && buffer[5] === 0x74
+    && buffer[6] === 0x79
+    && buffer[7] === 0x70
+    && ["heic", "heix", "hevc", "hevx", "mif1", "msf1"].includes(buffer.subarray(8, 12).toString("ascii"))
+  ) return "image/heic";
   return "";
 }
 
@@ -272,24 +303,36 @@ async function translatePostContentToMarathi({ titleEn, category, details, title
 function validateDocumentMetadata({ documentType, originalFilename, claimedMimeType, detectedMimeType }) {
   if (!DOCUMENT_TYPE_LABELS[documentType]) throw new Error("Invalid document type.");
   const extension = path.extname(String(originalFilename || "")).toLowerCase();
-  const allowedExtensions = documentType === "profile_photo" ? new Set([".jpg", ".jpeg", ".png"]) : new Set([".jpg", ".jpeg", ".png", ".pdf"]);
-  const allowedMimeTypes = documentType === "profile_photo" ? new Set(["image/jpeg", "image/png"]) : new Set(["image/jpeg", "image/png", "application/pdf"]);
-  if (!allowedExtensions.has(extension)) {
-    throw new Error(`${DOCUMENT_TYPE_LABELS[documentType]} must be ${documentType === "profile_photo" ? "JPG or PNG" : "JPG, PNG or PDF"}.`);
+  const allowedExtensions = documentType === "profile_photo" ? new Set([".jpg", ".jpeg", ".png", ".webp"]) : new Set([".jpg", ".jpeg", ".png", ".webp", ".pdf"]);
+  const allowedMimeTypes = documentType === "profile_photo" ? new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]) : new Set(["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"]);
+  if ([".heic", ".heif"].includes(extension) || ["image/heic", "image/heif"].includes(claimedMimeType) || detectedMimeType === "image/heic") {
+    throw new Error("HEIC/HEIF photos are not supported yet. Please set your camera to Most Compatible or upload JPG, PNG, or WebP.");
   }
-  if (!allowedMimeTypes.has(claimedMimeType) || !allowedMimeTypes.has(detectedMimeType) || claimedMimeType !== detectedMimeType) {
+  if (!allowedExtensions.has(extension)) {
+    throw new Error(`${DOCUMENT_TYPE_LABELS[documentType]} must be ${documentType === "profile_photo" ? "JPG, PNG, or WebP" : "JPG, PNG, WebP, or PDF"}.`);
+  }
+  const normalizedClaimedMimeType = claimedMimeType === "image/jpg" ? "image/jpeg" : claimedMimeType;
+  const normalizedDetectedMimeType = detectedMimeType === "image/jpg" ? "image/jpeg" : detectedMimeType;
+  if (!allowedMimeTypes.has(claimedMimeType) || !allowedMimeTypes.has(detectedMimeType) || normalizedClaimedMimeType !== normalizedDetectedMimeType) {
     throw new Error(`${DOCUMENT_TYPE_LABELS[documentType]} file content does not match its file type.`);
   }
 }
 
-async function saveTraderDocumentFile({ traderId, documentType, originalFilename, mimeType, dataUrl }) {
-  const match = String(dataUrl || "").match(/^data:([^;]+);base64,(.+)$/);
-  if (!match) throw new Error("Invalid document upload payload.");
-  const [, encodedMimeType, base64] = match;
-  const safeMimeType = mimeType || encodedMimeType;
+function resolveStoredFilePath(storageKey) {
+  return path.isAbsolute(String(storageKey || ""))
+    ? path.resolve(storageKey)
+    : path.resolve(process.cwd(), storageKey);
+}
 
-  const buffer = Buffer.from(base64, "base64");
-  if (buffer.length <= 0 || buffer.length > 5 * 1024 * 1024) {
+function isPathInside(childPath, parentPath) {
+  const relative = path.relative(parentPath, childPath);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
+async function saveTraderDocumentBuffer({ traderId, documentType, originalFilename, mimeType, buffer }) {
+  const safeMimeType = mimeType || "application/octet-stream";
+  if (!Buffer.isBuffer(buffer)) throw new Error("Invalid document upload payload.");
+  if (buffer.length <= 0 || buffer.length > MAX_DOCUMENT_UPLOAD_BYTES) {
     throw new Error("Each document must be between 1 byte and 5 MB.");
   }
   if (safeMimeType.startsWith("image/") && buffer.length > MAX_MEDIA_UPLOAD_BYTES) {
@@ -305,12 +348,25 @@ async function saveTraderDocumentFile({ traderId, documentType, originalFilename
   await fs.writeFile(storagePath, buffer);
 
   return {
-    storageKey: `uploads/trader-documents/${storageFileName}`,
+    storageKey: path.relative(process.cwd(), storagePath),
     originalFilename: safeFileName,
     mimeType: safeMimeType,
     fileSizeBytes: buffer.length,
     documentHash: crypto.createHash("sha256").update(buffer).digest("hex"),
   };
+}
+
+async function saveTraderDocumentFile({ traderId, documentType, originalFilename, mimeType, dataUrl }) {
+  const match = String(dataUrl || "").match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) throw new Error("Invalid document upload payload.");
+  const [, encodedMimeType, base64] = match;
+  return saveTraderDocumentBuffer({
+    traderId,
+    documentType,
+    originalFilename,
+    mimeType: mimeType || encodedMimeType,
+    buffer: Buffer.from(base64, "base64"),
+  });
 }
 
 async function saveMobileChangeDocumentFile({ requestId, documentType, originalFilename, mimeType, dataUrl }) {
@@ -608,6 +664,92 @@ async function createMemberNotifications(connection, {
   return result.affectedRows || 0;
 }
 
+function sanitizePushFailureReason(error) {
+  const raw = error?.body || error?.message || String(error || "Push failed");
+  return String(raw).replace(/\s+/g, " ").slice(0, 500);
+}
+
+function isWebPushConfigured() {
+  return Boolean(config.vapid.publicKey && config.vapid.privateKey);
+}
+
+async function sendPushToSubscriptions({ subscriptions, payload, notificationId = null }) {
+  if (!isWebPushConfigured() || subscriptions.length === 0) return { sent: 0, failed: 0, skipped: !isWebPushConfigured() };
+  let sent = 0;
+  let failed = 0;
+  await Promise.all(subscriptions.map(async (subscription) => {
+    try {
+      await webPush.sendNotification(
+        {
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: subscription.p256dh_key,
+            auth: subscription.auth_key,
+          },
+        },
+        JSON.stringify(payload),
+      );
+      sent += 1;
+      await pool.query(
+        "UPDATE push_subscriptions SET is_active = 1, last_success_at = NOW(), last_failure_at = NULL WHERE id = :id",
+        { id: subscription.id },
+      );
+      await pool.query(
+        `INSERT INTO push_delivery_logs (notification_id, subscription_id, status, provider_status_code)
+         VALUES (:notificationId, :subscriptionId, 'sent', NULL)`,
+        { notificationId, subscriptionId: subscription.id },
+      );
+    } catch (error) {
+      failed += 1;
+      const statusCode = Number(error?.statusCode || error?.status || 0) || null;
+      const shouldDisable = statusCode === 404 || statusCode === 410;
+      await pool.query(
+        `UPDATE push_subscriptions
+            SET last_failure_at = NOW(),
+                is_active = IF(:shouldDisable = 1, 0, is_active)
+          WHERE id = :id`,
+        { id: subscription.id, shouldDisable: shouldDisable ? 1 : 0 },
+      );
+      await pool.query(
+        `INSERT INTO push_delivery_logs (notification_id, subscription_id, status, provider_status_code, failure_reason)
+         VALUES (:notificationId, :subscriptionId, 'failed', :statusCode, :failureReason)`,
+        {
+          notificationId,
+          subscriptionId: subscription.id,
+          statusCode,
+          failureReason: sanitizePushFailureReason(error),
+        },
+      );
+    }
+  }));
+  return { sent, failed, skipped: false };
+}
+
+async function sendPushToAllMembers({ title, body, url, type, entityId, notificationId = null }) {
+  const [subscriptions] = await pool.query(
+    `SELECT ps.id, ps.endpoint, ps.p256dh_key, ps.auth_key
+       FROM push_subscriptions ps
+       JOIN users u ON u.id = ps.user_id
+       JOIN roles r ON r.id = u.role_id
+       LEFT JOIN traders t ON t.user_id = u.id
+      WHERE ps.is_active = 1
+        AND u.status = 'active'
+        AND r.code = 'TRADER'
+        AND (t.id IS NULL OR t.verification_status = 'approved')`,
+  );
+  return sendPushToSubscriptions({
+    subscriptions,
+    notificationId,
+    payload: {
+      title: String(title || "Market Yard").slice(0, 120),
+      body: String(body || "A new update is available.").slice(0, 180),
+      url: url || "/member/notifications",
+      type: type || "notification",
+      entityId: entityId || null,
+    },
+  });
+}
+
 function getPostNotificationMeta(postType) {
   if (postType === "notice" || postType === "circular") {
     return {
@@ -655,6 +797,42 @@ async function notifyMembersAboutPublishedPost(connection, { postId, postType, t
     priority: meta.priority,
     excludeUserId,
   });
+}
+
+async function sendPublishedPostPush({ postId, postType, titleEn, details }) {
+  try {
+    const meta = getPostNotificationMeta(postType);
+    await sendPushToAllMembers({
+      title: meta.title,
+      body: String(titleEn || details || "A new Market Yard update is available.").slice(0, 180),
+      url: meta.actionUrl,
+      type: meta.type,
+      entityId: postId,
+    });
+  } catch (error) {
+    console.error("Post push notification failed", {
+      postId,
+      postType,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function sendRiskAlertPush({ warningId, customerName, amount }) {
+  try {
+    await sendPushToAllMembers({
+      title: "Payment Risk Alert",
+      body: `${customerName} has a new market-wide payment warning for Rs. ${Number(amount || 0).toLocaleString("en-IN")}.`,
+      url: "/member/notifications",
+      type: "risk_alert",
+      entityId: warningId,
+    });
+  } catch (error) {
+    console.error("Risk alert push notification failed", {
+      warningId,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
 }
 
 async function recordDownloadEvent({ sourceTable, sourceId, req }) {
@@ -762,14 +940,9 @@ async function addIndexIfMissing(tableName, indexName, ddl) {
   if (!index) await pool.query(`ALTER TABLE ${tableName} ADD INDEX ${ddl}`);
 }
 
-function resolveStoragePath(storageKey) {
-  if (!storageKey) return null;
-  return path.resolve(process.cwd(), String(storageKey));
-}
-
 async function removeStorageFiles(storageKeys = []) {
   await Promise.all(storageKeys.map(async (storageKey) => {
-    const filePath = resolveStoragePath(storageKey);
+    const filePath = storageKey ? resolveStoredFilePath(storageKey) : null;
     if (!filePath) return;
     try {
       await fs.unlink(filePath);
@@ -911,6 +1084,41 @@ async function ensurePlatformExtensions() {
   `);
   await addColumnIfMissing("notifications", "action_url", "action_url VARCHAR(500) NULL AFTER related_entity_id");
   await addColumnIfMissing("notifications", "priority", "priority ENUM('normal','high','critical') NOT NULL DEFAULT 'normal' AFTER action_url");
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      user_id BIGINT UNSIGNED NULL,
+      endpoint VARCHAR(600) NOT NULL,
+      p256dh_key VARCHAR(255) NOT NULL,
+      auth_key VARCHAR(255) NOT NULL,
+      device_label VARCHAR(120) NULL,
+      user_agent VARCHAR(500) NULL,
+      is_active TINYINT(1) NOT NULL DEFAULT 1,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      last_success_at DATETIME NULL,
+      last_failure_at DATETIME NULL,
+      UNIQUE KEY uq_push_subscriptions_endpoint (endpoint),
+      INDEX idx_push_subscriptions_user_active (user_id, is_active),
+      INDEX idx_push_subscriptions_active_updated (is_active, updated_at),
+      CONSTRAINT fk_push_subscriptions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS push_delivery_logs (
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      notification_id BIGINT UNSIGNED NULL,
+      subscription_id BIGINT UNSIGNED NOT NULL,
+      status ENUM('sent','failed') NOT NULL,
+      provider_status_code INT NULL,
+      failure_reason VARCHAR(500) NULL,
+      sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_push_logs_notification (notification_id, sent_at),
+      INDEX idx_push_logs_subscription (subscription_id, sent_at),
+      CONSTRAINT fk_push_logs_notification FOREIGN KEY (notification_id) REFERENCES notifications(id) ON DELETE SET NULL,
+      CONSTRAINT fk_push_logs_subscription FOREIGN KEY (subscription_id) REFERENCES push_subscriptions(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS pwa_installs (
       id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -1991,6 +2199,70 @@ async function recordPwaInstall(req, res) {
 app.post("/api/analytics/pwa-install", recordPwaInstall);
 app.post("/api/v1/analytics/pwa-install", recordPwaInstall);
 
+app.get("/api/v1/push/public-key", (_req, res) => {
+  res.json({ ok: true, publicKey: config.vapid.publicKey || "", configured: isWebPushConfigured() });
+});
+
+app.get("/api/v1/push/status", requireRoles("MAIN_ADMIN", "USER_ADMIN", "TRADER"), async (req, res) => {
+  const [rows] = await pool.query(
+    "SELECT COUNT(*) AS activeCount FROM push_subscriptions WHERE user_id = :userId AND is_active = 1",
+    { userId: req.user.id },
+  );
+  res.json({
+    ok: true,
+    configured: isWebPushConfigured(),
+    activeCount: Number(rows[0]?.activeCount || 0),
+  });
+});
+
+app.post("/api/v1/push/subscribe", requireRoles("MAIN_ADMIN", "USER_ADMIN", "TRADER"), async (req, res) => {
+  const endpoint = String(req.body?.endpoint || "").trim();
+  const p256dh = String(req.body?.keys?.p256dh || "").trim();
+  const auth = String(req.body?.keys?.auth || "").trim();
+  if (!isWebPushConfigured()) {
+    res.status(503).json({ ok: false, message: "Push notifications are not configured on the server." });
+    return;
+  }
+  if (!endpoint || !p256dh || !auth || !endpoint.startsWith("https://")) {
+    res.status(400).json({ ok: false, message: "Invalid push subscription." });
+    return;
+  }
+  await pool.query(
+    `INSERT INTO push_subscriptions (user_id, endpoint, p256dh_key, auth_key, device_label, user_agent, is_active)
+     VALUES (:userId, :endpoint, :p256dh, :auth, :deviceLabel, :userAgent, 1)
+     ON DUPLICATE KEY UPDATE
+       user_id = VALUES(user_id),
+       p256dh_key = VALUES(p256dh_key),
+       auth_key = VALUES(auth_key),
+       device_label = VALUES(device_label),
+       user_agent = VALUES(user_agent),
+       is_active = 1,
+       updated_at = CURRENT_TIMESTAMP`,
+    {
+      userId: req.user.id,
+      endpoint,
+      p256dh,
+      auth,
+      deviceLabel: String(req.body?.deviceLabel || "").slice(0, 120) || null,
+      userAgent: String(req.headers["user-agent"] || "").slice(0, 500) || null,
+    },
+  );
+  res.status(201).json({ ok: true, message: "Notifications enabled on this device." });
+});
+
+app.post("/api/v1/push/unsubscribe", requireRoles("MAIN_ADMIN", "USER_ADMIN", "TRADER"), async (req, res) => {
+  const endpoint = String(req.body?.endpoint || "").trim();
+  if (!endpoint) {
+    res.status(400).json({ ok: false, message: "Subscription endpoint is required." });
+    return;
+  }
+  await pool.query(
+    "UPDATE push_subscriptions SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE endpoint = :endpoint AND user_id = :userId",
+    { endpoint, userId: req.user.id },
+  );
+  res.json({ ok: true, message: "Notifications disabled on this device." });
+});
+
 app.post("/api/v1/admin/translate", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
   const text = String(req.body?.text || "").trim();
   const sourceLang = normalizeTranslationLanguage(req.body?.sourceLang || "en", "en");
@@ -2791,6 +3063,11 @@ app.post("/api/v1/admin/posts", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async 
       });
     }
     await connection.commit();
+    if (safeStatus === "published") {
+      setImmediate(() => {
+        sendPublishedPostPush({ postId, postType: safePostType, titleEn: safeTitleEn, details: safeDetails });
+      });
+    }
     res.status(201).json({ ok: true, postId, titleMr: translated.titleMr, contentMr: translated.contentMr });
   } catch (error) {
     await connection.rollback();
@@ -2856,6 +3133,9 @@ app.put("/api/v1/admin/posts/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), asy
       titleEn,
       details,
       excludeUserId: req.user.id,
+    });
+    setImmediate(() => {
+      sendPublishedPostPush({ postId, postType, titleEn, details });
     });
   }
   await writeAudit({ req, action: "post.update", module: "posts", entityType: "posts", entityId: postId, oldValues: before, newValues: { postType, titleEn, titleMr: translated.titleMr, category, details, contentMr: translated.contentMr, status } });
@@ -2980,8 +3260,8 @@ app.get("/api/v1/admin/trader-documents/:id/download", requireRoles("MAIN_ADMIN"
     res.status(404).json({ ok: false, error: "Document not found." });
     return;
   }
-  const resolvedPath = path.resolve(process.cwd(), document.storage_key);
-  if (!resolvedPath.startsWith(UPLOAD_ROOT)) {
+  const resolvedPath = resolveStoredFilePath(document.storage_key);
+  if (!isPathInside(resolvedPath, UPLOAD_ROOT)) {
     res.status(403).json({ ok: false, error: "Document path is not allowed." });
     return;
   }
@@ -3549,7 +3829,26 @@ app.patch("/api/v1/trader/galas/:id", requireRoles("TRADER"), async (req, res) =
   }
 });
 
-app.post("/api/v1/trader/documents", requireRoles("TRADER"), async (req, res) => {
+function uploadTraderDocumentMiddleware(req, res, next) {
+  documentUpload.single("file")(req, res, (error) => {
+    if (!error) {
+      next();
+      return;
+    }
+    const message = error.code === "LIMIT_FILE_SIZE"
+      ? "Each document must be 5 MB or smaller."
+      : "Could not read uploaded file.";
+    console.warn("Trader document upload rejected", {
+      userId: req.user?.id || null,
+      traderId: req.user?.trader_id || null,
+      code: error.code || "UPLOAD_ERROR",
+      message,
+    });
+    res.status(400).json({ ok: false, message, error: message });
+  });
+}
+
+app.post("/api/v1/trader/documents", requireRoles("TRADER"), uploadTraderDocumentMiddleware, async (req, res) => {
   if (!req.user.trader_id) {
     res.status(404).json({ ok: false, error: "Member profile not found." });
     return;
@@ -3559,13 +3858,34 @@ app.post("/api/v1/trader/documents", requireRoles("TRADER"), async (req, res) =>
     res.status(400).json({ ok: false, error: "Invalid document type." });
     return;
   }
-  const saved = await saveTraderDocumentFile({
-    traderId: req.user.trader_id,
-    documentType,
-    originalFilename: req.body?.originalFilename,
-    mimeType: req.body?.mimeType,
-    dataUrl: req.body?.dataUrl,
-  });
+  let saved;
+  try {
+    saved = req.file
+      ? await saveTraderDocumentBuffer({
+          traderId: req.user.trader_id,
+          documentType,
+          originalFilename: req.file.originalname,
+          mimeType: req.file.mimetype,
+          buffer: req.file.buffer,
+        })
+      : await saveTraderDocumentFile({
+          traderId: req.user.trader_id,
+          documentType,
+          originalFilename: req.body?.originalFilename,
+          mimeType: req.body?.mimeType,
+          dataUrl: req.body?.dataUrl,
+        });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Document upload failed.";
+    console.warn("Trader document validation failed", {
+      userId: req.user.id,
+      traderId: req.user.trader_id,
+      documentType,
+      message,
+    });
+    res.status(400).json({ ok: false, message, error: message });
+    return;
+  }
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -3599,9 +3919,24 @@ app.post("/api/v1/trader/documents", requireRoles("TRADER"), async (req, res) =>
     );
     await connection.commit();
     await writeAudit({ req, action: "trader.document_upload", module: "traders", entityType: "trader_documents", entityId: result.insertId, newValues: { documentType } });
-    res.status(201).json({ ok: true, documentId: result.insertId, status: "uploaded" });
+    res.status(201).json({
+      ok: true,
+      message: `${DOCUMENT_TYPE_LABELS[documentType]} uploaded successfully`,
+      documentId: result.insertId,
+      status: "uploaded",
+      file: {
+        id: result.insertId,
+        url: `/api/v1/trader/documents/${result.insertId}/download`,
+      },
+    });
   } catch (error) {
     await connection.rollback();
+    console.error("Trader document upload failed", {
+      userId: req.user.id,
+      traderId: req.user.trader_id,
+      documentType,
+      message: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   } finally {
     connection.release();
@@ -3618,8 +3953,8 @@ app.get("/api/v1/trader/documents/:id/download", requireRoles("TRADER"), async (
     res.status(404).json({ ok: false, error: "Document not found." });
     return;
   }
-  const resolvedPath = path.resolve(process.cwd(), document.storage_key);
-  if (!resolvedPath.startsWith(UPLOAD_ROOT)) {
+  const resolvedPath = resolveStoredFilePath(document.storage_key);
+  if (!isPathInside(resolvedPath, UPLOAD_ROOT)) {
     res.status(403).json({ ok: false, error: "Document path is not allowed." });
     return;
   }
@@ -5177,6 +5512,9 @@ app.post("/api/v1/trader/customer-warnings", requireRoles("TRADER"), async (req,
       excludeUserId: req.user.id,
     });
     await connection.commit();
+    setImmediate(() => {
+      sendRiskAlertPush({ warningId: warningResult.insertId, customerName: customer.full_name, amount });
+    });
     await writeAudit({ req, action: "warning.market_alert_submit", module: "warnings", entityType: "warning_cases", entityId: warningResult.insertId, newValues: { customerId, amount, caseNumber, notifiedMembers } });
     res.status(201).json({ ok: true, warningId: warningResult.insertId, caseNumber, notifiedMembers });
   } catch (error) {

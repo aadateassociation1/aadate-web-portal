@@ -16,6 +16,9 @@ export const config = {
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
   },
+  uploads: {
+    root: process.env.UPLOAD_ROOT || "uploads",
+  },
   jwtSecret: process.env.JWT_SECRET || "local-dev-session-secret",
   msg91: {
     authKey: process.env.MSG91_AUTH_KEY || "",
@@ -33,5 +36,10 @@ export const config = {
   },
   googleTranslate: {
     apiKey: process.env.GOOGLE_TRANSLATE_API_KEY || "",
+  },
+  vapid: {
+    publicKey: process.env.VAPID_PUBLIC_KEY || "",
+    privateKey: process.env.VAPID_PRIVATE_KEY || "",
+    subject: process.env.VAPID_SUBJECT || "mailto:admin@digitalaadate.org",
   },
 };
