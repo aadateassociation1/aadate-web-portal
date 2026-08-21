@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { installNotificationSoundUnlock, playNotificationTone, unlockNotificationSound } from "@/lib/notification-sound";
-import { canUseWebPush, enableWebPush, getPushStatus } from "@/lib/push-notifications";
+import { canUseWebPush, enableWebPush, getPushStatus, sendTestWebPush } from "@/lib/push-notifications";
 
 const OWNER_NAV = [
   { to: "/member", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -207,6 +207,22 @@ export function DashLayout({ kind, children }: Props) {
       setPushChecking(false);
     }
   };
+  const handlePushAction = async () => {
+    if (!pushEnabled) {
+      await handleEnablePush();
+      return;
+    }
+
+    setPushChecking(true);
+    try {
+      await sendTestWebPush();
+      toast.success("Test notification sent to this phone");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not send test notification.");
+    } finally {
+      setPushChecking(false);
+    }
+  };
   const memberInitials = (user.name || "Member")
     .split(" ")
     .filter(Boolean)
@@ -321,13 +337,13 @@ export function DashLayout({ kind, children }: Props) {
               variant={pushEnabled ? "secondary" : "outline"}
               size="sm"
               className="shrink-0"
-              onClick={handleEnablePush}
-              disabled={pushEnabled || pushChecking}
+              onClick={handlePushAction}
+              disabled={pushChecking}
               title="Get instant Market Yard notices and updates on your phone."
             >
               <Bell className="mr-1 h-4 w-4" />
-              <span className="hidden md:inline">{pushEnabled ? "Notifications Enabled" : "Enable Notifications"}</span>
-              <span className="md:hidden">{pushEnabled ? "On" : "Enable"}</span>
+              <span className="hidden md:inline">{pushEnabled ? "Test Notification" : "Enable Notifications"}</span>
+              <span className="md:hidden">{pushEnabled ? "Test" : "Enable"}</span>
             </Button>
           )}
           <HeaderLangSwitcher />

@@ -725,7 +725,29 @@ async function sendPushToSubscriptions({ subscriptions, payload, notificationId 
   return { sent, failed, skipped: false };
 }
 
-async function sendPushToAllMembers({ title, body, url, type, entityId, notificationId = null }) {
+async function sendPushToUser({ userId, title, body, url, type, entityId = null, priority = "normal", notificationId = null }) {
+  const [subscriptions] = await pool.query(
+    `SELECT id, endpoint, p256dh_key, auth_key
+       FROM push_subscriptions
+      WHERE user_id = :userId
+        AND is_active = 1`,
+    { userId },
+  );
+  return sendPushToSubscriptions({
+    subscriptions,
+    notificationId,
+    payload: {
+      title: String(title || "Market Yard").slice(0, 120),
+      body: String(body || "A new update is available.").slice(0, 180),
+      url: url || "/member/notifications",
+      type: type || "notification",
+      entityId,
+      priority,
+    },
+  });
+}
+
+async function sendPushToAllMembers({ title, body, url, type, entityId, priority = "normal", notificationId = null }) {
   const [subscriptions] = await pool.query(
     `SELECT ps.id, ps.endpoint, ps.p256dh_key, ps.auth_key
        FROM push_subscriptions ps
@@ -746,6 +768,7 @@ async function sendPushToAllMembers({ title, body, url, type, entityId, notifica
       url: url || "/member/notifications",
       type: type || "notification",
       entityId: entityId || null,
+      priority,
     },
   });
 }
@@ -808,6 +831,7 @@ async function sendPublishedPostPush({ postId, postType, titleEn, details }) {
       url: meta.actionUrl,
       type: meta.type,
       entityId: postId,
+      priority: meta.priority,
     });
   } catch (error) {
     console.error("Post push notification failed", {
@@ -826,6 +850,7 @@ async function sendRiskAlertPush({ warningId, customerName, amount }) {
       url: "/member/notifications",
       type: "risk_alert",
       entityId: warningId,
+      priority: "critical",
     });
   } catch (error) {
     console.error("Risk alert push notification failed", {
@@ -2213,6 +2238,35 @@ app.get("/api/v1/push/status", requireRoles("MAIN_ADMIN", "USER_ADMIN", "TRADER"
     configured: isWebPushConfigured(),
     activeCount: Number(rows[0]?.activeCount || 0),
   });
+});
+
+app.post("/api/v1/push/test", requireRoles("TRADER"), async (req, res) => {
+  if (!isWebPushConfigured()) {
+    res.status(503).json({ ok: false, message: "Push notifications are not configured on the server." });
+    return;
+  }
+
+  const result = await sendPushToUser({
+    userId: req.user.id,
+    title: "Test notification",
+    body: "Market Yard phone notifications are working on this device.",
+    url: "/member/notifications",
+    type: "test_notification",
+    priority: "critical",
+  });
+
+  if (result.sent === 0) {
+    res.status(404).json({
+      ok: false,
+      message: result.failed > 0
+        ? "Test notification failed. Check push delivery logs."
+        : "No active phone notification subscription found. Click Enable Notifications again on this phone.",
+      result,
+    });
+    return;
+  }
+
+  res.json({ ok: true, message: "Test notification sent to this phone.", result });
 });
 
 app.post("/api/v1/push/subscribe", requireRoles("MAIN_ADMIN", "USER_ADMIN", "TRADER"), async (req, res) => {

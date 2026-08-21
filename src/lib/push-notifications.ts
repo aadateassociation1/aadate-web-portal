@@ -62,3 +62,11 @@ export async function enableWebPush() {
   return readApiResponse(response);
 }
 
+export async function sendTestWebPush() {
+  if (!canUseWebPush()) throw new Error("This browser does not support web push notifications.");
+  const response = await fetch("/api/v1/push/test", {
+    method: "POST",
+    credentials: "include",
+  });
+  return readApiResponse(response);
+}
