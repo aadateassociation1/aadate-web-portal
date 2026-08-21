@@ -1,4 +1,4 @@
-const CACHE_NAME = "vpp-market-yard-v5";
+const CACHE_NAME = "vpp-market-yard-v6";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -62,11 +62,22 @@ self.addEventListener("push", (event) => {
     icon: "/icons/favicon.png",
     badge: "/icons/favicon.png",
     tag: data.type && data.entityId ? `${data.type}-${data.entityId}` : "market-yard-notification",
+    renotify: true,
+    requireInteraction: data.priority === "critical" || data.type === "payment_risk",
+    vibrate: data.priority === "critical" || data.type === "payment_risk"
+      ? [900, 250, 900, 250, 1200, 300, 1200]
+      : [400, 150, 400],
     data: {
       url: data.url || "/member/notifications",
       type: data.type || "notification",
       entityId: data.entityId || null,
     },
+    actions: [
+      {
+        action: "open",
+        title: "Open",
+      },
+    ],
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
