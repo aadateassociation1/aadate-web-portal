@@ -1,9 +1,9 @@
-import { Link } from "@/lib/simple-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { Link, useRouter } from "@/lib/simple-router";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   AlertTriangle, Bell, Camera, CheckCircle2, ClipboardList, Download, Eye, FileText,
-  HelpCircle, History, ImagePlus, KeyRound, Mail, MessageSquare, Newspaper, Phone, Plus, Search,
-  Send, ShieldAlert, Store, ThumbsDown, ThumbsUp, Trash2, Upload, User, Users, Video, IdCard,
+  HelpCircle, History, ImagePlus, KeyRound, Mail, MessageSquare, Newspaper, Pencil, Phone, Plus, Search,
+  Send, ShieldAlert, Smartphone, Store, ThumbsDown, ThumbsUp, Trash2, Upload, User, Users, Video, IdCard,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
@@ -11,22 +11,41 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { DashLayout } from "@/components/dashboard/DashLayout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  CHART_COMPLAINTS_CATEGORY, CHART_DOWNLOADS, CHART_REGISTRATIONS, COMMITTEE, COMPLAINTS,
-  CUSTOMER_KYC, DASHBOARD_STATS, GALLERY_ITEMS, MARKET_UPDATES, MOBILE_REQUESTS, NOTICES, NOTIFICATIONS, OWNERS,
+  CHART_COMPLAINTS_CATEGORY, CHART_DOWNLOADS, CHART_REGISTRATIONS, COMPLAINTS,
+  CUSTOMER_KYC, DASHBOARD_STATS, GALLERY_ITEMS, MARKET_UPDATES, MOBILE_REQUESTS, NOTICES, OWNERS,
   type CustomerKyc, type GalleryItem,
 } from "@/lib/mock";
 import { useAuth } from "@/lib/auth";
+import { installNotificationSoundUnlock, playNotificationTone, unlockNotificationSound } from "@/lib/notification-sound";
 
-const CHART_COLORS = ["#176B3A", "#F59E0B", "#38A169", "#D92D20", "#7C3AED", "#0284C7"];
+const CHART_COLORS = ["#86c127", "#e37814", "#86c127", "#D92D20", "#7C3AED", "#0284C7"];
+const MOBILE_CHANGE_REASONS = [
+  "Lost SIM or phone",
+  "Old number is inactive",
+  "Changed mobile service provider",
+  "Number transferred to family member",
+  "Registered number entered incorrectly",
+];
 
 function PageTitle({ title, subtitle, action }: { title: string; subtitle: string; action?: React.ReactNode }) {
   return (
@@ -40,7 +59,21 @@ function PageTitle({ title, subtitle, action }: { title: string; subtitle: strin
   );
 }
 
-function StatCard({ icon: Icon, label, value, tone = "primary" }: { icon: React.ElementType; label: string; value: string | number; tone?: "primary" | "success" | "warning" | "danger" | "saffron" }) {
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  tone = "primary",
+  onClick,
+  active = false,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string | number;
+  tone?: "primary" | "success" | "warning" | "danger" | "saffron";
+  onClick?: () => void;
+  active?: boolean;
+}) {
   const tones = {
     primary: "bg-primary text-white",
     success: "bg-success text-white",
@@ -48,17 +81,29 @@ function StatCard({ icon: Icon, label, value, tone = "primary" }: { icon: React.
     danger: "bg-destructive text-white",
     saffron: "bg-saffron text-primary-dark",
   };
+  const content = (
+    <CardContent className="flex items-center gap-4 p-5">
+      <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${tones[tone]}`}>
+        <Icon className="h-5 w-5" />
+      </div>
+      <div className="min-w-0">
+        <div className="text-xs text-muted-foreground">{label}</div>
+        <div className="font-display text-2xl font-bold text-primary-dark">{value}</div>
+      </div>
+    </CardContent>
+  );
+  if (onClick) {
+    return (
+      <Card className={`border-border/60 transition hover:-translate-y-0.5 hover:shadow-md ${active ? "ring-2 ring-primary/40" : ""}`}>
+        <button type="button" className="block w-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={onClick}>
+          {content}
+        </button>
+      </Card>
+    );
+  }
   return (
     <Card className="border-border/60">
-      <CardContent className="flex items-center gap-4 p-5">
-        <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${tones[tone]}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="min-w-0">
-          <div className="text-xs text-muted-foreground">{label}</div>
-          <div className="font-display text-2xl font-bold text-primary-dark">{value}</div>
-        </div>
-      </CardContent>
+      {content}
     </Card>
   );
 }
@@ -69,17 +114,33 @@ function StatusBadge({ status }: { status: string }) {
     pending: "bg-warning/15 text-warning",
     rejected: "bg-destructive/15 text-destructive",
     blacklisted: "bg-destructive text-white",
+    suspended: "bg-destructive text-white",
+    deactivated: "bg-muted text-muted-foreground",
     submitted: "bg-info/15 text-info",
     under_review: "bg-chart-5/15 text-chart-5",
+    open: "bg-saffron/20 text-saffron-foreground",
     assigned: "bg-info/15 text-info",
-    in_progress: "bg-warning/15 text-warning",
+    in_progress: "bg-info/15 text-info",
+    waiting_user: "bg-chart-5/15 text-chart-5",
     waiting_info: "bg-saffron/20 text-saffron-foreground",
     resolved: "bg-success/15 text-success",
     closed: "bg-muted text-muted-foreground",
     reshared: "bg-success/15 text-success",
+    uploaded: "bg-info/15 text-info",
+    verified: "bg-success/15 text-success",
+    expired: "bg-muted text-muted-foreground",
+    replaced: "bg-muted text-muted-foreground",
   };
   return <Badge className={`capitalize ${map[status] || "bg-muted text-muted-foreground"}`}>{status.replace(/_/g, " ")}</Badge>;
 }
+
+const complaintStatusTriggerClasses: Record<string, string> = {
+  open: "border-saffron/50 bg-saffron/15 text-saffron-foreground",
+  in_progress: "border-info/50 bg-info/15 text-info",
+  waiting_user: "border-chart-5/50 bg-chart-5/15 text-chart-5",
+  resolved: "border-success/50 bg-success/15 text-success",
+  closed: "border-muted bg-muted text-muted-foreground",
+};
 
 function SearchBar({ placeholder = "Search..." }: { placeholder?: string }) {
   return (
@@ -91,72 +152,555 @@ function SearchBar({ placeholder = "Search..." }: { placeholder?: string }) {
 }
 
 export function AdminUsersPage() {
+  type ManagedTrader = {
+    id: number;
+    trader_code: string;
+    business_name: string;
+    market_registration_number: string | null;
+    full_name: string;
+    mobile: string;
+    email: string | null;
+    verification_status: string;
+    user_status: string;
+    gala_number: string | null;
+    business_category: string | null;
+    association_sequence_number?: string | null;
+    association_registration_number?: string | null;
+    aadhaar_masked?: string | null;
+    pan_masked?: string | null;
+    blood_group?: string | null;
+    licence_number?: string | null;
+    district: string;
+    village_city?: string | null;
+    address_line1?: string | null;
+    address_line2?: string | null;
+    taluka?: string | null;
+    pincode?: string | null;
+    rejection_reason?: string | null;
+    created_at?: string | null;
+    verified_at: string | null;
+  };
+  type ManagedTraderDocument = {
+    id: number;
+    document_type: string;
+    original_filename: string;
+    mime_type: string;
+    file_size_bytes: number;
+    status: string;
+    created_at: string;
+    rejection_reason: string | null;
+    verified_at: string | null;
+    created_at: string;
+  };
+  const [traders, setTraders] = useState<ManagedTrader[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [selectedTrader, setSelectedTrader] = useState<ManagedTrader | null>(null);
+  const [selectedTraderDocuments, setSelectedTraderDocuments] = useState<ManagedTraderDocument[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [accessDialogTrader, setAccessDialogTrader] = useState<ManagedTrader | null>(null);
+  const [accessReason, setAccessReason] = useState("");
+  const [accessSaving, setAccessSaving] = useState(false);
+
+  const loadTraders = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ status: "all" });
+      if (search.trim()) params.set("search", search.trim());
+      const response = await fetch(`/api/v1/admin/traders?${params.toString()}`, {
+        credentials: "include",
+      });
+      const result = await response.json();
+      if (response.status === 401 || response.status === 403) {
+        throw new Error("Admin session expired. Please sign in to Admin Hub again.");
+      }
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not load Members");
+      setTraders(result.traders);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load Members");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTraders();
+  }, []);
+
+  const stats = {
+    total: traders.length,
+    approved: traders.filter((item) => item.verification_status === "approved").length,
+    pending: traders.filter((item) => ["submitted", "under_review", "correction_required"].includes(item.verification_status)).length,
+    rejected: traders.filter((item) => item.verification_status === "rejected").length,
+    suspended: traders.filter((item) => ["suspended", "deactivated"].includes(item.verification_status)).length,
+  };
+
+  const visibleTraders = traders.filter((item) => {
+    if (statusFilter === "pending") return ["submitted", "under_review", "correction_required"].includes(item.verification_status);
+    if (statusFilter === "suspended") return ["suspended", "deactivated"].includes(item.verification_status);
+    if (statusFilter === "all") return true;
+    return item.verification_status === statusFilter;
+  });
+
+  const openTraderDetails = async (trader: ManagedTrader) => {
+    setSelectedTrader(trader);
+    setSelectedTraderDocuments([]);
+    setDetailLoading(true);
+    try {
+      const response = await fetch(`/api/v1/admin/traders/${trader.id}`, { credentials: "include" });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not load Member details");
+      setSelectedTrader(result.trader);
+      setSelectedTraderDocuments(result.documents || []);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load Member details");
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const detailRows = selectedTrader ? [
+    ["Member code", selectedTrader.trader_code],
+    ["Full name", selectedTrader.full_name],
+    ["Business name", selectedTrader.business_name],
+    ["Mobile", selectedTrader.mobile],
+    ["Email", selectedTrader.email || "-"],
+    ["Gala", selectedTrader.gala_number || "-"],
+    ["Anu. kramank", selectedTrader.association_sequence_number || "-"],
+    ["Kramank", selectedTrader.association_registration_number || "-"],
+    ["Category", selectedTrader.business_category || "-"],
+    ["License / registration", selectedTrader.market_registration_number || "-"],
+    ["Licence number", selectedTrader.licence_number || "-"],
+    ["Aadhaar", selectedTrader.aadhaar_masked || "-"],
+    ["PAN", selectedTrader.pan_masked || "-"],
+    ["Blood group", selectedTrader.blood_group || "-"],
+    ["Address", [selectedTrader.address_line1, selectedTrader.address_line2].filter(Boolean).join(", ") || "-"],
+    ["Location", [selectedTrader.village_city, selectedTrader.taluka, selectedTrader.district, selectedTrader.pincode].filter(Boolean).join(", ") || "-"],
+    ["User status", selectedTrader.user_status],
+    ["Verification status", selectedTrader.verification_status],
+    ["Applied on", selectedTrader.created_at ? new Date(selectedTrader.created_at).toLocaleString("en-IN") : "-"],
+    ["Approved on", selectedTrader.verified_at ? new Date(selectedTrader.verified_at).toLocaleString("en-IN") : "-"],
+    ["Remarks", selectedTrader.rejection_reason || "-"],
+  ] : [];
+
+  const downloadTraderDocument = (document: ManagedTraderDocument) => {
+    const link = window.document.createElement("a");
+    link.href = `/api/v1/admin/trader-documents/${document.id}/download?download=1`;
+    link.download = document.original_filename;
+    window.document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const downloadAllTraderDocuments = () => {
+    if (selectedTraderDocuments.length === 0) {
+      toast.error("No documents available for this Member");
+      return;
+    }
+    selectedTraderDocuments.forEach((document, index) => {
+      window.setTimeout(() => downloadTraderDocument(document), index * 250);
+    });
+    toast.success("Document downloads started");
+  };
+
+  const updateTraderAccess = async (action: "suspend" | "reactivate") => {
+    if (!accessDialogTrader) return;
+    if (action === "suspend" && accessReason.trim().length < 5) {
+      toast.error("Add a clear reason before blocking login.");
+      return;
+    }
+    setAccessSaving(true);
+    try {
+      const response = await fetch(`/api/v1/admin/traders/${accessDialogTrader.id}/${action}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          remarks: action === "suspend" ? accessReason.trim() : "Access restored by admin",
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not update Member access");
+      toast.success(action === "suspend" ? "Member login blocked strictly." : "Member login restored.");
+      setAccessDialogTrader(null);
+      setAccessReason("");
+      await loadTraders();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update Member access");
+    } finally {
+      setAccessSaving(false);
+    }
+  };
+
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Trader Management" subtitle="Search, verify, approve, reject, or blacklist trader accounts." action={<Button><Plus className="mr-1 h-4 w-4" /> Add Owner</Button>} />
+      <PageTitle title="Member Management" subtitle="Search, verify, approve, reject, suspend, and manage all Member accounts." action={<Button variant="outline" onClick={loadTraders}>Refresh</Button>} />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Users} label="Total owners" value={DASHBOARD_STATS.totalOwners} />
-        <StatCard icon={CheckCircle2} label="Approved" value={DASHBOARD_STATS.approved} tone="success" />
-        <StatCard icon={ClipboardList} label="Pending" value={DASHBOARD_STATS.pending} tone="warning" />
-        <StatCard icon={ShieldAlert} label="Blacklisted" value={DASHBOARD_STATS.blacklisted} tone="danger" />
+        <StatCard icon={Users} label="Total Members" value={stats.total} />
+        <StatCard icon={CheckCircle2} label="Approved" value={stats.approved} tone="success" />
+        <StatCard icon={ClipboardList} label="Pending" value={stats.pending} tone="warning" />
+        <StatCard icon={ShieldAlert} label="Rejected / suspended" value={stats.rejected + stats.suspended} tone="danger" />
       </div>
       <Card className="border-border/60">
         <CardContent className="p-6">
           <div className="mb-4 flex flex-wrap gap-3">
-            <SearchBar placeholder="Search by name, gala, mobile..." />
+            <div className="relative min-w-0 flex-1 sm:min-w-[220px]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input className="pl-9" placeholder="Search by name, gala, mobile..." value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") loadTraders(); }} />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-44"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
+              </SelectContent>
+            </Select>
             <Button variant="outline"><Download className="mr-1 h-4 w-4" /> Export</Button>
           </div>
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Owner</TableHead><TableHead>Contact</TableHead><TableHead>Gala</TableHead><TableHead>Category</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Member</TableHead><TableHead>Contact</TableHead><TableHead>Gala</TableHead><TableHead>Category</TableHead><TableHead>Status</TableHead><TableHead>Approved</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
               <TableBody>
-                {OWNERS.map((o) => (
+                {visibleTraders.map((o) => (
                   <TableRow key={o.id}>
-                    <TableCell className="font-mono text-xs">{o.id}</TableCell>
-                    <TableCell><div className="font-medium">{o.name}</div><div className="text-xs text-muted-foreground">{o.business}</div></TableCell>
+                    <TableCell className="font-mono text-xs">{o.trader_code}</TableCell>
+                    <TableCell><div className="font-medium">{o.full_name}</div><div className="text-xs text-muted-foreground">{o.business_name}</div></TableCell>
                     <TableCell><div>{o.mobile}</div><div className="text-xs text-muted-foreground">{o.email}</div></TableCell>
-                    <TableCell><Badge variant="outline">{o.gala}</Badge></TableCell>
-                    <TableCell>{o.category}</TableCell>
-                    <TableCell><StatusBadge status={o.status} /></TableCell>
+                    <TableCell><Badge variant="outline">{o.gala_number || "-"}</Badge></TableCell>
+                    <TableCell>{o.business_category || "-"}</TableCell>
+                    <TableCell><StatusBadge status={o.verification_status} /></TableCell>
+                    <TableCell>{o.verified_at ? new Date(o.verified_at).toLocaleDateString("en-IN") : "-"}</TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm" variant="ghost" onClick={() => toast.info(`Viewing ${o.name}`)}><Eye className="h-4 w-4" /></Button>
-                      {o.status === "pending" && <Button size="sm" variant="ghost" onClick={() => toast.success(`${o.name} approved`)}><ThumbsUp className="h-4 w-4 text-success" /></Button>}
-                      {o.status === "approved" && <Button size="sm" variant="ghost" onClick={() => toast.warning(`${o.name} blacklisted`)}><ShieldAlert className="h-4 w-4 text-destructive" /></Button>}
+                      <Button size="sm" variant="ghost" onClick={() => openTraderDetails(o)}><Eye className="h-4 w-4" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => { setAccessDialogTrader(o); setAccessReason(""); }}><ShieldAlert className="h-4 w-4 text-destructive" /></Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            {!loading && visibleTraders.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No Members found for this view.</div>}
+            {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading Members from database...</div>}
           </div>
         </CardContent>
       </Card>
+      <Dialog open={!!selectedTrader} onOpenChange={(open) => !open && setSelectedTrader(null)}>
+        <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl text-primary-dark">{selectedTrader?.full_name || "Member details"}</DialogTitle>
+            <DialogDescription>{selectedTrader?.business_name || "Database Member profile"}</DialogDescription>
+          </DialogHeader>
+          {selectedTrader && (
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center gap-3">
+                <StatusBadge status={selectedTrader.verification_status} />
+                <Badge variant="outline">{selectedTrader.trader_code}</Badge>
+                <Badge variant="outline">Gala {selectedTrader.gala_number || "-"}</Badge>
+                <Button size="sm" variant="outline" onClick={downloadAllTraderDocuments} disabled={detailLoading || selectedTraderDocuments.length === 0}>
+                  <Download className="mr-1 h-4 w-4" /> Download all documents
+                </Button>
+                {detailLoading && <span className="text-sm text-muted-foreground">Refreshing details...</span>}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {detailRows.map(([label, value]) => (
+                  <div key={label} className="rounded-lg border bg-secondary/30 p-3">
+                    <div className="text-xs text-muted-foreground">{label}</div>
+                    <div className="mt-1 break-words text-sm font-medium text-primary-dark">{value}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-lg border p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="font-display font-semibold text-primary-dark">Member Documents</h3>
+                    <p className="text-xs text-muted-foreground">View or download uploaded registration documents.</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={downloadAllTraderDocuments}>
+                    <Download className="mr-1 h-4 w-4" /> Download all
+                  </Button>
+                </div>
+                <div className="mt-3 overflow-x-auto">
+                  <Table>
+                    <TableHeader><TableRow><TableHead className="w-44">Type</TableHead><TableHead>File</TableHead><TableHead className="w-28 text-center">Status</TableHead><TableHead className="w-28 text-center">Actions</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {selectedTraderDocuments.map((document) => (
+                        <TableRow key={document.id}>
+                          <TableCell className="whitespace-nowrap capitalize">{document.document_type.replace(/_/g, " ")}</TableCell>
+                          <TableCell className="min-w-0">
+                            <div className="max-w-[260px] truncate font-medium">{document.original_filename}</div>
+                            <div className="text-xs text-muted-foreground">{Math.max(1, Math.round(document.file_size_bytes / 1024))} KB</div>
+                          </TableCell>
+                          <TableCell className="text-center"><span className="inline-flex whitespace-nowrap"><StatusBadge status={document.status} /></span></TableCell>
+                          <TableCell>
+                            <div className="flex justify-center gap-1">
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => window.open(`/api/v1/admin/trader-documents/${document.id}/download`, "_blank")}><Eye className="h-4 w-4" /></Button>
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => downloadTraderDocument(document)}><Download className="h-4 w-4" /></Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {selectedTraderDocuments.length === 0 && <TableRow><TableCell colSpan={4} className="py-6 text-center text-sm text-muted-foreground">No uploaded documents found for this Member.</TableCell></TableRow>}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!accessDialogTrader} onOpenChange={(open) => { if (!open) setAccessDialogTrader(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-primary-dark">Member Access Control</DialogTitle>
+            <DialogDescription>
+              {accessDialogTrader?.verification_status === "approved"
+                ? "Block this Member login immediately and store the reason in the database."
+                : "Review this Member account status or restore access if the issue is resolved."}
+            </DialogDescription>
+          </DialogHeader>
+          {accessDialogTrader && (
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-secondary/30 p-3 text-sm">
+                <div className="font-semibold text-primary-dark">{accessDialogTrader.full_name}</div>
+                <div className="text-muted-foreground">{accessDialogTrader.business_name} - {accessDialogTrader.trader_code}</div>
+                <div className="mt-2"><StatusBadge status={accessDialogTrader.verification_status} /></div>
+              </div>
+              {accessDialogTrader.verification_status === "approved" && (
+                <div>
+                  <Label>Reason for blocking login</Label>
+                  <Textarea
+                    value={accessReason}
+                    onChange={(event) => setAccessReason(event.target.value)}
+                    rows={4}
+                    placeholder="Example: Fake document uploaded, payment fraud, misconduct, duplicate gala claim..."
+                  />
+                </div>
+              )}
+              <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
+                <Button variant="outline" onClick={() => setAccessDialogTrader(null)} disabled={accessSaving}>Cancel</Button>
+                {accessDialogTrader.verification_status === "approved" ? (
+                  <Button variant="destructive" onClick={() => updateTraderAccess("suspend")} disabled={accessSaving}>
+                    <ShieldAlert className="mr-1 h-4 w-4" /> Block Login
+                  </Button>
+                ) : (
+                  <Button className="bg-success text-white" onClick={() => updateTraderAccess("reactivate")} disabled={accessSaving}>
+                    <CheckCircle2 className="mr-1 h-4 w-4" /> Restore Access
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashLayout>
   );
 }
 
 export function AdminRegistrationsPage() {
-  const pending = OWNERS.filter((o) => o.status === "pending");
+  type PendingTrader = {
+    id: number;
+    trader_code: string;
+    business_name: string;
+    gala_id: number | null;
+    full_name: string;
+    mobile: string;
+    email: string | null;
+    verification_status: string;
+    market_registration_number?: string | null;
+    association_sequence_number?: string | null;
+    association_registration_number?: string | null;
+    aadhaar_masked?: string | null;
+    pan_masked?: string | null;
+    blood_group?: string | null;
+    licence_number?: string | null;
+    village_city: string;
+    district: string;
+    created_at: string;
+    pending_gala_count?: number;
+  };
+  type TraderDocument = {
+    id: number;
+    document_type: string;
+    original_filename: string;
+    mime_type: string;
+    file_size_bytes: number;
+    status: string;
+    rejection_reason: string | null;
+    verified_at: string | null;
+    created_at: string;
+  };
+  type TraderHistory = {
+    id: number;
+    old_status: string | null;
+    new_status: string;
+    remarks: string | null;
+    created_at: string;
+  };
+  type TraderGala = {
+    id: number;
+    business_name: string;
+    market_section: string | null;
+    market_registration_number: string | null;
+    status: string;
+    is_primary: number | boolean;
+    admin_remarks: string | null;
+    gala_number: string;
+    business_category: string | null;
+  };
+  type ApplicationDetails = {
+    application: PendingTrader;
+    documents: TraderDocument[];
+    history: TraderHistory[];
+    galas: TraderGala[];
+  };
+
+  const [pending, setPending] = useState<PendingTrader[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [details, setDetails] = useState<ApplicationDetails | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+
+  const loadPending = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/v1/admin/trader-kyc?status=submitted", {
+        credentials: "include",
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not load registrations");
+      setPending(result.traders);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load registrations");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPending();
+  }, []);
+
+  const decide = async (Member: PendingTrader, decision: "approve" | "reject") => {
+    try {
+      const response = await fetch(
+        decision === "approve"
+          ? `/api/v1/admin/trader-requests/${Member.id}/approve`
+          : `/api/v1/admin/trader-requests/${Member.id}/reject`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: decision === "approve" ? undefined : { "Content-Type": "application/json" },
+          body: decision === "approve" ? undefined : JSON.stringify({ remarks: "Rejected by admin" }),
+        },
+      );
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Decision failed");
+      toast.success(`${Member.full_name} ${decision === "approve" ? "approved" : "rejected"}`);
+      loadPending();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Decision failed");
+    }
+  };
+
+  const loadDetails = async (Member: PendingTrader) => {
+    setDetailsLoading(true);
+    try {
+      const response = await fetch(`/api/v1/admin/trader-requests/${Member.trader_code}`, {
+        credentials: "include",
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not load application details");
+      setDetails({ application: result.application, documents: result.documents || [], history: result.history || [], galas: result.galas || [] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load application details");
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const decideDocument = async (document: TraderDocument, decision: "verify" | "reject") => {
+    const remarks = decision === "reject" ? window.prompt("Reason for rejecting this document?")?.trim() : "";
+    if (decision === "reject" && !remarks) {
+      toast.error("Rejection reason is required");
+      return;
+    }
+    try {
+      const response = await fetch(`/api/v1/admin/trader-documents/${document.id}/decision`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision, remarks }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Document decision failed");
+      toast.success(`Document ${decision === "verify" ? "verified" : "rejected"}`);
+      if (details?.application) await loadDetails(details.application);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Document decision failed");
+    }
+  };
+
+  const decideGala = async (gala: TraderGala, decision: "approve" | "reject") => {
+    const remarks = decision === "reject" ? window.prompt("Reason for rejecting this gala/shop?")?.trim() : "";
+    if (decision === "reject" && !remarks) {
+      toast.error("Rejection reason is required");
+      return;
+    }
+    try {
+      const response = await fetch(`/api/v1/admin/trader-galas/${gala.id}/decision`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision, remarks }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Gala/shop decision failed");
+      toast.success(`Gala/shop ${decision === "approve" ? "approved" : "rejected"}`);
+      if (details?.application) await loadDetails(details.application);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gala/shop decision failed");
+    }
+  };
+
+  const downloadDocument = (document: TraderDocument) => {
+    const link = window.document.createElement("a");
+    link.href = `/api/v1/admin/trader-documents/${document.id}/download?download=1`;
+    link.download = document.original_filename;
+    window.document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Registration Approvals" subtitle="Review new trader registrations and document verification status." />
+      <PageTitle title="Registration Approvals" subtitle="Review new Member registrations and approve them directly." />
+      {loading && <Card className="border-border/60"><CardContent className="p-6 text-sm text-muted-foreground">Loading pending registrations...</CardContent></Card>}
+      {!loading && pending.length === 0 && <Card className="border-border/60"><CardContent className="p-6 text-sm text-muted-foreground">No pending Member registrations.</CardContent></Card>}
       <div className="grid gap-4 lg:grid-cols-2">
         {pending.map((o) => (
           <Card key={o.id} className="border-border/60">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-secondary font-display font-bold text-primary">{o.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}</div>
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-secondary font-display font-bold text-primary">{o.full_name.split(" ").map((p) => p[0]).join("").slice(0, 2)}</div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2"><h3 className="font-display font-bold text-primary-dark">{o.name}</h3><StatusBadge status={o.status} /></div>
-                  <div className="mt-1 text-sm text-muted-foreground">{o.business} - Gala {o.gala}</div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-display font-bold text-primary-dark">{o.full_name}</h3>
+                    <StatusBadge status={o.verification_status} />
+                    {Number(o.pending_gala_count || 0) > 0 && <Badge className="bg-saffron text-primary-dark">{o.pending_gala_count} pending gala/shop</Badge>}
+                  </div>
+                  <div className="mt-1 text-sm text-muted-foreground">{o.business_name} - {o.trader_code}</div>
                   <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
                     <div><span className="text-muted-foreground">Mobile:</span> {o.mobile}</div>
-                    <div><span className="text-muted-foreground">Section:</span> {o.section}</div>
-                    <div><span className="text-muted-foreground">Category:</span> {o.category}</div>
-                    <div><span className="text-muted-foreground">Applied:</span> {new Date(o.regDate).toLocaleDateString("en-IN")}</div>
+                    <div><span className="text-muted-foreground">Email:</span> {o.email || "-"}</div>
+                    <div><span className="text-muted-foreground">Location:</span> {o.village_city}, {o.district}</div>
+                    <div><span className="text-muted-foreground">Applied:</span> {new Date(o.created_at).toLocaleDateString("en-IN")}</div>
                   </div>
                   <div className="mt-5 flex flex-wrap gap-2">
-                    <Button size="sm" className="bg-success text-white" onClick={() => toast.success(`${o.name} approved`)}><ThumbsUp className="mr-1 h-4 w-4" /> Approve</Button>
-                    <Button size="sm" variant="outline" onClick={() => toast.error(`${o.name} rejected`)}><ThumbsDown className="mr-1 h-4 w-4" /> Reject</Button>
+                    <Button size="sm" variant="outline" onClick={() => loadDetails(o)}><Eye className="mr-1 h-4 w-4" /> View documents</Button>
+                    <Button size="sm" className="bg-success text-white" onClick={() => decide(o, "approve")}><ThumbsUp className="mr-1 h-4 w-4" /> Approve now</Button>
+                    <Button size="sm" variant="outline" onClick={() => decide(o, "reject")}><ThumbsDown className="mr-1 h-4 w-4" /> Reject</Button>
                     <Button size="sm" variant="ghost">Request info</Button>
                   </div>
                 </div>
@@ -165,40 +709,247 @@ export function AdminRegistrationsPage() {
           </Card>
         ))}
       </div>
+      <Dialog open={!!details} onOpenChange={(open) => !open && setDetails(null)}>
+        <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl text-primary-dark">{details?.application.full_name || "Application review"}</DialogTitle>
+            <DialogDescription>{details?.application.trader_code} - registration details and status history</DialogDescription>
+          </DialogHeader>
+          {detailsLoading && <div className="rounded-lg border p-4 text-sm text-muted-foreground">Loading application details...</div>}
+          {details && (
+            <div className="space-y-5">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ["Business", details.application.business_name],
+                  ["Mobile", details.application.mobile],
+                  ["Email", details.application.email || "-"],
+                  ["Anu. kramank", details.application.association_sequence_number || "-"],
+                  ["Kramank", details.application.association_registration_number || "-"],
+                  ["Licence", details.application.licence_number || details.application.market_registration_number || "-"],
+                  ["Aadhaar", details.application.aadhaar_masked || "-"],
+                  ["PAN", details.application.pan_masked || "-"],
+                  ["Blood group", details.application.blood_group || "-"],
+                  ["Location", `${details.application.village_city}, ${details.application.district}`],
+                  ["Applied", new Date(details.application.created_at).toLocaleString("en-IN")],
+                  ["Status", details.application.verification_status],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border bg-secondary/30 p-3 text-sm">
+                    <div className="text-xs text-muted-foreground">{label}</div>
+                    <div className="mt-1 font-medium text-primary-dark">{value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <h3 className="font-display font-semibold text-primary-dark">Linked Galas / Shops</h3>
+                <div className="mt-3 overflow-x-auto rounded-lg border">
+                  <Table>
+                    <TableHeader><TableRow><TableHead>Gala</TableHead><TableHead>Business</TableHead><TableHead>Section</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Review</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {details.galas.map((gala) => (
+                        <TableRow key={gala.id}>
+                          <TableCell>
+                            <div className="font-medium">Gala {gala.gala_number}</div>
+                            {gala.is_primary ? <div className="text-xs text-primary">Primary shop</div> : null}
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium">{gala.business_name}</div>
+                            {gala.market_registration_number && <div className="text-xs text-muted-foreground">{gala.market_registration_number}</div>}
+                            {gala.admin_remarks && <div className="text-xs text-destructive">{gala.admin_remarks}</div>}
+                          </TableCell>
+                          <TableCell>{gala.business_category || gala.market_section || "-"}</TableCell>
+                          <TableCell><StatusBadge status={gala.status} /></TableCell>
+                          <TableCell className="text-right">
+                            {["submitted", "under_review", "correction_required"].includes(gala.status) && (
+                              <>
+                                <Button size="sm" variant="ghost" onClick={() => decideGala(gala, "approve")}><ThumbsUp className="h-4 w-4 text-success" /></Button>
+                                <Button size="sm" variant="ghost" onClick={() => decideGala(gala, "reject")}><ThumbsDown className="h-4 w-4 text-destructive" /></Button>
+                              </>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {details.galas.length === 0 && <TableRow><TableCell colSpan={5} className="py-6 text-center text-sm text-muted-foreground">No gala/shop records linked yet.</TableCell></TableRow>}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-display font-semibold text-primary-dark">Uploaded documents</h3>
+                <div className="mt-3 overflow-x-auto rounded-lg border">
+                  <Table>
+                    <TableHeader><TableRow><TableHead>Type</TableHead><TableHead>File</TableHead><TableHead>Size</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Review</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {details.documents.map((document) => (
+                        <TableRow key={document.id}>
+                          <TableCell className="capitalize">{document.document_type.replace(/_/g, " ")}</TableCell>
+                          <TableCell>
+                            <div className="font-medium">{document.original_filename}</div>
+                            {document.rejection_reason && <div className="text-xs text-destructive">{document.rejection_reason}</div>}
+                          </TableCell>
+                          <TableCell>{Math.max(1, Math.round(document.file_size_bytes / 1024))} KB</TableCell>
+                          <TableCell><StatusBadge status={document.status} /></TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" variant="ghost" onClick={() => window.open(`/api/v1/admin/trader-documents/${document.id}/download`, "_blank")}><Eye className="h-4 w-4" /></Button>
+                            <Button size="sm" variant="ghost" onClick={() => downloadDocument(document)}><Download className="h-4 w-4" /></Button>
+                            <Button size="sm" variant="ghost" onClick={() => decideDocument(document, "verify")}><ThumbsUp className="h-4 w-4 text-success" /></Button>
+                            <Button size="sm" variant="ghost" onClick={() => decideDocument(document, "reject")}><ThumbsDown className="h-4 w-4 text-destructive" /></Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {details.documents.length === 0 && <TableRow><TableCell colSpan={5} className="py-6 text-center text-sm text-muted-foreground">No documents uploaded with this application.</TableCell></TableRow>}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-display font-semibold text-primary-dark">Review history</h3>
+                <div className="mt-3 space-y-2">
+                  {details.history.map((item) => (
+                    <div key={item.id} className="rounded-lg border p-3 text-sm">
+                      <div className="font-medium text-primary-dark">{item.old_status || "new"} {"->"} {item.new_status}</div>
+                      <div className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleString("en-IN")}</div>
+                      {item.remarks && <div className="mt-1 text-muted-foreground">{item.remarks}</div>}
+                    </div>
+                  ))}
+                  {details.history.length === 0 && <div className="rounded-lg border p-3 text-sm text-muted-foreground">No review history yet.</div>}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashLayout>
   );
 }
 
 export function AdminComplaintsPage() {
+  type AdminComplaint = {
+    id: number;
+    ticket_number: string;
+    subject: string;
+    description: string;
+    priority: string;
+    status: string;
+    created_by_name: string;
+    created_by_mobile: string;
+    gala_number: string | null;
+    trader_code: string | null;
+    parsed?: { category?: string; description?: string };
+    attachments?: Array<{ id: number; attachment_type: string; original_filename: string; file_size_bytes: number }>;
+  };
+  const [complaints, setComplaints] = useState<AdminComplaint[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadComplaints = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/v1/admin/complaints", { credentials: "include" });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not load complaints.");
+      setComplaints(result.complaints || []);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load complaints.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadComplaints();
+  }, []);
+
+  const activeCount = complaints.filter((item) => ["open", "in_progress", "waiting_user"].includes(item.status)).length;
+  const resolvedCount = complaints.filter((item) => ["resolved", "closed"].includes(item.status)).length;
+  const emergencyCount = complaints.filter((item) => item.priority === "urgent" || item.priority === "emergency").length;
+
   return (
     <DashLayout kind="admin">
       <PageTitle title="Complaint Management" subtitle="Assign, prioritize, comment on, and resolve owner complaints." />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={MessageSquare} label="Active" value={DASHBOARD_STATS.activeComplaints} tone="warning" />
-        <StatCard icon={CheckCircle2} label="Resolved" value={DASHBOARD_STATS.resolvedComplaints} tone="success" />
-        <StatCard icon={AlertTriangle} label="Emergency" value={DASHBOARD_STATS.emergencyComplaints} tone="danger" />
-        <StatCard icon={ClipboardList} label="Assigned today" value="12" />
+        <StatCard icon={MessageSquare} label="Active" value={activeCount} tone="warning" />
+        <StatCard icon={CheckCircle2} label="Resolved" value={resolvedCount} tone="success" />
+        <StatCard icon={AlertTriangle} label="Emergency" value={emergencyCount} tone="danger" />
+        <StatCard icon={ClipboardList} label="Total" value={complaints.length} />
       </div>
       <Card className="border-border/60">
         <CardContent className="p-6">
           <div className="mb-4 flex flex-wrap gap-3"><SearchBar placeholder="Search complaints..." /><Button variant="outline">Filter status</Button></div>
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Complaint</TableHead><TableHead>Owner</TableHead><TableHead>Priority</TableHead><TableHead>Status</TableHead><TableHead>Assigned</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Complaint</TableHead><TableHead>Owner</TableHead><TableHead>Priority</TableHead><TableHead>Files</TableHead><TableHead>Status</TableHead><TableHead>Assigned</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
               <TableBody>
-                {COMPLAINTS.map((c) => (
+                {complaints.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell className="font-mono text-xs">{c.id}</TableCell>
-                    <TableCell><div className="font-medium">{c.subject}</div><div className="text-xs text-muted-foreground">{c.category} - {c.attachments} attachments</div></TableCell>
-                    <TableCell><div>{c.ownerName}</div><div className="text-xs text-muted-foreground">{c.gala}</div></TableCell>
-                    <TableCell><Badge className={c.priority === "emergency" ? "bg-destructive text-white" : c.priority === "high" ? "bg-warning text-white" : "bg-secondary text-primary-dark"}>{c.priority}</Badge></TableCell>
+                    <TableCell className="font-mono text-xs">{c.ticket_number}</TableCell>
+                    <TableCell><div className="font-medium">{c.subject}</div><div className="text-xs text-muted-foreground">{c.parsed?.category || "General"} - {c.parsed?.description || ""}</div></TableCell>
+                    <TableCell>
+                      <div className="font-medium">{c.created_by_name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {c.gala_number ? `Gala ${c.gala_number} - ${c.trader_code || c.created_by_mobile}` : `Admin - ${c.created_by_mobile}`}
+                      </div>
+                    </TableCell>
+                    <TableCell><Badge className={c.priority === "urgent" || c.priority === "emergency" ? "bg-destructive text-white" : c.priority === "high" ? "bg-warning text-white" : "bg-secondary text-primary-dark"}>{c.priority}</Badge></TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {(c.attachments || []).map((file) => (
+                          <Button key={file.id} size="sm" variant="outline" className="h-8 justify-start" onClick={() => window.open(`/api/v1/admin/complaint-attachments/${file.id}/download?download=1`, "_blank")}>
+                            <Download className="mr-1 h-3.5 w-3.5" /> {file.attachment_type === "image" ? "Image" : "Video"}
+                          </Button>
+                        ))}
+                        {(!c.attachments || c.attachments.length === 0) && <span className="text-xs text-muted-foreground">No files</span>}
+                      </div>
+                    </TableCell>
                     <TableCell><StatusBadge status={c.status} /></TableCell>
-                    <TableCell>{c.assignedTo}</TableCell>
-                    <TableCell className="text-right"><Button size="sm" onClick={() => toast.success(`${c.id} updated`)}>Update</Button></TableCell>
+                    <TableCell>{new Date(c.created_at).toLocaleDateString("en-IN")}</TableCell>
+                    <TableCell className="text-right">
+                      <Select
+                        value={c.status}
+                        onValueChange={async (status) => {
+                          const statusLabels: Record<string, string> = {
+                            open: "Open",
+                            in_progress: "In progress",
+                            waiting_user: "Waiting for Member",
+                            resolved: "Resolved",
+                            closed: "Closed",
+                          };
+                          const remarks = `Complaint marked ${statusLabels[status] || status} by admin.`;
+                          try {
+                            const response = await fetch(`/api/v1/admin/complaints/${c.id}/status`, {
+                              method: "PATCH",
+                              credentials: "include",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ status, remarks }),
+                            });
+                            const result = await response.json();
+                            if (!response.ok || !result.ok) throw new Error(result.error || "Could not update complaint.");
+                            toast.success(`${c.ticket_number} updated`);
+                            await loadComplaints();
+                          } catch (error) {
+                            toast.error(error instanceof Error ? error.message : "Could not update complaint.");
+                          }
+                        }}
+                      >
+                        <SelectTrigger className={`h-9 w-36 font-semibold ${complaintStatusTriggerClasses[c.status] || "border-muted bg-muted text-muted-foreground"}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="open" className="font-medium text-saffron-foreground">Open</SelectItem>
+                          <SelectItem value="in_progress" className="font-medium text-info">In progress</SelectItem>
+                          <SelectItem value="waiting_user" className="font-medium text-chart-5">Waiting user</SelectItem>
+                          <SelectItem value="resolved" className="font-medium text-success">Resolved</SelectItem>
+                          <SelectItem value="closed" className="font-medium text-muted-foreground">Closed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            {!loading && complaints.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No complaints yet.</div>}
+            {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading complaints...</div>}
           </div>
         </CardContent>
       </Card>
@@ -207,6 +958,14 @@ export function AdminComplaintsPage() {
 }
 
 export function AdminUpdatesPage() {
+  const [updates, setUpdates] = useState<DashboardPost[]>([]);
+  const [editing, setEditing] = useState<DashboardPost | null>(null);
+  const loadUpdates = async () => {
+    const response = await fetch("/api/v1/public/posts");
+    const result = await response.json();
+    if (result.ok) setUpdates(result.posts || []);
+  };
+  useEffect(() => { loadUpdates(); }, []);
   return (
     <DashLayout kind="admin">
       <PageTitle title="Market Updates" subtitle="Publish daily rates, arrivals, emergency alerts, and general market news." />
@@ -214,41 +973,69 @@ export function AdminUpdatesPage() {
         <Card className="border-border/60">
           <CardContent className="p-6">
             <div className="space-y-3">
-              {MARKET_UPDATES.map((u) => (
+              {updates.map((u) => (
                 <div key={u.id} className="flex items-start gap-3 rounded-lg border p-3">
+                  {(u.attachments || []).find((file) => file.attachment_type === "image") ? (
+                    <img src={`/api/v1/public/content-attachments/${(u.attachments || []).find((file) => file.attachment_type === "image")?.id}/download`} className="h-16 w-20 shrink-0 rounded-md object-cover" />
+                  ) : (
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><Newspaper className="h-4 w-4" /></div>
-                  <div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{u.category} - {u.views} views</div><div className="font-medium text-primary-dark">{u.title}</div><p className="mt-1 text-sm text-muted-foreground">{u.summary}</p></div>
-                  {u.emergency && <Badge className="bg-destructive text-white">Alert</Badge>}
+                  )}
+                  <div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{u.parsed?.category || "General"} - {new Date(u.published_at || u.created_at).toLocaleDateString("en-IN")}</div><div className="font-medium text-primary-dark">{u.title_en}</div><p className="mt-1 text-sm text-muted-foreground">{u.parsed?.details || ""}</p></div>
+                  <div className="flex shrink-0 flex-col gap-2">
+                    <Badge className="bg-success/15 text-success">Published</Badge>
+                    <Button size="sm" variant="outline" onClick={() => setEditing(u)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
+                    <Button size="sm" variant="destructive" onClick={() => deletePublicPost(u, loadUpdates)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
+                  </div>
                 </div>
               ))}
+              {updates.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">No market updates in database yet.</div>}
             </div>
           </CardContent>
         </Card>
-        <PublishCard kind="update" />
+        <PublishCard kind="update" onPublished={loadUpdates} />
       </div>
+      <PublicPostEditDialog post={editing} kind="update" onClose={() => setEditing(null)} onSaved={loadUpdates} />
     </DashLayout>
   );
 }
 
 export function AdminNoticesPage() {
+  const [notices, setNotices] = useState<DashboardPost[]>([]);
+  const [editing, setEditing] = useState<DashboardPost | null>(null);
+  const loadNotices = async () => {
+    const response = await fetch("/api/v1/public/notices");
+    const result = await response.json();
+    if (result.ok) setNotices(result.notices || []);
+  };
+  useEffect(() => { loadNotices(); }, []);
   return (
     <DashLayout kind="admin">
       <PageTitle title="Notices & Documents" subtitle="Upload circulars, meeting notices, PDFs, images, and video announcements." />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
         <Card className="border-border/60">
           <CardContent className="grid gap-3 p-6 md:grid-cols-2">
-            {NOTICES.map((n) => (
+            {notices.map((n) => (
               <div key={n.id} className="rounded-lg border p-4">
-                <div className="flex items-center justify-between gap-2"><Badge variant="outline">{n.category}</Badge><span className="text-xs text-muted-foreground">#{n.number}</span></div>
-                <h3 className="mt-3 font-display font-semibold text-primary-dark">{n.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{n.description}</p>
-                <div className="mt-4 flex gap-2"><Button size="sm" variant="outline"><Eye className="mr-1 h-4 w-4" /> View</Button><Button size="sm" variant="outline"><Download className="mr-1 h-4 w-4" /> Download</Button></div>
+                <div className="flex items-center justify-between gap-2"><Badge variant="outline">{n.parsed?.category || "Notice"}</Badge><span className="text-xs text-muted-foreground">#{n.id}</span></div>
+                <h3 className="mt-3 font-display font-semibold text-primary-dark">{n.title_en}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{n.parsed?.details || ""}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {(n.attachments || []).map((file) => (
+                    <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/public/content-attachments/${file.id}/download?download=1`, "_blank")}><Download className="mr-1 h-4 w-4" /> {file.original_filename}</Button>
+                  ))}
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setEditing(n)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
+                  <Button size="sm" variant="destructive" onClick={() => deletePublicPost(n, loadNotices)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
+                </div>
               </div>
             ))}
+            {notices.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground md:col-span-2">No notices in database yet.</div>}
           </CardContent>
         </Card>
-        <PublishCard kind="notice" />
+        <PublishCard kind="notice" onPublished={loadNotices} />
       </div>
+      <PublicPostEditDialog post={editing} kind="notice" onClose={() => setEditing(null)} onSaved={loadNotices} />
     </DashLayout>
   );
 }
@@ -295,18 +1082,160 @@ const OWNER_POSTS = [
   },
 ];
 
-function MediaDownloads({ images, videos }: { images: string[]; videos: string[] }) {
+type PostAttachment = {
+  id: number;
+  attachment_type: "image" | "video" | "document";
+  original_filename: string;
+  file_size_bytes?: number;
+};
+
+type DashboardPost = {
+  id: number;
+  post_type: string;
+  title_en: string;
+  content_en?: string;
+  status: string;
+  created_at: string;
+  published_at?: string | null;
+  created_by_name?: string;
+  business_name?: string | null;
+  trader_code?: string | null;
+  gala_number?: string | null;
+  section_name?: string | null;
+  share_audience?: "all" | "category" | string;
+  share_category_id?: number | null;
+  share_category_name?: string | null;
+  parsed?: { category?: string; details?: string };
+  attachments?: PostAttachment[];
+};
+
+type BusinessCategoryOption = {
+  id: number;
+  name_en: string;
+  name_mr?: string | null;
+};
+
+type PublicPostKind = "update" | "notice" | "gallery";
+
+function publicPostType(kind: PublicPostKind) {
+  if (kind === "update") return "news";
+  if (kind === "notice") return "notice";
+  return "gallery";
+}
+
+function PublicPostEditDialog({
+  post,
+  kind,
+  onClose,
+  onSaved,
+}: {
+  post: DashboardPost | null;
+  kind: PublicPostKind;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("General");
+  const [details, setDetails] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!post) return;
+    setTitle(post.title_en || "");
+    setCategory(post.parsed?.category || (kind === "gallery" ? "Images" : "General"));
+    setDetails(post.parsed?.details || post.content_en || "");
+  }, [post, kind]);
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!post) return;
+    setSaving(true);
+    try {
+      const response = await fetch(`/api/v1/admin/posts/${post.id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postType: publicPostType(kind),
+          titleEn: title,
+          category,
+          contentEn: details,
+          status: "published",
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Update failed");
+      toast.success("Website content updated");
+      onSaved();
+      onClose();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Update failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!post} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Edit website content</DialogTitle>
+          <DialogDescription>Changes appear on the public website immediately after saving.</DialogDescription>
+        </DialogHeader>
+        <form className="space-y-4" onSubmit={submit}>
+          <div><Label>Title</Label><Input value={title} onChange={(event) => setTitle(event.target.value)} required /></div>
+          <div><Label>{kind === "gallery" ? "Section / media type" : "Category"}</Label><Input value={category} onChange={(event) => setCategory(event.target.value)} required /></div>
+          <div><Label>{kind === "gallery" ? "Section / event details" : "Description"}</Label><Textarea value={details} onChange={(event) => setDetails(event.target.value)} rows={5} required /></div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" className="bg-primary" disabled={saving}>{saving ? "Saving..." : "Update"}</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+async function deletePublicPost(post: DashboardPost, onDeleted: () => void) {
+  if (!window.confirm(`Delete "${post.title_en}" from the public website?`)) return;
+  try {
+    const response = await fetch(`/api/v1/admin/posts/${post.id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Delete failed");
+    toast.success("Website content deleted");
+    onDeleted();
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : "Delete failed");
+  }
+}
+
+function postStatusLabel(status: string) {
+  if (status === "draft" || status === "scheduled") return "submitted";
+  if (status === "published") return "reshared";
+  if (status === "archived") return "rejected";
+  return status;
+}
+
+function MediaDownloads({ attachments = [], downloadBase }: { attachments?: PostAttachment[]; downloadBase: string }) {
   const files = [
-    ...images.map((file) => ({ file, type: "Image", icon: Camera })),
-    ...videos.map((file) => ({ file, type: "Video", icon: Video })),
+    ...attachments.map((file) => ({
+      file,
+      type: file.attachment_type === "image" ? "Image" : file.attachment_type === "video" ? "Video" : "Document",
+      icon: file.attachment_type === "image" ? Camera : file.attachment_type === "video" ? Video : FileText,
+    })),
   ];
+
+  if (files.length === 0) return null;
 
   return (
     <div className="mt-4 grid gap-2 sm:grid-cols-2">
       {files.map(({ file, type, icon: Icon }) => (
-        <Button key={file} size="sm" variant="outline" className="h-auto min-w-0 justify-start py-2" onClick={() => toast.success(`${file} download started`)}>
+        <Button key={file.id} size="sm" variant="outline" className="h-auto min-w-0 justify-start py-2" onClick={() => window.open(`${downloadBase}/${file.id}/download?download=1`, "_blank")}>
           <Icon className="mr-2 h-4 w-4 shrink-0 text-primary" />
-          <span className="min-w-0 flex-1 truncate text-left">{file}</span>
+          <span className="min-w-0 flex-1 truncate text-left">{file.original_filename}</span>
           <span className="ml-2 shrink-0 text-xs text-muted-foreground">{type}</span>
           <Download className="ml-2 h-4 w-4 shrink-0" />
         </Button>
@@ -316,16 +1245,23 @@ function MediaDownloads({ images, videos }: { images: string[]; videos: string[]
 }
 
 export function AdminGalleryPage() {
-  const { user } = useAuth();
-  const [items, setItems] = useState<GalleryItem[]>(GALLERY_ITEMS);
-  const [mediaType, setMediaType] = useState<GalleryItem["type"]>("image");
+  const [items, setItems] = useState<DashboardPost[]>([]);
+  const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [files, setFiles] = useState<File[]>([]);
+  const [editing, setEditing] = useState<DashboardPost | null>(null);
 
-  const uploader = user?.role === "main_admin" ? "Main Admin" : "User Admin";
-  const imageCount = items.filter((item) => item.type === "image").length;
-  const videoCount = items.filter((item) => item.type === "video").length;
+  const loadGallery = async () => {
+    const response = await fetch("/api/v1/public/gallery");
+    const result = await response.json();
+    if (result.ok) setItems(result.items || []);
+  };
 
-  const publishGalleryItem = (event: FormEvent<HTMLFormElement>) => {
+  useEffect(() => { loadGallery(); }, []);
+
+  const imageCount = items.reduce((total, item) => total + (item.attachments || []).filter((file) => file.attachment_type === "image").length, 0);
+  const videoCount = items.reduce((total, item) => total + (item.attachments || []).filter((file) => file.attachment_type === "video").length, 0);
+
+  const publishGalleryItem = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -337,22 +1273,24 @@ export function AdminGalleryPage() {
       return;
     }
 
-    const nextItem: GalleryItem = {
-      id: `GAL-${String(items.length + 1).padStart(3, "0")}`,
-      title,
-      section,
-      type: mediaType,
-      count: files.length,
-      date: new Date().toISOString().slice(0, 10),
-      uploadedBy: uploader,
-      status: "published",
-    };
-
-    setItems([nextItem, ...items]);
-    setFiles([]);
-    form.reset();
-    setMediaType("image");
-    toast.success(`${mediaType === "image" ? "Images" : "Video"} added to gallery`);
+    try {
+      const attachments = await Promise.all(files.slice(0, 8).map(fileToUploadPayload));
+      const response = await fetch("/api/v1/admin/posts", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postType: "gallery", titleEn: title, contentEn: section, category: mediaType === "image" ? "Images" : "Videos", attachments, status: "published" }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Gallery publish failed");
+      setFiles([]);
+      form.reset();
+      setMediaType("image");
+      toast.success("Gallery item published to database");
+      await loadGallery();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gallery publish failed");
+    }
   };
 
   return (
@@ -381,7 +1319,7 @@ export function AdminGalleryPage() {
               </div>
               <div>
                 <Label>Media type *</Label>
-                <Select value={mediaType} onValueChange={(value) => setMediaType(value as GalleryItem["type"])}>
+                <Select value={mediaType} onValueChange={(value) => setMediaType(value as "image" | "video")}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="image">Images</SelectItem>
@@ -433,26 +1371,31 @@ export function AdminGalleryPage() {
               </Button>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              {items.map((item, index) => (
+              {items.map((item, index) => {
+                const image = (item.attachments || []).find((file) => file.attachment_type === "image");
+                const videos = (item.attachments || []).filter((file) => file.attachment_type === "video");
+                return (
                 <div key={item.id} className="overflow-hidden rounded-lg border bg-background">
                   <div className="relative grid h-40 place-items-center bg-secondary">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(245,158,11,0.22),transparent_32%),linear-gradient(135deg,rgba(23,107,58,0.18),rgba(56,161,105,0.08))]" />
-                    <div className="relative grid h-16 w-16 place-items-center rounded-2xl bg-background text-primary shadow-md">
-                      {item.type === "video" ? <Video className="h-7 w-7" /> : <Camera className="h-7 w-7" />}
-                    </div>
-                    <Badge className="absolute left-3 top-3 bg-primary text-white">{item.type === "video" ? "Video" : "Images"}</Badge>
+                    {image ? <img src={`/api/v1/public/content-attachments/${image.id}/download`} className="h-full w-full object-cover" /> : <div className="relative grid h-16 w-16 place-items-center rounded-2xl bg-background text-primary shadow-md">{videos.length ? <Video className="h-7 w-7" /> : <Camera className="h-7 w-7" />}</div>}
+                    <Badge className="absolute left-3 top-3 bg-primary text-white">{videos.length ? "Video" : "Images"}</Badge>
                     {index === 0 && <Badge className="absolute right-3 top-3 bg-saffron text-primary-dark">Latest</Badge>}
                   </div>
                   <div className="p-4">
-                    <div className="font-display font-semibold text-primary-dark">{item.title}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">{item.section} - {new Date(item.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
+                    <div className="font-display font-semibold text-primary-dark">{item.title_en}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{item.parsed?.details || ""} - {new Date(item.published_at || item.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                      <Badge variant="outline" className="border-primary/40 text-primary">{item.count} {item.type === "video" ? "clips" : "photos"}</Badge>
-                      <span className="text-xs text-muted-foreground">By {item.uploadedBy}</span>
+                      <Badge variant="outline" className="border-primary/40 text-primary">{(item.attachments || []).length} file(s)</Badge>
+                      <Button size="sm" variant="outline" onClick={() => window.open("/gallery", "_blank")}>View</Button>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setEditing(item)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
+                      <Button size="sm" variant="destructive" onClick={() => deletePublicPost(item, loadGallery)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
                     </div>
                   </div>
                 </div>
-              ))}
+              )})}
+              {items.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground md:col-span-2">No gallery items in database yet.</div>}
             </div>
           </CardContent>
         </Card>
@@ -461,44 +1404,124 @@ export function AdminGalleryPage() {
   );
 }
 
-function PostMediaPreview({ images, videos }: { images: string[]; videos: string[] }) {
+function PostMediaPreview({ attachments = [], previewBase = "/api/v1/admin/post-attachments" }: { attachments?: PostAttachment[]; previewBase?: string }) {
+  const images = attachments.filter((file) => file.attachment_type === "image");
+  const videos = attachments.filter((file) => file.attachment_type === "video");
+  const primaryImage = images[0];
   return (
-    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-      <div className="rounded-lg border bg-secondary/40 p-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-primary-dark"><Camera className="h-4 w-4 text-primary" /> Images</div>
-        <div className="mt-2 text-2xl font-bold text-primary-dark">{images.length}</div>
-        <div className="text-xs text-muted-foreground">{images.length ? images.join(", ") : "No image attached"}</div>
-      </div>
-      <div className="rounded-lg border bg-secondary/40 p-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-primary-dark"><Video className="h-4 w-4 text-primary" /> Videos</div>
-        <div className="mt-2 text-2xl font-bold text-primary-dark">{videos.length}</div>
-        <div className="text-xs text-muted-foreground">{videos.length ? videos.join(", ") : "No video attached"}</div>
+    <div className="overflow-hidden rounded-lg border bg-background">
+      {primaryImage ? (
+        <a href={`${previewBase}/${primaryImage.id}/download`} target="_blank" rel="noreferrer" className="group relative block">
+          <div className="grid max-h-[420px] min-h-64 place-items-center bg-secondary/30">
+            <img src={`${previewBase}/${primaryImage.id}/download`} alt={primaryImage.original_filename} className="max-h-[420px] w-full object-contain transition group-hover:scale-[1.005]" />
+          </div>
+          {videos.length > 0 && (
+            <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-semibold text-white shadow">
+              <Video className="h-3.5 w-3.5" /> {videos.length} video{videos.length === 1 ? "" : "s"}
+            </span>
+          )}
+        </a>
+      ) : (
+        <div className="grid h-52 place-items-center bg-secondary/40 text-center">
+          <div>
+            <Camera className="mx-auto h-9 w-9 text-primary" />
+            <div className="mt-2 text-sm font-semibold text-primary-dark">No image attached</div>
+            <div className="text-xs text-muted-foreground">Images uploaded by Member will appear here.</div>
+          </div>
+        </div>
+      )}
+      {videos.length > 0 && (
+        <div className="border-t bg-secondary/20 p-3">
+          <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-primary-dark">
+            <Video className="h-4 w-4 text-primary" /> Video preview
+          </div>
+          <div className="grid gap-3">
+            {videos.map((file) => (
+              <div key={file.id} className="overflow-hidden rounded-md border bg-background">
+                <video src={`${previewBase}/${file.id}/download`} controls className="max-h-64 w-full bg-black" />
+                <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-xs">
+                  <span className="min-w-0 flex-1 truncate font-medium text-primary-dark">{file.original_filename}</span>
+                  <a href={`${previewBase}/${file.id}/download?download=1`} target="_blank" rel="noreferrer" className="font-semibold text-primary">Download</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="grid gap-3 border-t p-3 sm:grid-cols-2">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground"><Camera className="h-4 w-4 text-primary" /> Images</div>
+          <div className="mt-1 text-sm font-semibold text-primary-dark">{images.length} file{images.length === 1 ? "" : "s"}</div>
+          <div className="mt-1 text-xs text-muted-foreground">{images.length ? images.map((file) => file.original_filename).join(", ") : "No image attached"}</div>
+        </div>
+        <div>
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground"><Video className="h-4 w-4 text-primary" /> Videos</div>
+          <div className="mt-1 text-sm font-semibold text-primary-dark">{videos.length} file{videos.length === 1 ? "" : "s"}</div>
+          <div className="mt-1 text-xs text-muted-foreground">{videos.length ? videos.map((file) => file.original_filename).join(", ") : "No video attached"}</div>
+        </div>
       </div>
     </div>
   );
 }
 
-function SharedPostCard({ post, adminView = false, framed = true }: { post: (typeof OWNER_POSTS)[number]; adminView?: boolean; framed?: boolean }) {
+function SharedPostCard({ post, adminView = false, framed = true }: { post: DashboardPost; adminView?: boolean; framed?: boolean }) {
+  const displayStatus = postStatusLabel(post.status);
+  const dateValue = post.published_at || post.created_at;
+  const ownerName = post.created_by_name || "Member";
+  const category = post.parsed?.category || "General Request";
+  const details = post.parsed?.details || post.content_en || "";
+  const attachmentBase = adminView ? "/api/v1/admin/post-attachments" : "/api/v1/trader/post-attachments";
+  const identityFields = [
+    { label: "Member", value: ownerName },
+    { label: "Member code", value: post.trader_code || "-" },
+    { label: "Gala number", value: post.gala_number || "-" },
+    { label: "Business / section", value: post.business_name || post.section_name || "-" },
+  ];
+  const postFields = [
+    { label: "Post ID", value: `POST-${String(post.id).padStart(5, "0")}` },
+    { label: "Category", value: category },
+    { label: "Visible to", value: post.share_audience === "category" ? (post.share_category_name || "Selected category") : "All Members" },
+    { label: "Date", value: new Date(dateValue).toLocaleDateString("en-IN") },
+    { label: "Status", value: displayStatus },
+  ];
   const content = (
     <>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span className="font-mono">{post.id}</span>
-              <Badge variant="outline">{post.type}</Badge>
-              <span>{new Date(post.date).toLocaleDateString("en-IN")}</span>
-            </div>
-            <h2 className="mt-2 font-display text-lg font-bold text-primary-dark">{post.title}</h2>
+      <div className="space-y-4">
+        <PostMediaPreview attachments={post.attachments} previewBase={attachmentBase} />
+
+        <div className="rounded-lg border bg-secondary/20 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="min-w-0 whitespace-normal break-words font-display text-xl font-bold leading-snug text-primary-dark">{post.title_en}</h2>
+            <StatusBadge status={displayStatus} />
           </div>
-          <StatusBadge status={post.status} />
+          <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">{details}</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {postFields.map((field) => (
+              <div key={field.label} className="rounded-md border bg-background px-3 py-2">
+                <div className="text-[11px] font-medium uppercase text-muted-foreground">{field.label}</div>
+                <div className="mt-1 whitespace-normal break-words text-sm font-semibold capitalize text-primary-dark">{field.value}</div>
+              </div>
+            ))}
+          </div>
         </div>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{post.body}</p>
-        <div className="mt-4 rounded-lg border bg-secondary/50 p-3">
-          <div className="text-sm font-semibold text-primary-dark">Posted by {post.ownerName}</div>
-          <div className="text-xs text-muted-foreground">Gala {post.gala} - {post.section}</div>
+
+        <div className="rounded-lg border bg-primary/5 p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="font-display font-semibold text-primary-dark">Member details</div>
+            {adminView && <Badge className="bg-saffron text-primary-dark">Visible after reshare</Badge>}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {identityFields.map((field) => (
+              <div key={field.label} className="rounded-md border bg-background px-3 py-2">
+                <div className="text-[11px] font-medium uppercase text-muted-foreground">{field.label}</div>
+                <div className="mt-1 whitespace-normal break-words text-sm font-semibold text-primary-dark">{field.value}</div>
+              </div>
+            ))}
+          </div>
         </div>
-        {adminView && <PostMediaPreview images={post.images} videos={post.videos} />}
-        <MediaDownloads images={post.images} videos={post.videos} />
+
+        <MediaDownloads attachments={post.attachments} downloadBase={attachmentBase} />
+      </div>
     </>
   );
 
@@ -512,16 +1535,87 @@ function SharedPostCard({ post, adminView = false, framed = true }: { post: (typ
 }
 
 export function AdminOwnerPostsPage() {
-  const pendingPosts = OWNER_POSTS.filter((post) => post.status !== "reshared");
-  const resharedPosts = OWNER_POSTS.filter((post) => post.status === "reshared");
+  const [posts, setPosts] = useState<DashboardPost[]>([]);
+  const [categories, setCategories] = useState<BusinessCategoryOption[]>([]);
+  const [shareSettings, setShareSettings] = useState<Record<number, { audience: "all" | "category"; categoryId: string }>>({});
+  const [loading, setLoading] = useState(true);
+  const pendingPosts = posts.filter((post) => post.status === "draft" || post.status === "scheduled");
+  const resharedPosts = posts.filter((post) => post.status === "published");
+
+  const loadPosts = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/v1/admin/post-queue?status=all", { credentials: "include" });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not load Member posts.");
+      setPosts(result.posts || []);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load Member posts.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPosts();
+    fetch("/api/v1/admin/business-categories", { credentials: "include" })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.ok) setCategories(result.categories || []);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const decidePost = async (post: DashboardPost, decision: "approve" | "reject") => {
+    const settings = shareSettings[post.id] || { audience: "all", categoryId: "" };
+    if (decision === "approve" && settings.audience === "category" && !settings.categoryId) {
+      toast.error("Select Member category before resharing.");
+      return;
+    }
+    try {
+      const response = await fetch(`/api/v1/admin/posts/${post.id}/decision`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          decision,
+          shareAudience: settings.audience,
+          shareCategoryId: settings.audience === "category" ? Number(settings.categoryId) : null,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not update post.");
+      const target = settings.audience === "category" ? categories.find((item) => String(item.id) === settings.categoryId)?.name_en || "selected category" : "all Members";
+      toast.success(`${post.title_en} ${decision === "approve" ? `reshared to ${target}` : "rejected"}`);
+      await loadPosts();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update post.");
+    }
+  };
+
+  const deletePost = async (post: DashboardPost) => {
+    if (!window.confirm(`Delete "${post.title_en}" from Member shared posts?`)) return;
+    try {
+      const response = await fetch(`/api/v1/admin/posts/${post.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not delete post.");
+      toast.success(`${post.title_en} removed`);
+      await loadPosts();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not delete post.");
+    }
+  };
 
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Owner Posts" subtitle="Review trader posts and reshare approved posts to all traders." />
+      <PageTitle title="Owner Posts" subtitle="Review Member posts and reshare them to all Members or a selected business category." />
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <StatCard icon={ImagePlus} label="Submitted posts" value={OWNER_POSTS.length} />
+        <StatCard icon={ImagePlus} label="Submitted posts" value={posts.length} />
         <StatCard icon={ClipboardList} label="Waiting for review" value={pendingPosts.length} tone="warning" />
-        <StatCard icon={Send} label="Reshared posts" value={resharedPosts.length} tone="success" />
+        <StatCard icon={Send} label="Reshared posts" value={posts.filter((post) => post.status === "published").length} tone="success" />
       </div>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
         <Card className="border-border/60">
@@ -537,14 +1631,51 @@ export function AdminOwnerPostsPage() {
               {pendingPosts.map((post) => (
                 <div key={post.id} className="rounded-lg border bg-background p-4">
                   <SharedPostCard post={post} adminView framed={false} />
+                  <div className="mt-4 rounded-lg border bg-secondary/25 p-3">
+                    <div className="mb-3 text-sm font-semibold text-primary-dark">Share this post to</div>
+                    <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)]">
+                      <Select
+                        value={shareSettings[post.id]?.audience || "all"}
+                        onValueChange={(value) => setShareSettings((current) => ({
+                          ...current,
+                          [post.id]: { audience: value as "all" | "category", categoryId: value === "category" ? current[post.id]?.categoryId || "" : "" },
+                        }))}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Members</SelectItem>
+                          <SelectItem value="category">Selected category</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {(shareSettings[post.id]?.audience || "all") === "category" && (
+                        <Select
+                          value={shareSettings[post.id]?.categoryId || ""}
+                          onValueChange={(value) => setShareSettings((current) => ({
+                            ...current,
+                            [post.id]: { audience: "category", categoryId: value },
+                          }))}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Select Member category" /></SelectTrigger>
+                          <SelectContent>
+                            {categories.map((item) => <SelectItem key={item.id} value={String(item.id)}>{item.name_en}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button className="bg-primary" onClick={() => toast.success(`${post.title} reshared to all traders`)}>
+                    <Button className="bg-primary" onClick={() => decidePost(post, "approve")}>
                       <Send className="mr-1 h-4 w-4" /> Reshare Post
                     </Button>
-                    <Button variant="outline" onClick={() => toast.error(`${post.id} rejected`)}>Reject</Button>
+                    <Button variant="outline" onClick={() => decidePost(post, "reject")}>Reject</Button>
+                    <Button variant="destructive" onClick={() => deletePost(post)}>
+                      <Trash2 className="mr-1 h-4 w-4" /> Delete
+                    </Button>
                   </div>
                 </div>
               ))}
+              {!loading && pendingPosts.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">No Member posts waiting for review.</div>}
+              {loading && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">Loading Member posts...</div>}
             </div>
           </CardContent>
         </Card>
@@ -552,19 +1683,26 @@ export function AdminOwnerPostsPage() {
         <Card className="border-border/60">
           <CardContent className="p-6">
             <h2 className="font-display font-bold text-primary-dark">Already reshared</h2>
-            <p className="mt-1 text-sm text-muted-foreground">These are visible in Trader Shared Posts.</p>
+            <p className="mt-1 text-sm text-muted-foreground">These are visible only to the selected Member audience.</p>
             <div className="mt-4 space-y-3">
               {resharedPosts.map((post) => (
                 <div key={post.id} className="rounded-lg border p-3 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <Badge variant="outline">{post.type}</Badge>
-                    <StatusBadge status={post.status} />
+                    <Badge variant="outline">{post.parsed?.category || "General Request"}</Badge>
+                    <StatusBadge status={postStatusLabel(post.status)} />
                   </div>
-                  <div className="mt-2 font-medium text-primary-dark">{post.title}</div>
-                  <div className="text-xs text-muted-foreground">Posted by {post.ownerName} - Gala {post.gala}</div>
-                  <MediaDownloads images={post.images} videos={post.videos} />
+                  <div className="mt-2 font-medium text-primary-dark">{post.title_en}</div>
+                  <div className="text-xs text-muted-foreground">Posted by {post.created_by_name || "Member"} - Gala {post.gala_number || "-"}</div>
+                  <div className="mt-1 text-xs font-semibold text-primary">
+                    Visible to {post.share_audience === "category" ? post.share_category_name || "selected category" : "all Members"}
+                  </div>
+                  <MediaDownloads attachments={post.attachments} downloadBase="/api/v1/admin/post-attachments" />
+                  <Button size="sm" variant="destructive" className="mt-3 w-full" onClick={() => deletePost(post)}>
+                    <Trash2 className="mr-1 h-4 w-4" /> Delete Post
+                  </Button>
                 </div>
               ))}
+              {!loading && resharedPosts.length === 0 && <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">No decided posts yet.</div>}
             </div>
           </CardContent>
         </Card>
@@ -573,16 +1711,82 @@ export function AdminOwnerPostsPage() {
   );
 }
 
-function PublishCard({ kind }: { kind: "update" | "notice" }) {
+function PublishCard({ kind, onPublished }: { kind: "update" | "notice"; onPublished?: () => void }) {
+  const [files, setFiles] = useState<File[]>([]);
+  const [category, setCategory] = useState("General");
+  const describeFile = (file: File) => {
+    if (file.type.startsWith("image/")) return { label: "Image", icon: Camera };
+    if (file.type.startsWith("video/")) return { label: "Video", icon: Video };
+    return { label: "PDF", icon: FileText };
+  };
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const titleEn = String(data.get("titleEn") || "").trim();
+    const contentEn = String(data.get("contentEn") || "").trim();
+
+    try {
+      const attachments = await Promise.all(files.slice(0, 8).map(fileToUploadPayload));
+      const response = await fetch("/api/v1/admin/posts", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postType: kind === "update" ? "news" : "notice",
+          titleEn,
+          contentEn,
+          category,
+          attachments,
+          status: "published",
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Publish failed");
+      toast.success(`${kind === "update" ? "Market update" : "Notice"} published to database`);
+      form.reset();
+      setFiles([]);
+      setCategory("General");
+      onPublished?.();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Publish failed");
+    }
+  };
+
   return (
     <Card className="border-saffron/40 bg-saffron/5">
       <CardContent className="p-6">
         <h2 className="font-display font-bold text-primary-dark">Publish new {kind}</h2>
-        <form className="mt-4 space-y-3" onSubmit={(e) => { e.preventDefault(); toast.success(`${kind === "update" ? "Market update" : "Notice"} published`); (e.currentTarget as HTMLFormElement).reset(); }}>
-          <div><Label>Title</Label><Input required placeholder={kind === "update" ? "Onion price update" : "Meeting notice"} /></div>
-          <div><Label>Category</Label><Select defaultValue="General"><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{["General", "Emergency", "Meeting", "Payment", "Water Supply", "Electricity", "Market Holiday"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
-          <div><Label>Description</Label><Textarea required rows={4} /></div>
-          <label className="flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed p-3 text-sm hover:border-primary"><Upload className="h-4 w-4 text-primary" /> Attach file<input type="file" className="hidden" /></label>
+        <form className="mt-4 space-y-3" onSubmit={submit}>
+          <div><Label>Title</Label><Input name="titleEn" required placeholder={kind === "update" ? "Onion price update" : "Meeting notice"} /></div>
+          <div><Label>Category</Label><Select value={category} onValueChange={setCategory}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{["General", "Emergency", "Meeting", "Payment", "Water Supply", "Electricity", "Market Holiday", "Rates", "Arrival"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
+          <div><Label>Description</Label><Textarea name="contentEn" required rows={4} /></div>
+          <label className={`flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm hover:border-primary ${files.length ? "border-success bg-success/10" : "bg-background"}`}>
+            <Upload className="h-6 w-6 text-primary" />
+            <span className="font-semibold text-primary-dark">{files.length ? `${files.length} file(s) selected` : "Upload image, PDF, or video"}</span>
+            <span className="text-xs text-muted-foreground">JPG, PNG, WEBP, PDF, MP4, MOV, WEBM</span>
+            <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,video/mp4,video/quicktime,video/webm,.pdf,.mov,.mp4,.webm" className="hidden" multiple onChange={(event) => setFiles(Array.from(event.target.files || []))} />
+          </label>
+          {files.length > 0 && (
+            <div className="space-y-2 rounded-lg border bg-background p-3 text-xs">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-semibold text-primary-dark">Selected attachments</span>
+                <Button type="button" size="sm" variant="ghost" onClick={() => setFiles([])}>Clear</Button>
+              </div>
+              {files.map((file) => {
+                const meta = describeFile(file);
+                const Icon = meta.icon;
+                return (
+                  <div key={`${file.name}-${file.size}`} className="flex min-w-0 items-center gap-2 rounded-md border bg-secondary/20 px-3 py-2">
+                    <Icon className="h-4 w-4 shrink-0 text-primary" />
+                    <span className="shrink-0 rounded bg-secondary px-2 py-0.5 font-semibold text-primary-dark">{meta.label}</span>
+                    <span className="min-w-0 flex-1 truncate text-muted-foreground">{file.name}</span>
+                    <span className="shrink-0 text-muted-foreground">{Math.ceil(file.size / 1024)} KB</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <Button type="submit" className="w-full bg-primary">Publish</Button>
         </form>
       </CardContent>
@@ -591,67 +1795,556 @@ function PublishCard({ kind }: { kind: "update" | "notice" }) {
 }
 
 export function AdminMobileRequestsPage() {
+  type MobileChangeRequest = {
+    id: number;
+    request_code: string;
+    trader_name: string;
+    trader_code: string;
+    gala_number: string | null;
+    old_mobile: string;
+    new_mobile: string;
+    reason: string;
+    application_note: string;
+    status: string;
+    created_at: string;
+    documents: Array<{
+      id: number;
+      document_type: string;
+      original_filename: string;
+      file_size_bytes: number;
+    }>;
+  };
+  const [requests, setRequests] = useState<MobileChangeRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [pendingDecision, setPendingDecision] = useState<{ request: MobileChangeRequest; decision: "approve" | "reject" } | null>(null);
+
+  const loadRequests = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/v1/admin/mobile-change-requests?status=all", { credentials: "include" });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not load mobile change requests.");
+      setRequests(result.requests || []);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load mobile change requests.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRequests();
+  }, []);
+
+  const decideRequest = async () => {
+    if (!pendingDecision) return;
+    const { request, decision } = pendingDecision;
+    const remarks = decision === "reject" ? "Rejected by admin" : "Approved by admin";
+    try {
+      const response = await fetch(`/api/v1/admin/mobile-change-requests/${request.id}/decision`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision, remarks }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Decision failed.");
+      toast.success(`${request.request_code} ${decision === "approve" ? "approved" : "rejected"}`);
+      setPendingDecision(null);
+      await loadRequests();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Decision failed.");
+    }
+  };
+
   return (
     <DashLayout kind="admin">
       <PageTitle title="Mobile Change Requests" subtitle="Verify owner identity before updating registered mobile numbers." />
       <Card className="border-border/60">
         <CardContent className="p-6">
-          <Table>
-            <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Owner</TableHead><TableHead>Old Mobile</TableHead><TableHead>New Mobile</TableHead><TableHead>Reason</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Decision</TableHead></TableRow></TableHeader>
-            <TableBody>{MOBILE_REQUESTS.map((r) => <TableRow key={r.id}><TableCell className="font-mono text-xs">{r.id}</TableCell><TableCell>{r.ownerName}<div className="text-xs text-muted-foreground">{r.gala}</div></TableCell><TableCell>{r.oldMobile}</TableCell><TableCell>{r.newMobile}</TableCell><TableCell>{r.reason}</TableCell><TableCell><StatusBadge status={r.status} /></TableCell><TableCell className="text-right"><Button size="sm" className="mr-2 bg-success text-white" onClick={() => toast.success(`${r.id} approved`)}>Approve</Button><Button size="sm" variant="outline" onClick={() => toast.error(`${r.id} rejected`)}>Reject</Button></TableCell></TableRow>)}</TableBody>
-          </Table>
+          <div className="overflow-hidden">
+            <Table className="w-full table-fixed">
+              <TableHeader><TableRow><TableHead className="w-[8%]">ID</TableHead><TableHead className="w-[16%]">Member</TableHead><TableHead className="w-[10%]">Old</TableHead><TableHead className="w-[10%]">New</TableHead><TableHead className="w-[10%]">Reason</TableHead><TableHead className="w-[18%]">Note</TableHead><TableHead className="w-[13%]">Docs</TableHead><TableHead className="w-[9%]">Status</TableHead><TableHead className="w-[6%] text-right">Action</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {requests.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="break-all font-mono text-[11px] leading-tight">{r.request_code}</TableCell>
+                    <TableCell>{r.trader_name}<div className="text-xs text-muted-foreground">Gala {r.gala_number || "-"} · {r.trader_code}</div></TableCell>
+                    <TableCell className="whitespace-normal break-all font-mono text-xs">{r.old_mobile}</TableCell>
+                    <TableCell className="whitespace-normal break-all font-mono text-xs">{r.new_mobile}</TableCell>
+                    <TableCell className="whitespace-normal text-sm leading-snug">{r.reason}</TableCell>
+                    <TableCell className="whitespace-normal text-sm leading-snug">{r.application_note}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {r.documents.map((document) => (
+                          <Button key={document.id} size="sm" variant="outline" className="h-8 min-w-0 justify-start px-2 text-xs" onClick={() => window.open(`/api/v1/admin/mobile-change-documents/${document.id}/download?download=1`, "_blank")}>
+                            <Download className="mr-1 h-3.5 w-3.5 shrink-0" /> <span className="truncate">{document.document_type === "id_proof" ? "ID" : "Mobile"}</span>
+                          </Button>
+                        ))}
+                        {r.documents.length === 0 && <span className="text-xs text-destructive">Missing</span>}
+                      </div>
+                    </TableCell>
+                    <TableCell><span className="inline-flex whitespace-nowrap"><StatusBadge status={r.status} /></span></TableCell>
+                    <TableCell className="text-right">
+                      {r.status === "pending" ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <Button size="sm" className="h-8 bg-success px-2 text-xs text-white" onClick={() => setPendingDecision({ request: r, decision: "approve" })}>OK</Button>
+                          <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => setPendingDecision({ request: r, decision: "reject" })}>No</Button>
+                        </div>
+                      ) : "-"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {!loading && requests.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No mobile change requests yet.</div>}
+            {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading requests...</div>}
+          </div>
         </CardContent>
       </Card>
+      <AlertDialog open={!!pendingDecision} onOpenChange={(open) => !open && setPendingDecision(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingDecision?.decision === "approve" ? "Approve mobile change?" : "Reject mobile change?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Please confirm before updating this request. This action will be saved in the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {pendingDecision && (
+            <div className="grid gap-3 rounded-lg border bg-secondary/30 p-4 text-sm">
+              <div className="font-semibold text-primary-dark">{pendingDecision.request.trader_name}</div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div><span className="text-muted-foreground">Old:</span> <span className="font-mono">{pendingDecision.request.old_mobile}</span></div>
+                <div><span className="text-muted-foreground">New:</span> <span className="font-mono">{pendingDecision.request.new_mobile}</span></div>
+              </div>
+              <div><span className="text-muted-foreground">Reason:</span> {pendingDecision.request.reason}</div>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={pendingDecision?.decision === "approve" ? "bg-success text-white hover:bg-success/90" : "bg-destructive text-white hover:bg-destructive/90"}
+              onClick={decideRequest}
+            >
+              {pendingDecision?.decision === "approve" ? "Yes, approve" : "Yes, reject"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashLayout>
   );
 }
 
+type CommitteeMemberRecord = {
+  id: number;
+  full_name: string;
+  name_mr: string | null;
+  designation: string;
+  gala_number: string | null;
+  term_label: string | null;
+  message: string | null;
+  photo_url: string | null;
+  photo_original_filename: string | null;
+  display_order: number;
+  status: "active" | "inactive";
+};
+
+const emptyCommitteeForm = {
+  fullName: "",
+  nameMr: "",
+  designation: "",
+  galaNumber: "",
+  termLabel: "",
+  message: "",
+  displayOrder: "100",
+  status: "active" as "active" | "inactive",
+};
+
 export function AdminCommitteePage() {
+  const [members, setMembers] = useState<CommitteeMemberRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<CommitteeMemberRecord | null>(null);
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(emptyCommitteeForm);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+
+  const loadMembers = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/v1/admin/committee", { credentials: "include" });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Unable to load committee members.");
+      setMembers(result.members || []);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to load committee members.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMembers();
+  }, []);
+
+  const openNew = () => {
+    setEditing(null);
+    setForm(emptyCommitteeForm);
+    setPhotoFile(null);
+    setOpen(true);
+  };
+
+  const openEdit = (member: CommitteeMemberRecord) => {
+    setEditing(member);
+    setForm({
+      fullName: member.full_name,
+      nameMr: member.name_mr || "",
+      designation: member.designation,
+      galaNumber: member.gala_number || "",
+      termLabel: member.term_label || "",
+      message: member.message || "",
+      displayOrder: String(member.display_order ?? 100),
+      status: member.status,
+    });
+    setPhotoFile(null);
+    setOpen(true);
+  };
+
+  const saveMember = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const endpoint = editing ? `/api/v1/admin/committee/${editing.id}` : "/api/v1/admin/committee";
+    const method = editing ? "PATCH" : "POST";
+    try {
+      const response = await fetch(endpoint, {
+        method,
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          photo: photoFile ? await fileToUploadPayload(photoFile) : undefined,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Unable to save committee member.");
+      toast.success(editing ? "Committee member updated" : "Committee member added");
+      setOpen(false);
+      setPhotoFile(null);
+      await loadMembers();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to save committee member.");
+    }
+  };
+
+  const deleteMember = async (member: CommitteeMemberRecord) => {
+    if (!window.confirm(`Delete ${member.full_name} from committee?`)) return;
+    try {
+      const response = await fetch(`/api/v1/admin/committee/${member.id}`, { method: "DELETE", credentials: "include" });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Unable to delete committee member.");
+      toast.success("Committee member deleted");
+      await loadMembers();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to delete committee member.");
+    }
+  };
+
+  const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
+
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Chairman & Committee" subtitle="Maintain association leadership details shown on the public site." action={<Button><Plus className="mr-1 h-4 w-4" /> Add Trader</Button>} />
+      <PageTitle title="Chairman & Committee" subtitle="Maintain association leadership details shown on the public site." action={<Button onClick={openNew}><Plus className="mr-1 h-4 w-4" /> Add Member</Button>} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {COMMITTEE.map((m) => (
+        {members.map((m) => (
           <Card key={m.id} className="border-border/60">
             <CardContent className="p-5 text-center">
-              <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-secondary font-display text-lg font-bold text-primary">{m.name.split(" ").slice(-1)[0][0]}</div>
-              <h3 className="mt-3 font-display font-semibold text-primary-dark">{m.name}</h3>
+              <div className="mx-auto grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-secondary font-display text-lg font-bold text-primary">
+                {m.photo_url ? <img src={m.photo_url} alt={m.full_name} className="h-full w-full object-cover" /> : initials(m.full_name)}
+              </div>
+              <h3 className="mt-3 font-display font-semibold text-primary-dark">{m.full_name}</h3>
               <div className="text-sm text-primary">{m.designation}</div>
-              {m.gala && <div className="mt-1 text-xs text-muted-foreground">Gala {m.gala}</div>}
-              <Button className="mt-4 w-full" size="sm" variant="outline">Edit profile</Button>
+              {m.gala_number && <div className="mt-1 text-xs text-muted-foreground">Gala {m.gala_number}</div>}
+              {m.term_label && <div className="mt-1 text-xs text-muted-foreground">Term {m.term_label}</div>}
+              <Badge className={`mt-3 ${m.status === "active" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{m.status}</Badge>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <Button size="sm" variant="outline" onClick={() => openEdit(m)}>Edit</Button>
+                <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => deleteMember(m)}><Trash2 className="h-4 w-4" /></Button>
+              </div>
             </CardContent>
           </Card>
         ))}
+        {!loading && members.length === 0 && (
+          <Card className="border-border/60 sm:col-span-2 lg:col-span-4">
+            <CardContent className="p-8 text-center text-sm text-muted-foreground">No committee members in database yet.</CardContent>
+          </Card>
+        )}
+        {loading && (
+          <Card className="border-border/60 sm:col-span-2 lg:col-span-4">
+            <CardContent className="p-8 text-center text-sm text-muted-foreground">Loading committee members...</CardContent>
+          </Card>
+        )}
       </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit committee member" : "Add committee member"}</DialogTitle>
+            <DialogDescription>Saved details are shown on the public website.</DialogDescription>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={saveMember}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Profile photo</Label>
+                <label className={`flex min-h-28 cursor-pointer items-center gap-4 rounded-lg border-2 border-dashed p-4 transition hover:border-primary ${photoFile ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>
+                  <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-background text-primary shadow-sm">
+                    {photoFile ? (
+                      <img src={URL.createObjectURL(photoFile)} alt="Selected committee member" className="h-full w-full object-cover" />
+                    ) : editing?.photo_url ? (
+                      <img src={editing.photo_url} alt={editing.full_name} className="h-full w-full object-cover" />
+                    ) : (
+                      <Camera className="h-6 w-6" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-primary-dark">{photoFile ? "Photo selected" : "Upload member photo"}</div>
+                    <div className={`mt-1 max-w-full truncate text-xs ${photoFile ? "font-medium text-success" : "text-muted-foreground"}`}>
+                      {photoFile?.name || editing?.photo_original_filename || "JPG, PNG, or WEBP up to 5 MB"}
+                    </div>
+                    <div className="mt-2 inline-flex rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white">Choose photo</div>
+                  </div>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => setPhotoFile(event.target.files?.[0] || null)} />
+                </label>
+              </div>
+              <div className="space-y-2">
+                <Label>Full name *</Label>
+                <Input value={form.fullName} onChange={(event) => setForm({ ...form, fullName: event.target.value })} required placeholder="Shri. Full Name" />
+              </div>
+              <div className="space-y-2">
+                <Label>Name in Marathi</Label>
+                <Input value={form.nameMr} onChange={(event) => setForm({ ...form, nameMr: event.target.value })} placeholder="मराठी नाव" />
+              </div>
+              <div className="space-y-2">
+                <Label>Designation *</Label>
+                <Input value={form.designation} onChange={(event) => setForm({ ...form, designation: event.target.value })} required placeholder="Chairman, Secretary..." />
+              </div>
+              <div className="space-y-2">
+                <Label>Gala number</Label>
+                <Input value={form.galaNumber} onChange={(event) => setForm({ ...form, galaNumber: event.target.value })} placeholder="A-101" />
+              </div>
+              <div className="space-y-2">
+                <Label>Term</Label>
+                <Input value={form.termLabel} onChange={(event) => setForm({ ...form, termLabel: event.target.value })} placeholder="2026-2031" />
+              </div>
+              <div className="space-y-2">
+                <Label>Display order</Label>
+                <Input type="number" value={form.displayOrder} onChange={(event) => setForm({ ...form, displayOrder: event.target.value })} min={1} />
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={form.status} onValueChange={(value) => setForm({ ...form, status: value as "active" | "inactive" })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active - show publicly</SelectItem>
+                    <SelectItem value="inactive">Inactive - hide publicly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Message / introduction</Label>
+              <Textarea value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} placeholder="Chairman message or member introduction" rows={4} />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button type="submit" className="bg-primary">Save Member</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </DashLayout>
   );
 }
+
+type ReportAnalytics = {
+  summary: {
+    portal_logins_30d?: number;
+    downloadable_files?: number;
+    file_downloads?: number;
+    resolved_complaints?: number;
+    published_notices?: number;
+    total_traders?: number;
+    approved_traders?: number;
+    pending_traders?: number;
+    published_content?: number;
+    pwa_installs_total?: number;
+    pwa_installs_today?: number;
+    pwa_installs_week?: number;
+    pwa_installs_month?: number;
+    pwa_installs_registered_users?: number;
+    pwa_installs_mobile?: number;
+    pwa_installs_desktop?: number;
+    pwa_installs_other?: number;
+  };
+  charts: {
+    registrations: Array<{ month: string; count: number }>;
+    downloads: Array<{ month: string; downloads: number }>;
+    pwaInstalls: Array<{ month: string; installs: number }>;
+    pwaPlatforms: Array<{ platform: string; count: number }>;
+    complaintsByCategory: Array<{ category: string; count: number }>;
+    complaintsByStatus: Array<{ status: string; count: number }>;
+    contentByStatus: Array<{ status: string; count: number }>;
+  };
+};
+
+const emptyReportAnalytics: ReportAnalytics = {
+  summary: {},
+  charts: {
+    registrations: [],
+    downloads: [],
+    pwaInstalls: [],
+    pwaPlatforms: [],
+    complaintsByCategory: [],
+    complaintsByStatus: [],
+    contentByStatus: [],
+  },
+};
 
 export function AdminReportsPage() {
+  const [analytics, setAnalytics] = useState<ReportAnalytics>(emptyReportAnalytics);
+  const [loading, setLoading] = useState(true);
+
+  const loadAnalytics = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/v1/admin/reports/analytics", { credentials: "include" });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Unable to load reports.");
+      setAnalytics({
+        summary: result.summary || {},
+        charts: {
+          registrations: (result.charts?.registrations || []).map((row: { month: string; count: number | string }) => ({ month: row.month, count: Number(row.count || 0) })),
+          downloads: (result.charts?.downloads || []).map((row: { month: string; downloads: number | string }) => ({ month: row.month, downloads: Number(row.downloads || 0) })),
+          pwaInstalls: (result.charts?.pwaInstalls || []).map((row: { month: string; installs: number | string }) => ({ month: row.month, installs: Number(row.installs || 0) })),
+          pwaPlatforms: (result.charts?.pwaPlatforms || []).map((row: { platform: string; count: number | string }) => ({ platform: row.platform, count: Number(row.count || 0) })),
+          complaintsByCategory: (result.charts?.complaintsByCategory || []).map((row: { category: string; count: number | string }) => ({ category: row.category, count: Number(row.count || 0) })),
+          complaintsByStatus: (result.charts?.complaintsByStatus || []).map((row: { status: string; count: number | string }) => ({ status: row.status, count: Number(row.count || 0) })),
+          contentByStatus: (result.charts?.contentByStatus || []).map((row: { status: string; count: number | string }) => ({ status: row.status, count: Number(row.count || 0) })),
+        },
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to load reports.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAnalytics();
+  }, []);
+
+  const exportReport = () => {
+    const lines = [
+      ["Report", "Value"],
+      ["Portal logins last 30 days", analytics.summary.portal_logins_30d || 0],
+      ["File downloads", analytics.summary.file_downloads || 0],
+      ["Total app installs", analytics.summary.pwa_installs_total || 0],
+      ["Today's app installs", analytics.summary.pwa_installs_today || 0],
+      ["This week's app installs", analytics.summary.pwa_installs_week || 0],
+      ["This month's app installs", analytics.summary.pwa_installs_month || 0],
+      ["Unique registered users with app installs", analytics.summary.pwa_installs_registered_users || 0],
+      ["Mobile app installs", analytics.summary.pwa_installs_mobile || 0],
+      ["Desktop app installs", analytics.summary.pwa_installs_desktop || 0],
+      ["Other app installs", analytics.summary.pwa_installs_other || 0],
+      ["Resolved complaints", analytics.summary.resolved_complaints || 0],
+      ["Published notices", analytics.summary.published_notices || 0],
+      ["Total Members", analytics.summary.total_traders || 0],
+      ["Approved Members", analytics.summary.approved_traders || 0],
+      ["Pending Member reviews", analytics.summary.pending_traders || 0],
+      ["Published content", analytics.summary.published_content || 0],
+      [],
+      ["Monthly registrations"],
+      ["Month", "Count"],
+      ...analytics.charts.registrations.map((row) => [row.month, row.count]),
+      [],
+      ["Downloadable files by month"],
+      ["Month", "Files"],
+      ...analytics.charts.downloads.map((row) => [row.month, row.downloads]),
+      [],
+      ["App installs by month"],
+      ["Month", "Installs"],
+      ...analytics.charts.pwaInstalls.map((row) => [row.month, row.installs]),
+      [],
+      ["App installs by platform"],
+      ["Platform", "Installs"],
+      ...analytics.charts.pwaPlatforms.map((row) => [row.platform, row.count]),
+      [],
+      ["Complaints by category"],
+      ["Category", "Count"],
+      ...analytics.charts.complaintsByCategory.map((row) => [row.category, row.count]),
+    ];
+    const csv = lines.map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `market-yard-report-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast.success("Report exported");
+  };
+
+  const summary = analytics.summary;
+  const registrations = analytics.charts.registrations;
+  const downloads = analytics.charts.downloads;
+  const pwaInstalls = analytics.charts.pwaInstalls;
+  const pwaPlatforms = analytics.charts.pwaPlatforms;
+  const complaintsByCategory = analytics.charts.complaintsByCategory;
+
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Reports & Analytics" subtitle="Track registrations, complaints, downloads, and portal engagement." action={<Button variant="outline"><Download className="mr-1 h-4 w-4" /> Export report</Button>} />
+      <PageTitle title="Reports & Analytics" subtitle="Live DB report for registrations, complaints, files, and portal engagement." action={<Button variant="outline" onClick={exportReport}><Download className="mr-1 h-4 w-4" /> Export report</Button>} />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Users} label="Portal logins" value={DASHBOARD_STATS.monthlyLogins.toLocaleString()} />
-        <StatCard icon={Download} label="Downloads" value={DASHBOARD_STATS.totalDownloads.toLocaleString()} tone="saffron" />
-        <StatCard icon={MessageSquare} label="Resolved complaints" value={DASHBOARD_STATS.resolvedComplaints} tone="success" />
-        <StatCard icon={FileText} label="Notices" value={DASHBOARD_STATS.totalNotices} />
+        <StatCard icon={Users} label="Logins last 30 days" value={loading ? "..." : (summary.portal_logins_30d || 0).toLocaleString()} />
+        <StatCard icon={Download} label="File downloads" value={loading ? "..." : (summary.file_downloads || 0).toLocaleString()} tone="saffron" />
+        <StatCard icon={Smartphone} label="Total App Installs" value={loading ? "..." : (summary.pwa_installs_total || 0).toLocaleString()} tone="primary" />
+        <StatCard icon={Smartphone} label="Today's Installs" value={loading ? "..." : (summary.pwa_installs_today || 0).toLocaleString()} tone="success" />
+        <StatCard icon={MessageSquare} label="Resolved complaints" value={loading ? "..." : (summary.resolved_complaints || 0).toLocaleString()} tone="success" />
+        <StatCard icon={FileText} label="Published notices" value={loading ? "..." : (summary.published_notices || 0).toLocaleString()} />
+      </div>
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={Store} label="Total Members" value={loading ? "..." : (summary.total_traders || 0).toLocaleString()} />
+        <StatCard icon={CheckCircle2} label="Approved Members" value={loading ? "..." : (summary.approved_traders || 0).toLocaleString()} tone="success" />
+        <StatCard icon={ClipboardList} label="Pending reviews" value={loading ? "..." : (summary.pending_traders || 0).toLocaleString()} tone="warning" />
+        <StatCard icon={Newspaper} label="Published content" value={loading ? "..." : (summary.published_content || 0).toLocaleString()} tone="primary" />
+        <StatCard icon={Smartphone} label="Mobile Installs" value={loading ? "..." : (summary.pwa_installs_mobile || 0).toLocaleString()} tone="saffron" />
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
-        <ChartCard title="Monthly registrations"><BarChart data={CHART_REGISTRATIONS}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" /><YAxis /><Tooltip /><Bar dataKey="count" fill="#176B3A" radius={[6, 6, 0, 0]} /></BarChart></ChartCard>
-        <ChartCard title="Document downloads"><LineChart data={CHART_DOWNLOADS}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" /><YAxis /><Tooltip /><Line type="monotone" dataKey="downloads" stroke="#F59E0B" strokeWidth={3} /></LineChart></ChartCard>
-        <ChartCard title="Complaints by category"><PieChart><Pie data={CHART_COMPLAINTS_CATEGORY} dataKey="count" nameKey="category" outerRadius={90} label>{CHART_COMPLAINTS_CATEGORY.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}</Pie><Tooltip /><Legend /></PieChart></ChartCard>
+        <ChartCard title="Monthly registrations" emptyLabel={registrations.length ? undefined : "No registration data yet."}>{registrations.length ? <BarChart data={registrations}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" /><YAxis allowDecimals={false} /><Tooltip /><Bar dataKey="count" fill="#86c127" radius={[6, 6, 0, 0]} /></BarChart> : null}</ChartCard>
+        <ChartCard title="File downloads by month" emptyLabel={downloads.length ? undefined : "No file downloads yet."}>{downloads.length ? <LineChart data={downloads}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" /><YAxis allowDecimals={false} /><Tooltip /><Line type="monotone" dataKey="downloads" stroke="#e37814" strokeWidth={3} /></LineChart> : null}</ChartCard>
+        <ChartCard title="App installs by month" emptyLabel={pwaInstalls.length ? undefined : "No app installs yet."}>{pwaInstalls.length ? <BarChart data={pwaInstalls}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" /><YAxis allowDecimals={false} /><Tooltip /><Bar dataKey="installs" fill="#0284C7" radius={[6, 6, 0, 0]} /></BarChart> : null}</ChartCard>
+        <ChartCard title="App installs by platform" emptyLabel={pwaPlatforms.length ? undefined : "No platform data yet."}>{pwaPlatforms.length ? <PieChart><Pie data={pwaPlatforms} dataKey="count" nameKey="platform" outerRadius={90} label>{pwaPlatforms.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}</Pie><Tooltip /><Legend /></PieChart> : null}</ChartCard>
+        <ChartCard title="Complaints by category" emptyLabel={complaintsByCategory.length ? undefined : "No complaints yet."}>{complaintsByCategory.length ? <PieChart><Pie data={complaintsByCategory} dataKey="count" nameKey="category" outerRadius={90} label>{complaintsByCategory.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}</Pie><Tooltip /><Legend /></PieChart> : null}</ChartCard>
       </div>
     </DashLayout>
   );
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactElement }) {
-  return <Card className="border-border/60"><CardContent className="p-6"><h2 className="mb-4 font-display font-bold text-primary-dark">{title}</h2><div className="h-72"><ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer></div></CardContent></Card>;
+function ChartCard({ title, children, emptyLabel }: { title: string; children: React.ReactElement | null; emptyLabel?: string }) {
+  return (
+    <Card className="border-border/60">
+      <CardContent className="p-6">
+        <h2 className="mb-4 font-display font-bold text-primary-dark">{title}</h2>
+        <div className="h-72">
+          {emptyLabel ? <div className="grid h-full place-items-center text-sm text-muted-foreground">{emptyLabel}</div> : <ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer>}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export function AdminAuditPage() {
-  const rows = ["Approved GO-012 registration", "Published market closure notice", "Assigned CMP-2408 to Security Department", "Rejected mobile request MCR-105", "Updated committee trader profile", "Downloaded monthly complaint report"];
+  const rows = ["Approved GO-012 registration", "Published market closure notice", "Assigned CMP-2408 to Security Department", "Rejected mobile request MCR-105", "Updated committee Member profile", "Downloaded monthly complaint report"];
   return (
     <DashLayout kind="admin">
       <PageTitle title="Audit Logs" subtitle="Transparent activity trail for admin decisions and portal changes." />
@@ -667,6 +2360,253 @@ export function AdminAuditPage() {
 const me = OWNERS[0];
 const myComplaints = COMPLAINTS.filter((c) => c.ownerId === me.id);
 
+type TraderProfile = {
+  full_name: string;
+  username: string;
+  mobile: string;
+  email: string | null;
+  business_name: string;
+  business_category: string | null;
+  gala_number: string | null;
+  market_registration_number: string | null;
+  verification_status: string;
+  alternate_mobile: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  village_city: string | null;
+  taluka: string | null;
+  district: string | null;
+  pincode: string | null;
+  aadhaar_masked: string | null;
+  pan_masked: string | null;
+  blood_group: string | null;
+  licence_number: string | null;
+};
+
+type TraderProfileDocument = {
+  id: number;
+  document_type: string;
+  original_filename: string;
+  mime_type: string;
+  file_size_bytes: number;
+  status: string;
+  rejection_reason: string | null;
+  verified_at: string | null;
+  created_at: string;
+};
+
+type TraderGalaRecord = {
+  id: number;
+  business_name: string;
+  market_section: string | null;
+  market_registration_number: string | null;
+  licence_number: string | null;
+  association_sequence_number: string | null;
+  association_registration_number: string | null;
+  status: string;
+  is_primary: number | boolean;
+  admin_remarks: string | null;
+  verified_at: string | null;
+  created_at: string;
+  gala_number: string;
+  business_category: string | null;
+};
+
+type RequiredTraderDocument = {
+  documentType: string;
+  label: string;
+};
+
+function useTraderProfile() {
+  const [profile, setProfile] = useState<TraderProfile | null>(null);
+  const [galas, setGalas] = useState<TraderGalaRecord[]>([]);
+  const [documents, setDocuments] = useState<TraderProfileDocument[]>([]);
+  const [requiredDocuments, setRequiredDocuments] = useState<RequiredTraderDocument[]>([]);
+  const [missingRequiredDocuments, setMissingRequiredDocuments] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadProfile = async (active = true) => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/v1/trader/profile", { credentials: "include" });
+      const result = await response.json();
+      if (active && result.ok) {
+        setProfile(result.trader);
+        setGalas(result.galas || []);
+        setDocuments(result.documents || []);
+        setRequiredDocuments(result.requiredDocuments || []);
+        setMissingRequiredDocuments(result.missingRequiredDocuments || []);
+      }
+    } catch {
+      if (active) toast.error("Unable to load Member profile.");
+    } finally {
+      if (active) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let active = true;
+    loadProfile(active);
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return { profile, galas, documents, requiredDocuments, missingRequiredDocuments, loading, reload: () => loadProfile(true) };
+}
+
+function formatTraderAddress(profile: TraderProfile | null) {
+  if (!profile) return "";
+  return [profile.address_line1, profile.address_line2, profile.village_city, profile.taluka, profile.district, profile.pincode].filter(Boolean).join(", ");
+}
+
+function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records found." }: { galas: TraderGalaRecord[]; onUpdated?: () => Promise<void> | void; emptyLabel?: string }) {
+  const [editingGala, setEditingGala] = useState<TraderGalaRecord | null>(null);
+  const [savingGala, setSavingGala] = useState(false);
+
+  const saveGala = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editingGala) return;
+    const data = new FormData(event.currentTarget);
+    setSavingGala(true);
+    try {
+      const response = await fetch(`/api/v1/trader/galas/${editingGala.id}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          galaNumber: String(data.get("galaNumber") || "").trim(),
+          businessName: String(data.get("businessName") || "").trim(),
+          marketSection: String(data.get("marketSection") || "").trim(),
+          category: String(data.get("category") || "").trim(),
+          marketRegistrationNumber: String(data.get("marketRegistrationNumber") || "").trim(),
+          licenceNumber: String(data.get("licenceNumber") || "").trim(),
+          associationSequenceNumber: String(data.get("associationSequenceNumber") || "").trim(),
+          associationRegistrationNumber: String(data.get("associationRegistrationNumber") || "").trim(),
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not update gala/shop.");
+      toast.success("Gala/shop update submitted for admin approval.");
+      setEditingGala(null);
+      await onUpdated?.();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update gala/shop.");
+    } finally {
+      setSavingGala(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {galas.map((gala) => (
+          <Card key={gala.id} className="border-border/60">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-display font-semibold text-primary-dark">Gala {gala.gala_number}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{gala.business_name}</div>
+                </div>
+                {gala.is_primary ? <Badge className="bg-primary text-white">Primary</Badge> : null}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Badge variant="outline">{gala.business_category || gala.market_section || "General"}</Badge>
+                <StatusBadge status={gala.status} />
+              </div>
+              <div className="mt-3 grid gap-2 text-xs text-muted-foreground">
+                <div><span className="font-medium text-foreground">Market section:</span> {gala.market_section || "-"}</div>
+                <div><span className="font-medium text-foreground">Registration:</span> {gala.market_registration_number || "-"}</div>
+                <div><span className="font-medium text-foreground">Licence:</span> {gala.licence_number || "-"}</div>
+                <div><span className="font-medium text-foreground">Anu. kramank:</span> {gala.association_sequence_number || "-"}</div>
+                <div><span className="font-medium text-foreground">Kramank:</span> {gala.association_registration_number || "-"}</div>
+              </div>
+              {gala.admin_remarks && <div className="mt-3 rounded-md bg-destructive/10 p-2 text-xs text-destructive">{gala.admin_remarks}</div>}
+              <Button type="button" size="sm" variant="outline" className="mt-4" onClick={() => setEditingGala(gala)}>
+                <Pencil className="mr-1 h-4 w-4" /> Edit
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+        {galas.length === 0 && <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground md:col-span-2 xl:col-span-3">{emptyLabel}</div>}
+      </div>
+      <Dialog open={!!editingGala} onOpenChange={(open) => !open && setEditingGala(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Gala / Shop</DialogTitle>
+            <DialogDescription>Changes are submitted to admin for approval before they become final.</DialogDescription>
+          </DialogHeader>
+          {editingGala && (
+            <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveGala}>
+              <div>
+                <Label>Gala / Shop number *</Label>
+                <Input name="galaNumber" required defaultValue={editingGala.gala_number} />
+              </div>
+              <div>
+                <Label>Firm name *</Label>
+                <Input name="businessName" required defaultValue={editingGala.business_name} />
+              </div>
+              <div>
+                <Label>Market section *</Label>
+                <Input name="marketSection" required defaultValue={editingGala.market_section || ""} />
+              </div>
+              <div>
+                <Label>Business category</Label>
+                <Input name="category" defaultValue={editingGala.business_category || editingGala.market_section || "Other"} />
+              </div>
+              <div>
+                <Label>Registration number</Label>
+                <Input name="marketRegistrationNumber" defaultValue={editingGala.market_registration_number || ""} />
+              </div>
+              <div>
+                <Label>Licence number</Label>
+                <Input name="licenceNumber" defaultValue={editingGala.licence_number || ""} />
+              </div>
+              <div>
+                <Label>Anu. kramank</Label>
+                <Input name="associationSequenceNumber" defaultValue={editingGala.association_sequence_number || ""} />
+              </div>
+              <div>
+                <Label>Kramank</Label>
+                <Input name="associationRegistrationNumber" defaultValue={editingGala.association_registration_number || ""} />
+              </div>
+              <div className="flex justify-end gap-2 sm:col-span-2">
+                <Button type="button" variant="outline" onClick={() => setEditingGala(null)}>Cancel</Button>
+                <Button className="bg-primary" disabled={savingGala}>{savingGala ? "Submitting..." : "Submit for approval"}</Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function fileToUploadPayload(file: File): Promise<{ originalFilename: string; mimeType: string; dataUrl: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({ originalFilename: file.name, mimeType: file.type, dataUrl: String(reader.result || "") });
+    reader.onerror = () => reject(new Error(`Could not read ${file.name}`));
+    reader.readAsDataURL(file);
+  });
+}
+
+const PROFILE_DOCUMENT_LABELS: Record<string, string> = {
+  profile_photo: "Profile photo",
+  aadhaar_masked: "Aadhaar card",
+  pan: "PAN card",
+  market_registration: "Licence document",
+};
+const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+function isAllowedTraderDocumentFile(file: File, documentType: string) {
+  const extension = file.name.split(".").pop()?.toLowerCase() || "";
+  const imageOnly = documentType === "profile_photo";
+  const allowedMimeTypes = imageOnly ? ["image/jpeg", "image/png"] : ["image/jpeg", "image/png", "application/pdf"];
+  const allowedExtensions = imageOnly ? ["jpg", "jpeg", "png"] : ["jpg", "jpeg", "png", "pdf"];
+  return file.size > 0 && file.size <= 5 * 1024 * 1024 && allowedMimeTypes.includes(file.type) && allowedExtensions.includes(extension);
+}
+
 const getStoredKycRecords = (ownerId: string, seedRecords: CustomerKyc[]) => {
   try {
     const stored = localStorage.getItem(`customer_kyc_${ownerId}`);
@@ -677,38 +2617,360 @@ const getStoredKycRecords = (ownerId: string, seedRecords: CustomerKyc[]) => {
 };
 
 export function OwnerProfilePage() {
+  const { profile, galas, documents, requiredDocuments, missingRequiredDocuments, loading, reload } = useTraderProfile();
+  const [saving, setSaving] = useState(false);
+  const [uploadingType, setUploadingType] = useState<string | null>(null);
+  const [bloodGroup, setBloodGroup] = useState("");
+  useEffect(() => {
+    setBloodGroup(profile?.blood_group || "");
+  }, [profile?.blood_group]);
+  const initials = (profile?.full_name || "Member")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+  const activeDocuments = documents.filter((document) => document.status !== "replaced");
+  const latestDocumentByType = activeDocuments.reduce<Record<string, TraderProfileDocument>>((acc, document) => {
+    if (!acc[document.document_type]) acc[document.document_type] = document;
+    return acc;
+  }, {});
+  const profilePhoto = latestDocumentByType.profile_photo;
+  const missingProfileDetails = [
+    !profile?.aadhaar_masked && "Aadhaar number",
+    !profile?.pan_masked && "PAN number",
+    !profile?.blood_group && "Blood group",
+    !(profile?.licence_number || profile?.market_registration_number) && "Licence number",
+  ].filter(Boolean) as string[];
+  const requiredMissingLabels = [
+    ...missingProfileDetails,
+    ...missingRequiredDocuments.map((type) => PROFILE_DOCUMENT_LABELS[type] || type),
+  ];
+
+  const uploadDocument = async (documentType: string, file: File | null) => {
+    if (!file) return;
+    if (!isAllowedTraderDocumentFile(file, documentType)) {
+      toast.error(documentType === "profile_photo" ? "Profile photo must be JPG or PNG under 5 MB." : "Document must be JPG, PNG, or PDF under 5 MB.");
+      return;
+    }
+    setUploadingType(documentType);
+    try {
+      const payload = await fileToUploadPayload(file);
+      const response = await fetch("/api/v1/trader/documents", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ documentType, ...payload }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not upload document.");
+      toast.success(`${PROFILE_DOCUMENT_LABELS[documentType] || "Document"} uploaded for verification.`);
+      await reload();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not upload document.");
+    } finally {
+      setUploadingType(null);
+    }
+  };
+
+  const saveProfile = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const aadhaar = String(data.get("aadhaar") || "").replace(/\D/g, "");
+    const pan = String(data.get("pan") || "").trim().toUpperCase();
+    const licenceNumber = String(data.get("licenceNumber") || "").trim();
+    if (!profile?.aadhaar_masked && !/^\d{12}$/.test(aadhaar)) {
+      toast.error("Enter a valid 12 digit Aadhaar number.");
+      return;
+    }
+    if (!profile?.pan_masked && !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) {
+      toast.error("Enter a valid PAN number.");
+      return;
+    }
+    if (!bloodGroup) {
+      toast.error("Blood group is required.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const response = await fetch("/api/v1/trader/profile", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          aadhaar,
+          pan,
+          bloodGroup,
+          licenceNumber,
+          alternateMobile: String(data.get("alternateMobile") || "").trim() || null,
+          addressLine1: String(data.get("addressLine1") || "").trim() || null,
+          addressLine2: String(data.get("addressLine2") || "").trim() || null,
+          villageCity: String(data.get("villageCity") || "").trim() || null,
+          taluka: String(data.get("taluka") || "").trim() || null,
+          district: String(data.get("district") || "").trim() || null,
+          pincode: String(data.get("pincode") || "").trim() || null,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not save profile.");
+      toast.success("Profile details saved.");
+      await reload();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <DashLayout kind="owner">
-      <PageTitle title="My Profile" subtitle="Manage personal, contact, and business identity details." action={<Button>Save changes</Button>} />
+      <PageTitle title="My Profile" subtitle="Complete mandatory identity, health, licence, and profile photo details." />
+      {requiredMissingLabels.length > 0 && (
+        <Card className="mb-6 border-saffron/50 bg-saffron/10">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+            <div>
+              <h2 className="font-display font-semibold text-primary-dark">Mandatory dashboard documents pending</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{requiredMissingLabels.join(", ")} must be completed for your member dashboard record.</p>
+            </div>
+            <Badge className="bg-saffron text-primary-dark">{requiredMissingLabels.length} pending</Badge>
+          </CardContent>
+        </Card>
+      )}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
-        <Card className="border-border/60"><CardContent className="p-6 text-center"><div className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-secondary font-display text-3xl font-bold text-primary">RS</div><h2 className="mt-4 font-display text-xl font-bold text-primary-dark">{me.name}</h2><p className="text-sm text-muted-foreground">{me.business}</p><Badge className="mt-3 bg-success/15 text-success">Verified Owner</Badge></CardContent></Card>
-        <Card className="border-border/60"><CardContent className="grid gap-4 p-6 sm:grid-cols-2"><Field label="Full name" value={me.name} /><Field label="Email" value={me.email} /><Field label="Registered mobile" value={me.mobile} /><Field label="Username" value={me.username} /><Field label="Address" value={me.address} wide /></CardContent></Card>
+        <div className="space-y-6">
+          <Card className="border-border/60">
+            <CardContent className="p-6 text-center">
+              {profilePhoto ? (
+                <img src={`/api/v1/trader/documents/${profilePhoto.id}/download`} alt="Profile" className="mx-auto h-28 w-28 rounded-full object-cover ring-4 ring-secondary" />
+              ) : (
+                <div className="mx-auto grid h-28 w-28 place-items-center rounded-full bg-secondary font-display text-3xl font-bold text-primary">{initials}</div>
+              )}
+              <h2 className="mt-4 font-display text-xl font-bold text-primary-dark">{profile?.full_name || (loading ? "Loading..." : "Member")}</h2>
+              <p className="text-sm text-muted-foreground">{profile?.business_name || "-"}</p>
+              <div className="mt-3"><StatusBadge status={profile?.verification_status || "loading"} /></div>
+              <div className="mt-5 grid gap-2">
+                <label className="inline-flex cursor-pointer items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90">
+                  <Camera className="mr-2 h-4 w-4" /> Open camera
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(event) => {
+                      uploadDocument("profile_photo", event.target.files?.[0] || null);
+                      event.currentTarget.value = "";
+                    }}
+                  />
+                </label>
+                <label className="inline-flex cursor-pointer items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition hover:bg-secondary">
+                  <Upload className="mr-2 h-4 w-4" /> Upload photo
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    className="hidden"
+                    onChange={(event) => {
+                      uploadDocument("profile_photo", event.target.files?.[0] || null);
+                      event.currentTarget.value = "";
+                    }}
+                  />
+                </label>
+                {uploadingType === "profile_photo" && <div className="text-xs text-muted-foreground">Uploading photo...</div>}
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/60">
+            <CardContent className="p-6">
+              <h2 className="font-display font-semibold text-primary-dark">Required documents</h2>
+              <div className="mt-4 space-y-3">
+                {requiredDocuments.map((document) => {
+                  const uploaded = latestDocumentByType[document.documentType];
+                  return (
+                    <div key={document.documentType} className="rounded-lg border p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-medium text-primary-dark">{document.label}</div>
+                          <div className="max-w-full truncate text-xs text-muted-foreground">{uploaded?.original_filename || "Not uploaded"}</div>
+                        </div>
+                        <StatusBadge status={uploaded?.status || "pending"} />
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {uploaded && <Button size="sm" variant="outline" type="button" onClick={() => window.open(`/api/v1/trader/documents/${uploaded.id}/download`, "_blank")}><Eye className="mr-1 h-4 w-4" /> View</Button>}
+                        <label className="inline-flex cursor-pointer items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium transition hover:bg-secondary">
+                          <Upload className="mr-1 h-4 w-4" /> {uploaded ? "Replace" : "Upload"}
+                          <input
+                            type="file"
+                            accept={document.documentType === "profile_photo" ? "image/jpeg,image/png" : "image/jpeg,image/png,application/pdf"}
+                            className="hidden"
+                            onChange={(event) => uploadDocument(document.documentType, event.target.files?.[0] || null)}
+                          />
+                        </label>
+                      </div>
+                      {uploadingType === document.documentType && <div className="mt-2 text-xs text-muted-foreground">Uploading...</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <Card className="border-border/60">
+          <CardContent className="p-6">
+            <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveProfile}>
+              <Field label="Full name" value={profile?.full_name || ""} readOnly />
+              <Field label="Username" value={profile?.username || ""} readOnly />
+              <Field label="Email" value={profile?.email || ""} readOnly />
+              <Field label="Registered mobile" value={profile?.mobile || ""} readOnly />
+              <Field label="Firm name" value={profile?.business_name || ""} readOnly />
+              <Field label="Gala number" value={profile?.gala_number || ""} readOnly />
+              <div>
+                <Label>Aadhaar number *</Label>
+                <Input name="aadhaar" required={!profile?.aadhaar_masked} inputMode="numeric" maxLength={12} placeholder={profile?.aadhaar_masked || "12 digit Aadhaar"} />
+                {profile?.aadhaar_masked && <p className="mt-1 text-xs text-muted-foreground">Saved as {profile.aadhaar_masked}. Enter only to replace.</p>}
+              </div>
+              <div>
+                <Label>PAN number *</Label>
+                <Input name="pan" required={!profile?.pan_masked} maxLength={10} placeholder={profile?.pan_masked || "ABCDE1234F"} className="uppercase" />
+                {profile?.pan_masked && <p className="mt-1 text-xs text-muted-foreground">Saved as {profile.pan_masked}. Enter only to replace.</p>}
+              </div>
+              <div>
+                <Label>Blood group *</Label>
+                <Select value={bloodGroup} onValueChange={setBloodGroup}>
+                  <SelectTrigger><SelectValue placeholder="Select blood group" /></SelectTrigger>
+                  <SelectContent>{BLOOD_GROUPS.map((group) => <SelectItem key={group} value={group}>{group}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Licence number</Label>
+                <Input name="licenceNumber" defaultValue={profile?.licence_number || profile?.market_registration_number || ""} />
+              </div>
+              <Field label="Alternate mobile" name="alternateMobile" value={profile?.alternate_mobile || ""} />
+              <Field label="Address line 1" name="addressLine1" value={profile?.address_line1 || ""} />
+              <Field label="Address line 2" name="addressLine2" value={profile?.address_line2 || ""} />
+              <Field label="Village / City" name="villageCity" value={profile?.village_city || ""} />
+              <Field label="Taluka" name="taluka" value={profile?.taluka || ""} />
+              <Field label="District" name="district" value={profile?.district || ""} />
+              <Field label="Pincode" name="pincode" value={profile?.pincode || ""} />
+              <div className="sm:col-span-2 rounded-lg bg-secondary/50 p-3 text-sm text-muted-foreground">Current address: {formatTraderAddress(profile) || "-"}</div>
+              <div className="sm:col-span-2 flex justify-end">
+                <Button className="bg-primary" disabled={saving}>{saving ? "Saving..." : "Save mandatory details"}</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
+      <Card className="mt-6 border-border/60">
+        <CardContent className="p-6">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-display font-semibold text-primary-dark">All Galas / Shops</h2>
+              <p className="mt-1 text-sm text-muted-foreground">All shops linked to this member login and mobile number.</p>
+            </div>
+            <Button asChild size="sm" variant="outline"><Link to="/register">Add Another Gala / Shop</Link></Button>
+          </div>
+          <TraderGalaCards galas={galas} onUpdated={reload} />
+        </CardContent>
+      </Card>
     </DashLayout>
   );
 }
 
-function Field({ label, value, wide }: { label: string; value: string; wide?: boolean }) {
-  return <div className={wide ? "sm:col-span-2" : ""}><Label>{label}</Label><Input defaultValue={value} /></div>;
+function Field({ label, value, wide, name, readOnly = false }: { label: string; value: string; wide?: boolean; name?: string; readOnly?: boolean }) {
+  return <div className={wide ? "sm:col-span-2" : ""}><Label>{label}</Label><Input name={name} defaultValue={value} readOnly={readOnly} className={readOnly ? "bg-secondary/50" : ""} /></div>;
 }
 
 export function OwnerKycPage() {
-  const { user } = useAuth();
-  const trader = OWNERS.find((owner) => owner.username === user?.username || owner.mobile === user?.mobile) ?? me;
-  const storageKey = `customer_kyc_${trader.id}`;
-  const seedRecords = CUSTOMER_KYC.filter((record) => record.ownerId === trader.id);
-  const [records, setRecords] = useState<CustomerKyc[]>(seedRecords);
+  type TraderKycRecord = {
+    id: number;
+    customer_code: string;
+    full_name: string;
+    mobile: string;
+    aadhaar_masked: string | null;
+    pan_masked: string | null;
+    kyc_status: string;
+    risk_status?: string;
+    created_at: string;
+  };
+  type RiskSearchResult = {
+    id: number;
+    customer_code: string;
+    full_name: string;
+    mobile: string;
+    kyc_status: string;
+    risk_status: string;
+    address_line1: string | null;
+    village_city: string | null;
+    district: string | null;
+    active_market_warning_count: number;
+    verified_market_outstanding: number;
+    oldest_active_due_date: string | null;
+    latest_warning_note: string | null;
+    latest_warning_trader: string | null;
+    linked_to_me: 0 | 1 | boolean;
+  };
+  type TraderDashboardProfile = {
+    profile?: {
+      gala_number: string | null;
+    };
+  };
+  const [records, setRecords] = useState<TraderKycRecord[]>([]);
+  const [profile, setProfile] = useState<TraderDashboardProfile["profile"]>(undefined);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [riskQuery, setRiskQuery] = useState("");
+  const [riskResults, setRiskResults] = useState<RiskSearchResult[]>([]);
+  const [riskLoading, setRiskLoading] = useState(false);
+  const [warningCustomer, setWarningCustomer] = useState<RiskSearchResult | null>(null);
+  const [warningSaving, setWarningSaving] = useState(false);
+  const [recordFilter, setRecordFilter] = useState<"all" | "verified" | "risk">("all");
+  const riskStatuses = ["warning_2", "high_risk", "blocked", "disputed"];
+  const verifiedRecords = records.filter((record) => record.kyc_status === "verified");
+  const riskRecords = records.filter((record) => riskStatuses.includes(record.risk_status || ""));
+  const visibleRecords = records.filter((record) => {
+    if (recordFilter === "verified") return record.kyc_status === "verified";
+    if (recordFilter === "risk") return riskStatuses.includes(record.risk_status || "");
+    return true;
+  });
 
-  useEffect(() => {
-    setRecords(getStoredKycRecords(trader.id, seedRecords));
-  }, [storageKey]);
+  const loadTraderKyc = async () => {
+    setLoading(true);
+    try {
+      const customersResponse = await fetch("/api/v1/trader/customers", { credentials: "include" });
+      const customersPayload = await customersResponse.json();
+      if (!customersResponse.ok || !customersPayload.ok) throw new Error(customersPayload.error || "Unable to load customer KYC.");
+      setRecords(customersPayload.customers || []);
 
-  const saveRecords = (nextRecords: CustomerKyc[]) => {
-    setRecords(nextRecords);
-    localStorage.setItem(storageKey, JSON.stringify(nextRecords));
+      const dashboardResponse = await fetch("/api/v1/trader/dashboard", { credentials: "include" });
+      if (dashboardResponse.ok) {
+        const dashboardPayload = await dashboardResponse.json();
+        if (dashboardPayload.ok) setProfile(dashboardPayload.profile);
+      } else {
+        setProfile(null);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to load customer KYC.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const addKycRecord = (event: FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    loadTraderKyc();
+  }, []);
+
+  useEffect(() => {
+    const query = riskQuery.trim();
+    if (query.length < 2) {
+      setRiskResults([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void searchSharedCustomers(query);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [riskQuery]);
+
+  const addKycRecord = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -716,44 +2978,193 @@ export function OwnerKycPage() {
     const phone = String(data.get("phone") || "").replace(/\D/g, "");
     const aadhaar = String(data.get("aadhaar") || "").replace(/\D/g, "");
     const pan = String(data.get("pan") || "").trim().toUpperCase();
+    const addressLine1 = String(data.get("addressLine1") || "").trim();
+    const villageCity = String(data.get("villageCity") || "").trim();
+    const district = String(data.get("district") || "").trim();
 
-    if (!customerName || !/^\d{10}$/.test(phone) || !/^\d{12}$/.test(aadhaar) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) {
-      toast.error("Enter valid customer name, phone, Aadhaar, and PAN details");
+    if (!customerName || !/^\d{10}$/.test(phone) || !/^\d{12}$/.test(aadhaar) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan) || !addressLine1 || !villageCity || !district) {
+      toast.error("Enter valid customer name, phone, Aadhaar, PAN, and address details");
       return;
     }
 
-    const nextRecord: CustomerKyc = {
-      id: `KYC-${String(Date.now()).slice(-6)}`,
-      ownerId: trader.id,
-      ownerName: trader.name,
-      customerName,
-      phone,
-      aadhaar,
-      pan,
-      date: new Date().toISOString().slice(0, 10),
-      status: "verified",
-    };
-
-    saveRecords([nextRecord, ...records]);
-    form.reset();
-    toast.success(`${customerName} KYC saved`);
+    setSaving(true);
+    try {
+      const response = await fetch("/api/v1/trader/customers", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName: customerName, mobile: phone, aadhaar, pan, addressLine1, villageCity, district }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Unable to save customer KYC.");
+      toast.success(result.reused ? `${result.customerName || customerName} existing KYC linked to your dashboard.` : `${customerName} KYC submitted`);
+      form.reset();
+      await loadTraderKyc();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to save customer KYC.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const removeKycRecord = (record: CustomerKyc) => {
-    saveRecords(records.filter((item) => item.id !== record.id));
-    toast.success(`${record.customerName} KYC removed`);
+  const searchSharedCustomers = async (query: string) => {
+    if (query.length < 2) {
+      return;
+    }
+    setRiskLoading(true);
+    try {
+      const response = await fetch(`/api/v1/trader/customer-risk-search?q=${encodeURIComponent(query)}`, { credentials: "include" });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not search customers.");
+      setRiskResults(result.customers || []);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not search customers.");
+    } finally {
+      setRiskLoading(false);
+    }
+  };
+
+  const linkExistingCustomer = async (customer: RiskSearchResult) => {
+    try {
+      const response = await fetch("/api/v1/trader/customers/link", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId: customer.id }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not link customer.");
+      toast.success(`${customer.full_name} linked to your customer list.`);
+      await loadTraderKyc();
+      if (riskQuery.trim().length >= 2) await searchSharedCustomers(riskQuery.trim());
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not link customer.");
+    }
+  };
+
+  const submitMarketWarning = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!warningCustomer) return;
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const amount = Number(data.get("amount") || 0);
+    const dueDate = String(data.get("dueDate") || "");
+    const firstWarningAt = String(data.get("firstWarningAt") || "");
+    const secondWarningAt = String(data.get("secondWarningAt") || "");
+    const note = String(data.get("note") || "").trim();
+    if (!amount || amount <= 0 || !dueDate || !firstWarningAt || !secondWarningAt || note.length < 10) {
+      toast.error("Amount, due date, both warning dates, and note are required.");
+      return;
+    }
+    setWarningSaving(true);
+    try {
+      const response = await fetch("/api/v1/trader/customer-warnings", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId: warningCustomer.id, amount, dueDate, firstWarningAt, secondWarningAt, note }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not submit warning.");
+      toast.success(`${warningCustomer.full_name} marked as high risk for all Members.`);
+      setWarningCustomer(null);
+      form.reset();
+      await loadTraderKyc();
+      if (riskQuery.trim().length >= 2) {
+        const refresh = await fetch(`/api/v1/trader/customer-risk-search?q=${encodeURIComponent(riskQuery.trim())}`, { credentials: "include" });
+        const payload = await refresh.json();
+        if (payload.ok) setRiskResults(payload.customers || []);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not submit warning.");
+    } finally {
+      setWarningSaving(false);
+    }
   };
 
   return (
     <DashLayout kind="owner">
-      <PageTitle title="Customer KYC" subtitle="Add and manage customer identity details for your own trader account." />
+      <PageTitle title="Customer KYC" subtitle="Search shared customer KYC first, link existing customers, and flag market-wide payment risks." />
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <StatCard icon={IdCard} label="Total KYC" value={records.length} />
-        <StatCard icon={CheckCircle2} label="Verified" value={records.filter((record) => record.status === "verified").length} tone="success" />
-        <StatCard icon={Store} label="Trader Gala" value={trader.gala} tone="saffron" />
+        <StatCard icon={IdCard} label="Total KYC" value={records.length} active={recordFilter === "all"} onClick={() => setRecordFilter("all")} />
+        <StatCard icon={CheckCircle2} label="Verified" value={verifiedRecords.length} tone="success" active={recordFilter === "verified"} onClick={() => setRecordFilter("verified")} />
+        <StatCard icon={AlertTriangle} label="Risk alerts" value={riskRecords.length} tone="danger" active={recordFilter === "risk"} onClick={() => setRecordFilter("risk")} />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)]">
+      <Card className="mb-6 border-border/60">
+        <CardContent className="p-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-display text-lg font-bold text-primary-dark">Global customer KYC search</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Search before adding KYC. If customer KYC already exists, link it to your dashboard instead of creating a duplicate.</p>
+            </div>
+            <Badge className="bg-secondary text-primary-dark">Gala {profile?.gala_number || "-"}</Badge>
+          </div>
+          <form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={(event) => { event.preventDefault(); void searchSharedCustomers(riskQuery.trim()); }}>
+            <Input value={riskQuery} onChange={(event) => setRiskQuery(event.target.value)} placeholder="Search by customer name, mobile, or customer code" />
+            <Button type="submit" className="bg-primary" disabled={riskLoading}><Search className="mr-1 h-4 w-4" /> {riskLoading ? "Searching..." : "Search"}</Button>
+          </form>
+          <div className="mt-4 grid gap-3">
+            {riskResults.map((customer) => {
+              const isHighRisk = Number(customer.active_market_warning_count || 0) > 0 || ["warning_2", "high_risk", "blocked", "disputed"].includes(customer.risk_status);
+              return (
+                <div key={customer.id} className={`rounded-lg border p-4 ${isHighRisk ? "border-destructive/40 bg-destructive/5" : "bg-background"}`}>
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="whitespace-normal break-words font-display font-semibold text-primary-dark">{customer.full_name}</div>
+                        <StatusBadge status={customer.kyc_status} />
+                        {isHighRisk && <Badge className="bg-destructive text-white"><AlertTriangle className="mr-1 h-3.5 w-3.5" /> Red alert</Badge>}
+                      </div>
+                      <div className="mt-1 text-sm text-muted-foreground">{customer.customer_code} - {customer.mobile} - {[customer.address_line1, customer.village_city, customer.district].filter(Boolean).join(", ")}</div>
+                      {isHighRisk && (
+                        <div className="mt-3 rounded-md border border-destructive/30 bg-background p-3 text-sm">
+                          <div className="font-semibold text-destructive">Unpaid warning: ₹{Number(customer.verified_market_outstanding || 0).toLocaleString("en-IN")} across {customer.active_market_warning_count} market alert(s)</div>
+                          <div className="mt-1 text-muted-foreground">{customer.latest_warning_note || "No note available."}</div>
+                          {customer.latest_warning_trader && <div className="mt-1 text-xs text-muted-foreground">Reported by {customer.latest_warning_trader}</div>}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      <Button size="sm" variant="outline" disabled={Boolean(customer.linked_to_me)} onClick={() => linkExistingCustomer(customer)}>
+                        {customer.linked_to_me ? "Already linked" : "Link KYC"}
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => setWarningCustomer(customer)}>
+                        Give warning
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {!riskLoading && riskQuery.trim().length >= 2 && riskResults.length === 0 && <div className="rounded-lg border p-4 text-center text-sm text-muted-foreground">No shared customer found. Add new KYC below.</div>}
+          </div>
+        </CardContent>
+      </Card>
+
+      {warningCustomer && (
+        <Card className="mb-6 border-destructive/40 bg-destructive/5">
+          <CardContent className="p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="font-display text-lg font-bold text-destructive">Member-to-Member payment warning for {warningCustomer.full_name}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Use only after you have already given the first and second payment warnings to this customer.</p>
+              </div>
+              <Button variant="outline" onClick={() => setWarningCustomer(null)}>Cancel</Button>
+            </div>
+            <form className="mt-5 grid gap-4 md:grid-cols-2" onSubmit={submitMarketWarning}>
+              <div><Label>Unpaid amount *</Label><Input name="amount" required type="number" min="1" step="0.01" placeholder="Amount not paid" /></div>
+              <div><Label>Original due date *</Label><Input name="dueDate" required type="date" /></div>
+              <div><Label>First warning date *</Label><Input name="firstWarningAt" required type="datetime-local" /></div>
+              <div><Label>Second warning date *</Label><Input name="secondWarningAt" required type="datetime-local" /></div>
+              <div className="md:col-span-2"><Label>Warning note visible to all Members *</Label><Textarea name="note" required rows={4} placeholder="Example: Customer has not paid Rs. 25,000 for vegetable purchase from Gala A-105 even after two warnings." /></div>
+              <div className="md:col-span-2"><Button variant="destructive" disabled={warningSaving}><AlertTriangle className="mr-1 h-4 w-4" /> {warningSaving ? "Saving warning..." : "Publish red warning for all Members"}</Button></div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-6 2xl:grid-cols-[minmax(340px,420px)_minmax(760px,1fr)]">
         <Card className="border-border/60">
           <CardContent className="p-6">
             <h2 className="font-display text-lg font-bold text-primary-dark">Add Customer KYC</h2>
@@ -768,13 +3179,27 @@ export function OwnerKycPage() {
               </div>
               <div>
                 <Label>Aadhaar number *</Label>
-                <Input name="aadhaar" required inputMode="numeric" maxLength={12} pattern="\d{12}" placeholder="12-digit Aadhaar number" />
+                <Input name="aadhaar" required inputMode="numeric" maxLength={14} pattern="[0-9 ]{12,14}" placeholder="1234 5678 9012" />
               </div>
               <div>
                 <Label>PAN number *</Label>
                 <Input name="pan" required maxLength={10} pattern="[A-Za-z]{5}\d{4}[A-Za-z]" placeholder="ABCDE1234F" className="uppercase" />
               </div>
-              <Button className="bg-primary"><IdCard className="mr-1 h-4 w-4" /> Save KYC</Button>
+              <div>
+                <Label>Address *</Label>
+                <Textarea name="addressLine1" required placeholder="Customer address" />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label>City / village *</Label>
+                  <Input name="villageCity" required placeholder="City or village" />
+                </div>
+                <div>
+                  <Label>District *</Label>
+                  <Input name="district" required placeholder="District" defaultValue="Pune" />
+                </div>
+              </div>
+              <Button className="bg-primary" disabled={saving}><IdCard className="mr-1 h-4 w-4" /> {saving ? "Saving..." : "Save KYC"}</Button>
             </form>
           </CardContent>
         </Card>
@@ -786,33 +3211,34 @@ export function OwnerKycPage() {
               <SearchBar placeholder="Search customer KYC..." />
             </div>
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="min-w-[780px] table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Aadhaar</TableHead>
-                    <TableHead>PAN</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead className="w-[190px]">Customer</TableHead>
+                    <TableHead className="w-[120px]">Phone</TableHead>
+                    <TableHead className="w-[140px]">Aadhaar</TableHead>
+                    <TableHead className="w-[115px]">PAN</TableHead>
+                    <TableHead className="w-[110px]">Status</TableHead>
+                    <TableHead className="w-[110px]">Date</TableHead>
+                    <TableHead className="w-[70px] text-center">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {records.map((record) => (
+                  {visibleRecords.map((record) => (
                     <TableRow key={record.id}>
-                      <TableCell><div className="font-medium text-primary-dark">{record.customerName}</div><div className="font-mono text-xs text-muted-foreground">{record.id}</div></TableCell>
-                      <TableCell>{record.phone}</TableCell>
-                      <TableCell className="font-mono">{record.aadhaar}</TableCell>
-                      <TableCell className="font-mono">{record.pan}</TableCell>
-                      <TableCell><StatusBadge status={record.status} /></TableCell>
-                      <TableCell>{new Date(record.date).toLocaleDateString("en-IN")}</TableCell>
-                      <TableCell className="text-right"><Button size="sm" variant="ghost" onClick={() => removeKycRecord(record)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
+                      <TableCell className="align-top"><div className="whitespace-normal font-medium leading-snug text-primary-dark">{record.full_name}</div><div className="mt-1 font-mono text-xs text-muted-foreground">{record.customer_code}</div></TableCell>
+                      <TableCell className="whitespace-nowrap align-top font-mono">{record.mobile}</TableCell>
+                      <TableCell className="whitespace-nowrap align-top font-mono">{record.aadhaar_masked || "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap align-top font-mono">{record.pan_masked || "-"}</TableCell>
+                      <TableCell className="align-top"><span className="inline-flex whitespace-nowrap"><StatusBadge status={record.kyc_status} /></span></TableCell>
+                      <TableCell className="whitespace-nowrap align-top">{new Date(record.created_at).toLocaleDateString("en-IN")}</TableCell>
+                      <TableCell className="text-center align-top"><Button size="sm" variant="ghost" onClick={() => toast.info(`${record.full_name} KYC is stored in database`)}><Eye className="h-4 w-4" /></Button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              {records.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No customer KYC records yet.</div>}
+              {!loading && visibleRecords.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">{recordFilter === "all" ? "No customer KYC records yet." : `No ${recordFilter === "risk" ? "risk alert" : recordFilter} records found.`}</div>}
+              {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading customer KYC records...</div>}
             </div>
           </CardContent>
         </Card>
@@ -821,177 +3247,380 @@ export function OwnerKycPage() {
   );
 }
 
-export function AdminTraderKycPage() {
-  const approvedOwners = OWNERS.filter((owner) => owner.status === "approved");
-  const [selectedOwnerId, setSelectedOwnerId] = useState(approvedOwners[0]?.id ?? OWNERS[0].id);
-  const [records, setRecords] = useState<CustomerKyc[]>([]);
-  const selectedOwner = OWNERS.find((owner) => owner.id === selectedOwnerId) ?? approvedOwners[0] ?? OWNERS[0];
+type AdminKycTrader = {
+  id: number;
+  trader_code: string;
+  full_name: string;
+  business_name: string;
+  mobile: string;
+  gala_number: string | null;
+};
 
-  const loadAllKycRecords = () => {
-    setRecords(OWNERS.flatMap((owner) => getStoredKycRecords(owner.id, CUSTOMER_KYC.filter((record) => record.ownerId === owner.id))));
+type AdminKycRecord = {
+  id: number;
+  customer_code: string;
+  full_name: string;
+  mobile: string;
+  kyc_status: string;
+  created_at: string;
+  trader_code: string | null;
+  trader_name: string | null;
+  business_name: string | null;
+  gala_number: string | null;
+  aadhaar_masked: string | null;
+  pan_masked: string | null;
+};
+
+export function AdminTraderKycPage() {
+  type TraderKycRecord = {
+    id: number;
+    trader_code: string;
+    full_name: string;
+    mobile: string;
+    email: string | null;
+    business_name: string;
+    gala_number: string | null;
+    business_category: string | null;
+    verification_status: string;
+    user_status: string;
+    created_at: string;
+    verified_at: string | null;
+    district: string | null;
+    village_city: string | null;
+    rejection_reason: string | null;
+  };
+  type TraderKycDocument = {
+    id: number;
+    document_type: string;
+    original_filename: string;
+    mime_type: string;
+    file_size_bytes: number;
+    status: string;
+    rejection_reason: string | null;
+    verified_at: string | null;
+    created_at: string;
+  };
+  type TraderKycDetails = {
+    application: TraderKycRecord;
+    documents: TraderKycDocument[];
+    history: Array<{
+      id: number;
+      old_status: string | null;
+      new_status: string;
+      remarks: string | null;
+      changed_by_name: string;
+      created_at: string;
+    }>;
+  };
+
+  const [records, setRecords] = useState<TraderKycRecord[]>([]);
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [details, setDetails] = useState<TraderKycDetails | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+
+  const loadKycData = async () => {
+    setLoading(true);
+    setLoadError("");
+    try {
+      const response = await fetch(`/api/v1/admin/trader-requests?status=all`, { credentials: "include" });
+      const payload = await response.json();
+      if (response.status === 401) {
+        throw new Error("Admin login expired. Please sign in to Admin Hub again.");
+      }
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Unable to load Member KYC records.");
+      setRecords(payload.requests || []);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load Member KYC records.";
+      setLoadError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadAllKycRecords();
+    loadKycData();
   }, []);
 
-  const saveOwnerRecords = (ownerId: string, nextOwnerRecords: CustomerKyc[]) => {
-    localStorage.setItem(`customer_kyc_${ownerId}`, JSON.stringify(nextOwnerRecords));
-    loadAllKycRecords();
+  const openDetails = async (record: TraderKycRecord) => {
+    setDetailsLoading(true);
+    try {
+      const response = await fetch(`/api/v1/admin/trader-requests/${record.trader_code}`, { credentials: "include" });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Unable to load member KYC details.");
+      setDetails({ application: payload.application, documents: payload.documents || [], history: payload.history || [] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to load member KYC details.");
+    } finally {
+      setDetailsLoading(false);
+    }
   };
 
-  const addTraderKycRecord = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    const customerName = String(data.get("customerName") || "").trim();
-    const phone = String(data.get("phone") || "").replace(/\D/g, "");
-    const aadhaar = String(data.get("aadhaar") || "").replace(/\D/g, "");
-    const pan = String(data.get("pan") || "").trim().toUpperCase();
-
-    if (!customerName || !/^\d{10}$/.test(phone) || !/^\d{12}$/.test(aadhaar) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) {
-      toast.error("Enter valid customer name, phone, Aadhaar, and PAN details");
+  const decide = async (record: TraderKycRecord, decision: "approve" | "reject") => {
+    const remarks = decision === "reject" ? window.prompt("Reason for rejecting this member KYC?")?.trim() : "";
+    if (decision === "reject" && !remarks) {
+      toast.error("Rejection reason is required.");
       return;
     }
-
-    const ownerRecords = records.filter((record) => record.ownerId === selectedOwner.id);
-    const nextRecord: CustomerKyc = {
-      id: `KYC-${String(Date.now()).slice(-6)}`,
-      ownerId: selectedOwner.id,
-      ownerName: selectedOwner.name,
-      customerName,
-      phone,
-      aadhaar,
-      pan,
-      date: new Date().toISOString().slice(0, 10),
-      status: "verified",
-    };
-
-    saveOwnerRecords(selectedOwner.id, [nextRecord, ...ownerRecords]);
-    form.reset();
-    toast.success(`${customerName} KYC saved for ${selectedOwner.name}`);
+    setSaving(true);
+    try {
+      const response = await fetch(`/api/v1/admin/trader-kyc/${record.id}/decision`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision, remarks }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Unable to update member KYC.");
+      toast.success(`${record.full_name} ${decision === "approve" ? "approved" : "rejected"}`);
+      await loadKycData();
+      if (details?.application.id === record.id) await openDetails(record);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update member KYC.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const removeTraderKycRecord = (record: CustomerKyc) => {
-    const ownerSeedRecords = CUSTOMER_KYC.filter((item) => item.ownerId === record.ownerId);
-    const ownerRecords = getStoredKycRecords(record.ownerId, ownerSeedRecords);
-    saveOwnerRecords(record.ownerId, ownerRecords.filter((item) => item.id !== record.id));
-    toast.success(`${record.customerName} KYC removed`);
+  const filteredRecords = records.filter((record) => {
+    const haystack = `${record.full_name} ${record.mobile} ${record.trader_code} ${record.business_name || ""} ${record.gala_number || ""} ${record.business_category || ""}`.toLowerCase();
+    return haystack.includes(query.trim().toLowerCase());
+  });
+
+  const counts = {
+    total: records.length,
+    approved: records.filter((record) => record.verification_status === "approved").length,
+    pending: records.filter((record) => ["submitted", "under_review", "correction_required"].includes(record.verification_status)).length,
+    rejected: records.filter((record) => record.verification_status === "rejected").length,
   };
 
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Trader KYC" subtitle="Add and manage customer KYC records on behalf of registered traders." />
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <StatCard icon={IdCard} label="Total KYC" value={records.length} />
-        <StatCard icon={CheckCircle2} label="Verified" value={records.filter((record) => record.status === "verified").length} tone="success" />
-        <StatCard icon={Users} label="Traders with KYC" value={new Set(records.map((record) => record.ownerId)).size} tone="saffron" />
+      <PageTitle title="Member KYC" subtitle="Review member verification records and documents. Customer KYC is managed in a separate module." />
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard icon={IdCard} label="Total Members" value={counts.total} />
+        <StatCard icon={CheckCircle2} label="Approved" value={counts.approved} tone="success" />
+        <StatCard icon={Users} label="Pending Review" value={counts.pending} tone="saffron" />
+        <StatCard icon={ThumbsDown} label="Rejected" value={counts.rejected} tone="danger" />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)]">
-        <Card className="border-border/60">
-          <CardContent className="p-6">
-            <h2 className="font-display text-lg font-bold text-primary-dark">Add Trader Customer KYC</h2>
-            <form className="mt-5 grid gap-4" onSubmit={addTraderKycRecord}>
-              <div>
-                <Label>Trader *</Label>
-                <Select value={selectedOwnerId} onValueChange={setSelectedOwnerId}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {approvedOwners.map((owner) => (
-                      <SelectItem key={owner.id} value={owner.id}>{owner.name} - Gala {owner.gala}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Customer name *</Label>
-                <Input name="customerName" required placeholder="Full customer name" />
-              </div>
-              <div>
-                <Label>Phone number *</Label>
-                <Input name="phone" required type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10-digit mobile number" />
-              </div>
-              <div>
-                <Label>Aadhaar number *</Label>
-                <Input name="aadhaar" required inputMode="numeric" maxLength={12} pattern="\d{12}" placeholder="12-digit Aadhaar number" />
-              </div>
-              <div>
-                <Label>PAN number *</Label>
-                <Input name="pan" required maxLength={10} pattern="[A-Za-z]{5}\d{4}[A-Za-z]" placeholder="ABCDE1234F" className="uppercase" />
-              </div>
-              <Button className="bg-primary"><IdCard className="mr-1 h-4 w-4" /> Save KYC</Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/60">
-          <CardContent className="p-6">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-lg font-bold text-primary-dark">All Trader KYC Records</h2>
-              <SearchBar placeholder="Search trader or customer KYC..." />
+      <Card className="border-border/60">
+        <CardContent className="p-6">
+          <div className="mb-4 flex flex-wrap gap-3">
+            <div className="relative min-w-0 flex-1 sm:min-w-[260px]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-9" placeholder="Search member KYC..." />
             </div>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Trader</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Aadhaar</TableHead>
-                    <TableHead>PAN</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+            <Button variant="outline" onClick={loadKycData} disabled={loading}>
+              Refresh
+            </Button>
+          </div>
+          {loadError && <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">{loadError}</div>}
+          <div className="overflow-x-auto rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Member</TableHead>
+                  <TableHead>Business</TableHead>
+                  <TableHead>Mobile</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Applied</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredRecords.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell>
+                      <div className="font-medium text-primary-dark">{record.full_name}</div>
+                      <div className="text-xs text-muted-foreground">{record.trader_code}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div>{record.business_name}</div>
+                      <div className="text-xs text-muted-foreground">{[record.business_category, record.gala_number].filter(Boolean).join(" - ") || "-"}</div>
+                    </TableCell>
+                    <TableCell>{record.mobile}</TableCell>
+                    <TableCell><StatusBadge status={record.verification_status} /></TableCell>
+                    <TableCell>{new Date(record.created_at).toLocaleDateString("en-IN")}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => openDetails(record)}>
+                          <Eye className="mr-1 h-4 w-4" /> View
+                        </Button>
+                        {["submitted", "under_review", "correction_required"].includes(record.verification_status) && (
+                          <>
+                            <Button size="sm" className="bg-success text-white" disabled={saving} onClick={() => decide(record, "approve")}>
+                              <ThumbsUp className="mr-1 h-4 w-4" /> Approve
+                            </Button>
+                            <Button size="sm" variant="outline" disabled={saving} onClick={() => decide(record, "reject")}>
+                              <ThumbsDown className="mr-1 h-4 w-4" /> Reject
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {records.map((record) => {
-                    const owner = OWNERS.find((item) => item.id === record.ownerId);
-                    return (
-                      <TableRow key={record.id}>
-                        <TableCell><div className="font-medium text-primary-dark">{record.ownerName}</div><div className="text-xs text-muted-foreground">Gala {owner?.gala ?? "-"}</div></TableCell>
-                        <TableCell><div className="font-medium">{record.customerName}</div><div className="font-mono text-xs text-muted-foreground">{record.id}</div></TableCell>
-                        <TableCell>{record.phone}</TableCell>
-                        <TableCell className="font-mono">{record.aadhaar}</TableCell>
-                        <TableCell className="font-mono">{record.pan}</TableCell>
-                        <TableCell><StatusBadge status={record.status} /></TableCell>
-                        <TableCell>{new Date(record.date).toLocaleDateString("en-IN")}</TableCell>
-                        <TableCell className="text-right"><Button size="sm" variant="ghost" onClick={() => removeTraderKycRecord(record)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
+                ))}
+                {filteredRecords.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                      {loading ? "Loading member KYC records..." : "No member KYC records found."}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!details} onOpenChange={(open) => !open && setDetails(null)}>
+        <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl text-primary-dark">{details?.application.full_name || "Member KYC"}</DialogTitle>
+            <DialogDescription>{details?.application.trader_code || "Member record"} - verification details and documents</DialogDescription>
+          </DialogHeader>
+          {detailsLoading && <div className="rounded-lg border p-4 text-sm text-muted-foreground">Loading member details...</div>}
+          {details && (
+            <div className="space-y-5">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ["Business", details.application.business_name],
+                  ["Mobile", details.application.mobile],
+                  ["Email", details.application.email || "-"],
+                  ["Gala", details.application.gala_number || "-"],
+                  ["Category", details.application.business_category || "-"],
+                  ["Location", [details.application.village_city, details.application.district].filter(Boolean).join(", ") || "-"],
+                  ["Applied", new Date(details.application.created_at).toLocaleString("en-IN")],
+                  ["Status", details.application.verification_status],
+                  ["Verified", details.application.verified_at ? new Date(details.application.verified_at).toLocaleString("en-IN") : "-"],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border bg-secondary/30 p-3 text-sm">
+                    <div className="text-xs text-muted-foreground">{label}</div>
+                    <div className="mt-1 font-medium text-primary-dark">{value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <h3 className="font-display font-semibold text-primary-dark">Uploaded documents</h3>
+                <div className="mt-3 overflow-x-auto rounded-lg border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Type</TableHead>
+                        <TableHead>File</TableHead>
+                        <TableHead>Size</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              {records.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No trader KYC records yet.</div>}
+                    </TableHeader>
+                    <TableBody>
+                      {details.documents.map((document) => (
+                        <TableRow key={document.id}>
+                          <TableCell className="capitalize">{document.document_type.replace(/_/g, " ")}</TableCell>
+                          <TableCell>
+                            <div className="font-medium">{document.original_filename}</div>
+                            {document.rejection_reason && <div className="text-xs text-destructive">{document.rejection_reason}</div>}
+                          </TableCell>
+                          <TableCell>{Math.max(1, Math.round(document.file_size_bytes / 1024))} KB</TableCell>
+                          <TableCell><StatusBadge status={document.status} /></TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" variant="ghost" onClick={() => window.open(`/api/v1/admin/trader-documents/${document.id}/download?download=1`, "_blank")}>
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {details.documents.length === 0 && <TableRow><TableCell colSpan={5} className="py-6 text-center text-sm text-muted-foreground">No documents uploaded with this member application.</TableCell></TableRow>}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-display font-semibold text-primary-dark">Review history</h3>
+                <div className="mt-3 space-y-2">
+                  {details.history.map((item) => (
+                    <div key={item.id} className="rounded-lg border p-3 text-sm">
+                      <div className="font-medium text-primary-dark">{item.old_status || "new"} {"->"} {item.new_status}</div>
+                      <div className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleString("en-IN")}</div>
+                      {item.remarks && <div className="mt-1 text-muted-foreground">{item.remarks}</div>}
+                    </div>
+                  ))}
+                  {details.history.length === 0 && <div className="rounded-lg border p-3 text-sm text-muted-foreground">No review history yet.</div>}
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashLayout>
   );
 }
 
 export function OwnerGalaPage() {
+  const { profile, galas, loading, reload } = useTraderProfile();
+  const primaryGala = galas.find((gala) => gala.is_primary) || galas[0];
+  const approvedCount = galas.filter((gala) => gala.status === "approved").length;
+  const pendingCount = galas.filter((gala) => ["submitted", "under_review", "correction_required"].includes(gala.status)).length;
+
   return (
     <DashLayout kind="owner">
-      <PageTitle title="My Gala Details" subtitle="Verified gala, section, business category, and document profile." />
+      <PageTitle title="My Gala Details" subtitle="All verified and submitted gala/shop records linked to your member login." action={<Button asChild variant="outline"><Link to="/register"><Plus className="mr-1 h-4 w-4" /> Add Gala / Shop</Link></Button>} />
       <div className="grid gap-6 lg:grid-cols-3">
-        <StatCard icon={Store} label="Gala number" value={me.gala} />
-        <StatCard icon={Users} label="Section" value={me.section} tone="saffron" />
-        <StatCard icon={CheckCircle2} label="Status" value="Approved" tone="success" />
+        <StatCard icon={Store} label="Total Galas / Shops" value={loading ? "..." : galas.length} />
+        <StatCard icon={CheckCircle2} label="Approved Shops" value={loading ? "..." : approvedCount} tone="success" />
+        <StatCard icon={ClipboardList} label="Pending Review" value={loading ? "..." : pendingCount} tone="saffron" />
       </div>
-      <Card className="mt-6 border-border/60"><CardContent className="grid gap-4 p-6 sm:grid-cols-2"><Field label="Business name" value={me.business} /><Field label="Business category" value={me.category} /><Field label="Market section" value={me.section} /><Field label="Registered address" value={me.address} wide /></CardContent></Card>
+      <Card className="mt-6 border-border/60">
+        <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
+          <Field label="Primary business name" value={primaryGala?.business_name || profile?.business_name || ""} readOnly />
+          <Field label="Primary gala number" value={primaryGala?.gala_number || profile?.gala_number || ""} readOnly />
+          <Field label="Business category" value={primaryGala?.business_category || profile?.business_category || ""} readOnly />
+          <Field label="Market section" value={primaryGala?.market_section || (profile?.business_category ? `${profile.business_category} Section` : "")} readOnly />
+          <Field label="Registered address" value={formatTraderAddress(profile)} wide readOnly />
+        </CardContent>
+      </Card>
+      <Card className="mt-6 border-border/60">
+        <CardContent className="p-6">
+          <h2 className="mb-4 font-display font-semibold text-primary-dark">All Linked Galas / Shops</h2>
+          <TraderGalaCards galas={galas} onUpdated={reload} />
+        </CardContent>
+      </Card>
     </DashLayout>
   );
 }
 
 export function OwnerUpdatesPage() {
-  return <OwnerListPage title="Market Updates" subtitle="Daily market prices, arrivals, weather alerts, and public announcements." icon={Newspaper} items={MARKET_UPDATES.map((u) => ({ id: u.id, title: u.title, meta: `${u.category} - ${new Date(u.date).toLocaleDateString("en-IN")}`, body: u.summary, alert: u.emergency }))} />;
+  const [items, setItems] = useState<DashboardPost[]>([]);
+  useEffect(() => {
+    fetch("/api/v1/public/posts").then((response) => response.json()).then((result) => { if (result.ok) setItems(result.posts || []); }).catch(() => undefined);
+  }, []);
+  return <OwnerDbContentPage title="Market Updates" subtitle="Daily market prices, arrivals, weather alerts, and public announcements." icon={Newspaper} items={items} />;
 }
 
 export function OwnerNoticesPage() {
-  return <OwnerListPage title="Notices & Documents" subtitle="Official documents, circulars, meeting notices, and downloadable files." icon={FileText} items={NOTICES.map((n) => ({ id: n.id, title: n.title, meta: `#${n.number} - ${n.category}`, body: n.description, file: n.attachment }))} />;
+  const [items, setItems] = useState<DashboardPost[]>([]);
+  useEffect(() => {
+    fetch("/api/v1/public/notices").then((response) => response.json()).then((result) => { if (result.ok) setItems(result.notices || []); }).catch(() => undefined);
+  }, []);
+  return <OwnerDbContentPage title="Notices & Documents" subtitle="Official documents, circulars, meeting notices, and downloadable files." icon={FileText} items={items} />;
+}
+
+function OwnerDbContentPage({ title, subtitle, icon: Icon, items }: { title: string; subtitle: string; icon: React.ElementType; items: DashboardPost[] }) {
+  return (
+    <DashLayout kind="owner">
+      <PageTitle title={title} subtitle={subtitle} />
+      <Card className="border-border/60"><CardContent className="p-6"><div className="mb-4 flex flex-wrap gap-3"><SearchBar /><Button variant="outline">Filter</Button></div><div className="grid gap-3 md:grid-cols-2">{items.map((item) => {
+        const image = (item.attachments || []).find((file) => file.attachment_type === "image");
+        return <div key={item.id} className="overflow-hidden rounded-lg border">{image && <img src={`/api/v1/public/content-attachments/${image.id}/download`} className="h-44 w-full object-contain bg-secondary/30" />}<div className="p-4"><div className="flex items-start gap-3"><div className="grid h-10 w-10 place-items-center rounded-lg bg-secondary text-primary"><Icon className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{item.parsed?.category || "General"} - {new Date(item.published_at || item.created_at).toLocaleDateString("en-IN")}</div><h3 className="mt-1 font-display font-semibold text-primary-dark">{item.title_en}</h3><p className="mt-1 text-sm text-muted-foreground">{item.parsed?.details || ""}</p></div></div><div className="mt-4 flex flex-wrap gap-2">{(item.attachments || []).map((file) => <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/public/content-attachments/${file.id}/download?download=1`, "_blank")}><Download className="mr-1 h-4 w-4" /> {file.original_filename}</Button>)}</div></div></div>;
+      })}</div>{items.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No published content yet.</div>}</CardContent></Card>
+    </DashLayout>
+  );
 }
 
 function OwnerListPage({ title, subtitle, icon: Icon, items }: { title: string; subtitle: string; icon: React.ElementType; items: Array<{ id: string; title: string; meta: string; body: string; alert?: boolean; file?: string }> }) {
@@ -1004,11 +3633,66 @@ function OwnerListPage({ title, subtitle, icon: Icon, items }: { title: string; 
 }
 
 export function OwnerComplaintsPage() {
+  type TraderComplaint = {
+    id: number;
+    ticket_number: string;
+    subject: string;
+    priority: string;
+    status: string;
+    created_at: string;
+    parsed?: { category?: string; description?: string };
+    history: Array<{
+      id: number;
+      old_status: string | null;
+      new_status: string;
+      remarks: string | null;
+      changed_by_name: string;
+      created_at: string;
+    }>;
+  };
+  const [complaints, setComplaints] = useState<TraderComplaint[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/v1/trader/complaints", { credentials: "include" })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.ok) setComplaints(result.complaints || []);
+        else toast.error(result.error || "Could not load complaints.");
+      })
+      .catch(() => toast.error("Could not load complaints."))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <DashLayout kind="owner">
       <PageTitle title="My Complaints" subtitle="Track complaint status, assigned department, and admin comments." action={<Button asChild><Link to="/owner/new-complaint"><Plus className="mr-1 h-4 w-4" /> New Complaint</Link></Button>} />
       <div className="grid gap-4">
-        {myComplaints.map((c) => <Card key={c.id} className="border-border/60"><CardContent className="p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="text-xs text-muted-foreground">{c.id} - {c.category}</div><h2 className="font-display font-semibold text-primary-dark">{c.subject}</h2><p className="mt-1 text-sm text-muted-foreground">{c.description}</p></div><StatusBadge status={c.status} /></div><div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground"><Badge variant="outline">{c.priority}</Badge><span>Assigned to {c.assignedTo}</span><span>{c.attachments} attachments</span></div></CardContent></Card>)}
+        {complaints.map((c) => (
+          <Card key={c.id} className="border-border/60">
+            <CardContent className="p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-mono text-xs text-muted-foreground">{c.ticket_number} - {c.parsed?.category || "General"}</div>
+                  <h2 className="font-display font-semibold text-primary-dark">{c.subject}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">{c.parsed?.description || ""}</p>
+                </div>
+                <StatusBadge status={c.status} />
+              </div>
+              <div className="mt-4 grid gap-2">
+                {c.history.slice(0, 4).map((item) => (
+                  <div key={item.id} className="rounded-lg border bg-secondary/20 p-3 text-sm">
+                    <div className="font-medium text-primary-dark">{item.old_status || "submitted"} {"->"} {item.new_status}</div>
+                    {item.remarks && <div className="mt-1 text-muted-foreground">{item.remarks}</div>}
+                    <div className="mt-1 text-xs text-muted-foreground">{item.changed_by_name} - {new Date(item.created_at).toLocaleString("en-IN")}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        {!loading && complaints.length === 0 && <Card className="border-border/60"><CardContent className="py-10 text-center text-sm text-muted-foreground">No complaints yet.</CardContent></Card>}
+        {loading && <Card className="border-border/60"><CardContent className="py-10 text-center text-sm text-muted-foreground">Loading complaints...</CardContent></Card>}
       </div>
     </DashLayout>
   );
@@ -1024,6 +3708,75 @@ export function OwnerNewComplaintPage() {
 }
 
 export function OwnerPostPage() {
+  const { profile } = useTraderProfile();
+  const { logout } = useAuth();
+  const router = useRouter();
+  const [postCategory, setPostCategory] = useState("Market Update");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
+  const [myPosts, setMyPosts] = useState<DashboardPost[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const section = profile?.business_category ? `${profile.business_category} Section` : "";
+  const loadMyPosts = async () => {
+    try {
+      const response = await fetch("/api/v1/trader/posts", { credentials: "include" });
+      const result = await response.json();
+      if (result.ok) setMyPosts(result.posts || []);
+    } catch {
+      toast.error("Could not load submitted posts.");
+    }
+  };
+
+  useEffect(() => {
+    loadMyPosts();
+  }, []);
+
+  const submitPost = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const titleEn = String(data.get("titleEn") || "").trim();
+    const contentEn = String(data.get("contentEn") || "").trim();
+    if (!titleEn || !contentEn) {
+      toast.error("Post title and details are required.");
+      return;
+    }
+    const oversizedImage = imageFiles.find((file) => file.size > 25 * 1024 * 1024);
+    const oversizedVideo = videoFiles.find((file) => file.size > 25 * 1024 * 1024);
+    if (oversizedImage || oversizedVideo) {
+      toast.error("Each post image/video must be 25 MB or smaller.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const images = await Promise.all(imageFiles.slice(0, 4).map(fileToUploadPayload));
+      const videos = await Promise.all(videoFiles.slice(0, 2).map(fileToUploadPayload));
+      const response = await fetch("/api/v1/trader/posts", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titleEn, contentEn, category: postCategory, attachments: { images, videos } }),
+      });
+      const result = await response.json();
+      if (response.status === 401) {
+        logout();
+        router.navigate({ to: "/login" });
+        throw new Error("Your session expired. Please sign in again.");
+      }
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not submit post.");
+      toast.success(`Post submitted with ${images.length} image(s) and ${videos.length} video(s).`);
+      form.reset();
+      setPostCategory("Market Update");
+      setImageFiles([]);
+      setVideoFiles([]);
+      await loadMyPosts();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not submit post.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <DashLayout kind="owner">
       <PageTitle title="Create Post" subtitle="Share a market update, gala announcement, or request with image and video attachments." />
@@ -1032,30 +3785,26 @@ export function OwnerPostPage() {
           <CardContent className="p-6">
             <form
               className="grid gap-5"
-              onSubmit={(e) => {
-                e.preventDefault();
-                toast.success("Post submitted for admin review");
-                (e.currentTarget as HTMLFormElement).reset();
-              }}
+              onSubmit={submitPost}
             >
               <div className="rounded-lg bg-secondary/60 p-4">
                 <h2 className="font-display font-semibold text-primary-dark">Posting as</h2>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   <div>
                     <Label>Gala owner name</Label>
-                    <Input value={me.name} disabled />
+                    <Input value={profile?.full_name || ""} disabled />
                   </div>
                   <div>
                     <Label>Gala number</Label>
-                    <Input value={me.gala} disabled />
+                    <Input value={profile?.gala_number || ""} disabled />
                   </div>
                   <div>
                     <Label>Business name</Label>
-                    <Input value={me.business} disabled />
+                    <Input value={profile?.business_name || ""} disabled />
                   </div>
                   <div>
                     <Label>Market section</Label>
-                    <Input value={me.section} disabled />
+                    <Input value={section} disabled />
                   </div>
                 </div>
               </div>
@@ -1063,10 +3812,21 @@ export function OwnerPostPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label>Post type *</Label>
-                  <Select defaultValue="Market Update">
+                  <Select value={postCategory} onValueChange={setPostCategory}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {["Market Update", "Gala Announcement", "Sale or Availability", "Lost and Found", "General Request"].map((type) => (
+                      {[
+                        "Market Rate Update",
+                        "Stock Available",
+                        "Bulk Sale Offer",
+                        "Fresh Arrival",
+                        "Gala Announcement",
+                        "Transport or Loading Help",
+                        "Payment or Billing Issue",
+                        "Facility Issue",
+                        "Lost and Found",
+                        "General Request",
+                      ].map((type) => (
                         <SelectItem key={type} value={type}>{type}</SelectItem>
                       ))}
                     </SelectContent>
@@ -1080,28 +3840,67 @@ export function OwnerPostPage() {
 
               <div>
                 <Label>Post title *</Label>
-                <Input required placeholder="Short title for your post" />
+                <Input name="titleEn" required placeholder="Short title for your post" />
               </div>
 
               <div>
                 <Label>Post details *</Label>
-                <Textarea required rows={6} placeholder="Write the update, announcement, request, or details clearly." />
+                <Textarea name="contentEn" required rows={6} placeholder="Write the update, announcement, request, or details clearly." />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-secondary/40 p-4 text-center text-sm transition hover:border-primary hover:bg-secondary">
+                <label className={`flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm transition hover:border-primary ${imageFiles.length ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>
                   <Camera className="h-7 w-7 text-primary" />
                   <span className="font-medium text-primary-dark">Upload post images</span>
-                  <span className="text-xs text-muted-foreground">JPG, PNG, WEBP. Multiple allowed.</span>
-                  <input type="file" accept="image/*" className="hidden" multiple />
+                  <span className={`max-w-full truncate text-xs ${imageFiles.length ? "font-medium text-success" : "text-muted-foreground"}`}>{imageFiles.length ? `${imageFiles.length} selected - ${imageFiles[0].name}` : "JPG, PNG, WEBP. Multiple allowed."}</span>
+                  <span className="mt-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white">Choose images</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" multiple onChange={(event) => setImageFiles(Array.from(event.target.files || []))} />
                 </label>
-                <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-secondary/40 p-4 text-center text-sm transition hover:border-primary hover:bg-secondary">
+                <label className={`flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm transition hover:border-primary ${videoFiles.length ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>
                   <Video className="h-7 w-7 text-primary" />
                   <span className="font-medium text-primary-dark">Upload post videos</span>
-                  <span className="text-xs text-muted-foreground">MP4, MOV, WEBM. Multiple allowed.</span>
-                  <input type="file" accept="video/*" className="hidden" multiple />
+                  <span className={`max-w-full truncate text-xs ${videoFiles.length ? "font-medium text-success" : "text-muted-foreground"}`}>{videoFiles.length ? `${videoFiles.length} selected - ${videoFiles[0].name}` : "MP4, MOV, WEBM. Multiple allowed."}</span>
+                  <span className="mt-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white">Choose videos</span>
+                  <input type="file" accept="video/mp4,video/quicktime,video/webm" className="hidden" multiple onChange={(event) => setVideoFiles(Array.from(event.target.files || []))} />
                 </label>
               </div>
+
+              {(imageFiles.length > 0 || videoFiles.length > 0) && (
+                <div className="grid gap-3 rounded-lg border bg-secondary/20 p-4 sm:grid-cols-2">
+                  <div>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className="text-sm font-semibold text-primary-dark">Selected images</div>
+                      {imageFiles.length > 0 && <Button type="button" size="sm" variant="ghost" onClick={() => setImageFiles([])}>Clear</Button>}
+                    </div>
+                    <div className="space-y-2">
+                      {imageFiles.length === 0 && <div className="rounded-md border bg-background px-3 py-2 text-xs text-muted-foreground">No images selected.</div>}
+                      {imageFiles.map((file) => (
+                        <div key={`${file.name}-${file.size}`} className="flex min-w-0 items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs">
+                          <Camera className="h-4 w-4 shrink-0 text-success" />
+                          <span className="min-w-0 flex-1 truncate font-medium">{file.name}</span>
+                          <span className="shrink-0 text-muted-foreground">{Math.ceil(file.size / 1024)} KB</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className="text-sm font-semibold text-primary-dark">Selected videos</div>
+                      {videoFiles.length > 0 && <Button type="button" size="sm" variant="ghost" onClick={() => setVideoFiles([])}>Clear</Button>}
+                    </div>
+                    <div className="space-y-2">
+                      {videoFiles.length === 0 && <div className="rounded-md border bg-background px-3 py-2 text-xs text-muted-foreground">No videos selected.</div>}
+                      {videoFiles.map((file) => (
+                        <div key={`${file.name}-${file.size}`} className="flex min-w-0 items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs">
+                          <Video className="h-4 w-4 shrink-0 text-success" />
+                          <span className="min-w-0 flex-1 truncate font-medium">{file.name}</span>
+                          <span className="shrink-0 text-muted-foreground">{Math.ceil(file.size / 1024)} KB</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <label className="flex items-start gap-3 rounded-lg border p-4 text-sm">
                 <input type="checkbox" required className="mt-1 h-4 w-4 rounded border-border" />
@@ -1109,8 +3908,8 @@ export function OwnerPostPage() {
               </label>
 
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs text-muted-foreground">Your post will go only to admin. Other traders can see it only after admin reshares it.</p>
-                <Button className="bg-primary"><Upload className="mr-1 h-4 w-4" /> Submit Post</Button>
+                <p className="text-xs text-muted-foreground">Your post will go only to admin. Other Members can see it only after admin reshares it.</p>
+                <Button className="bg-primary" disabled={submitting}><Upload className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Post"}</Button>
               </div>
             </form>
           </CardContent>
@@ -1134,23 +3933,25 @@ export function OwnerPostPage() {
             <CardContent className="p-6">
               <h2 className="font-display font-bold text-primary-dark">My submitted posts</h2>
               <div className="mt-4 space-y-3">
-                {OWNER_POSTS.filter((post) => post.ownerName === me.name).map((post) => (
-                  <div key={post.title} className="rounded-lg border p-3 text-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <Badge variant="outline">{post.type}</Badge>
-                      <StatusBadge status={post.status} />
+                {myPosts.slice(0, 5).map((post) => (
+                  <div key={post.id} className="rounded-lg border p-3 text-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="font-medium text-primary-dark">{post.title_en}</div>
+                        <div className="text-xs text-muted-foreground">{post.parsed?.category || "General Request"}</div>
+                      </div>
+                      <StatusBadge status={postStatusLabel(post.status)} />
                     </div>
-                    <div className="mt-2 font-medium text-primary-dark">{post.title}</div>
-                    <div className="text-xs text-muted-foreground">Sent to admin - Gala {post.gala}</div>
                   </div>
                 ))}
+                {myPosts.length === 0 && <div className="rounded-lg border p-4 text-center text-sm text-muted-foreground">No submitted posts yet.</div>}
               </div>
             </CardContent>
           </Card>
           <Card className="border-border/60">
             <CardContent className="p-6">
               <h2 className="font-display font-bold text-primary-dark">Visible after reshare</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Admin-approved posts appear on the Shared Posts page for all traders with owner name and download options.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Admin-approved posts appear only for the selected Member audience with owner name and download options.</p>
               <Button asChild className="mt-4 w-full bg-primary">
                 <Link to="/owner/shared-posts"><Newspaper className="mr-1 h-4 w-4" /> Open Shared Posts</Link>
               </Button>
@@ -1163,15 +3964,30 @@ export function OwnerPostPage() {
 }
 
 export function OwnerSharedPostsPage() {
-  const resharedPosts = OWNER_POSTS.filter((post) => post.status === "reshared");
+  const [resharedPosts, setResharedPosts] = useState<DashboardPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/v1/trader/shared-posts", { credentials: "include" })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.ok) setResharedPosts(result.posts || []);
+        else toast.error(result.error || "Could not load shared posts.");
+      })
+      .catch(() => toast.error("Could not load shared posts."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const imageCount = resharedPosts.reduce((total, post) => total + (post.attachments || []).filter((file) => file.attachment_type === "image").length, 0);
+  const videoCount = resharedPosts.reduce((total, post) => total + (post.attachments || []).filter((file) => file.attachment_type === "video").length, 0);
 
   return (
     <DashLayout kind="owner">
-      <PageTitle title="Shared Posts" subtitle="Admin-approved posts visible to all traders." action={<Button asChild><Link to="/owner/post"><Plus className="mr-1 h-4 w-4" /> Submit Post</Link></Button>} />
+      <PageTitle title="Shared Posts" subtitle="Admin-approved posts visible to your Member category." action={<Button asChild><Link to="/owner/post"><Plus className="mr-1 h-4 w-4" /> Submit Post</Link></Button>} />
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <StatCard icon={Newspaper} label="Shared posts" value={resharedPosts.length} />
-        <StatCard icon={Camera} label="Images available" value={resharedPosts.reduce((total, post) => total + post.images.length, 0)} tone="saffron" />
-        <StatCard icon={Video} label="Videos available" value={resharedPosts.reduce((total, post) => total + post.videos.length, 0)} tone="success" />
+        <StatCard icon={Camera} label="Images available" value={imageCount} tone="saffron" />
+        <StatCard icon={Video} label="Videos available" value={videoCount} tone="success" />
       </div>
       <Card className="mb-6 border-border/60">
         <CardContent className="flex flex-wrap gap-3 p-4">
@@ -1180,12 +3996,21 @@ export function OwnerSharedPostsPage() {
           <Button variant="outline">Latest first</Button>
         </CardContent>
       </Card>
-      <div className="grid gap-4 xl:grid-cols-2">
-        {resharedPosts.map((post) => <SharedPostCard key={post.id} post={post} />)}
+      <div className="columns-1 gap-4 xl:columns-2">
+        {resharedPosts.map((post) => (
+          <div key={post.id} className="mb-4 break-inside-avoid">
+            <SharedPostCard post={post} />
+          </div>
+        ))}
       </div>
-      {resharedPosts.length === 0 && (
+      {!loading && resharedPosts.length === 0 && (
         <Card className="border-border/60">
           <CardContent className="p-8 text-center text-sm text-muted-foreground">No admin-reshared posts yet.</CardContent>
+        </Card>
+      )}
+      {loading && (
+        <Card className="border-border/60">
+          <CardContent className="p-8 text-center text-sm text-muted-foreground">Loading shared posts...</CardContent>
         </Card>
       )}
     </DashLayout>
@@ -1193,22 +4018,56 @@ export function OwnerSharedPostsPage() {
 }
 
 export function ComplaintForm({ compact = false }: { compact?: boolean }) {
+  const [category, setCategory] = useState("");
+  const [priority, setPriority] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
+  const submitComplaint = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const subject = String(data.get("subject") || "").trim();
+    const description = String(data.get("description") || "").trim();
+    if (!category || !priority || !subject || !description) {
+      toast.error("Category, priority, subject and description are required.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const images = await Promise.all(imageFiles.slice(0, 4).map(fileToUploadPayload));
+      const videos = await Promise.all(videoFiles.slice(0, 2).map(fileToUploadPayload));
+      const response = await fetch("/api/v1/complaints", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject, description, priority, category, visibility: "admin-only", attachments: { images, videos } }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not submit complaint.");
+      toast.success(`Complaint ${result.ticketNumber} sent to admin.`);
+      form.reset();
+      setImageFiles([]);
+      setVideoFiles([]);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not submit complaint.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <Card className="border-border/60">
       <CardContent className={compact ? "p-5" : "p-6"}>
         <form
           className="grid gap-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            toast.success("Complaint submitted with attachments");
-            (e.currentTarget as HTMLFormElement).reset();
-          }}
+          onSubmit={submitComplaint}
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label>Complaint category *</Label>
-              <Select defaultValue="Water Supply">
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger><SelectValue placeholder="Select complaint category" /></SelectTrigger>
                 <SelectContent>
                   {["Water Supply", "Electricity", "Cleanliness", "Drainage", "Parking", "Security", "Market Facility", "Shop or Gala Issue"].map((c) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
@@ -1218,8 +4077,8 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
             </div>
             <div>
               <Label>Priority *</Label>
-              <Select defaultValue="medium">
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger><SelectValue placeholder="Select priority" /></SelectTrigger>
                 <SelectContent>
                   {["low", "medium", "high", "emergency"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
@@ -1228,29 +4087,29 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
           </div>
           <div>
             <Label>Subject *</Label>
-            <Input required placeholder="Short complaint title" />
+            <Input name="subject" required placeholder="Short complaint title" />
           </div>
           <div>
             <Label>Description *</Label>
-            <Textarea required rows={compact ? 4 : 6} placeholder="Describe the issue, location, and urgency clearly..." />
+            <Textarea name="description" required rows={compact ? 4 : 6} placeholder="Describe the issue, location, and urgency clearly..." />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-secondary/40 p-4 text-center text-sm transition hover:border-primary hover:bg-secondary">
+            <label className={`flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm transition hover:border-primary ${imageFiles.length ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>
               <Camera className="h-6 w-6 text-primary" />
-              <span className="font-medium text-primary-dark">Upload images</span>
-              <span className="text-xs text-muted-foreground">JPG, PNG, WEBP</span>
-              <input type="file" accept="image/*" className="hidden" multiple />
+              <span className="font-medium text-primary-dark">{imageFiles.length ? `${imageFiles.length} image selected` : "Upload images"}</span>
+              <span className={`max-w-full truncate text-xs ${imageFiles.length ? "font-medium text-success" : "text-muted-foreground"}`}>{imageFiles[0]?.name || "JPG, PNG, WEBP"}</span>
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" multiple onChange={(event) => setImageFiles(Array.from(event.target.files || []))} />
             </label>
-            <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-secondary/40 p-4 text-center text-sm transition hover:border-primary hover:bg-secondary">
+            <label className={`flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm transition hover:border-primary ${videoFiles.length ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>
               <Video className="h-6 w-6 text-primary" />
-              <span className="font-medium text-primary-dark">Upload videos</span>
-              <span className="text-xs text-muted-foreground">MP4, MOV, WEBM</span>
-              <input type="file" accept="video/*" className="hidden" multiple />
+              <span className="font-medium text-primary-dark">{videoFiles.length ? `${videoFiles.length} video selected` : "Upload videos"}</span>
+              <span className={`max-w-full truncate text-xs ${videoFiles.length ? "font-medium text-success" : "text-muted-foreground"}`}>{videoFiles[0]?.name || "MP4, MOV, WEBM"}</span>
+              <input type="file" accept="video/mp4,video/quicktime,video/webm" className="hidden" multiple onChange={(event) => setVideoFiles(Array.from(event.target.files || []))} />
             </label>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">Your complaint will be sent to the admin team for review and assignment.</p>
-            <Button className="bg-primary"><Upload className="mr-1 h-4 w-4" /> Submit Complaint</Button>
+            <Button className="bg-primary" disabled={submitting}><Upload className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Complaint"}</Button>
           </div>
         </form>
       </CardContent>
@@ -1259,6 +4118,8 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
 }
 
 export function MobileChangeApplicationForm({ compact = false }: { compact?: boolean }) {
+  const { profile } = useTraderProfile();
+
   return (
     <Card className="border-border/60">
       <CardContent className={compact ? "p-5" : "p-6"}>
@@ -1273,15 +4134,15 @@ export function MobileChangeApplicationForm({ compact = false }: { compact?: boo
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label>Gala owner name</Label>
-              <Input value={me.name} disabled />
+              <Input value={profile?.full_name || ""} disabled />
             </div>
             <div>
               <Label>Gala number</Label>
-              <Input value={me.gala} disabled />
+              <Input value={profile?.gala_number || ""} disabled />
             </div>
             <div>
               <Label>Current registered mobile *</Label>
-              <Input value={me.mobile} disabled />
+              <Input value={profile?.mobile || ""} disabled />
             </div>
             <div>
               <Label>New mobile number *</Label>
@@ -1295,11 +4156,11 @@ export function MobileChangeApplicationForm({ compact = false }: { compact?: boo
                 </div>
                 <div>
                   <Label>Reason for change *</Label>
-                  <Select defaultValue="Lost SIM card">
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Select defaultValue={MOBILE_CHANGE_REASONS[0]}>
+                    <SelectTrigger className="text-muted-foreground"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {["Lost SIM card", "Changed service provider", "Old number inactive", "Phone theft", "Personal number change"].map((reason) => (
-                        <SelectItem key={reason} value={reason}>{reason}</SelectItem>
+                      {MOBILE_CHANGE_REASONS.map((reason) => (
+                        <SelectItem key={reason} value={reason} className="text-muted-foreground focus:text-primary-dark">{reason}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -1309,13 +4170,13 @@ export function MobileChangeApplicationForm({ compact = false }: { compact?: boo
           </div>
           {compact ? (
             <div>
-              <Label>Reason for change *</Label>
-              <Textarea required rows={3} placeholder="Write a short application note." />
+              <Label>Application note</Label>
+              <Textarea rows={3} placeholder="Optional note for admin." />
             </div>
           ) : (
             <div>
-              <Label>Application note *</Label>
-              <Textarea required rows={4} placeholder="Write a short request explaining why the registered mobile number should be changed." />
+              <Label>Application note</Label>
+              <Textarea rows={4} placeholder="Optional note explaining why the registered mobile number should be changed." />
             </div>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
@@ -1347,38 +4208,120 @@ export function MobileChangeApplicationForm({ compact = false }: { compact?: boo
 }
 
 export function OwnerMobileChangePage() {
+  const { profile } = useTraderProfile();
+  const section = profile?.business_category ? `${profile.business_category} Section` : "";
+  type TraderMobileRequest = {
+    id: number;
+    request_code: string;
+    old_mobile: string;
+    new_mobile: string;
+    alternate_mobile: string | null;
+    reason: string;
+    application_note: string;
+    status: string;
+    admin_remarks: string | null;
+    decided_at: string | null;
+    created_at: string;
+  };
+  const [requests, setRequests] = useState<TraderMobileRequest[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [idProofFile, setIdProofFile] = useState<File | null>(null);
+  const [mobileProofFile, setMobileProofFile] = useState<File | null>(null);
+
+  const loadMobileRequests = async () => {
+    setLoadingRequests(true);
+    try {
+      const response = await fetch("/api/v1/trader/mobile-change-requests", { credentials: "include" });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not load mobile change requests.");
+      setRequests(result.requests || []);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load mobile change requests.");
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMobileRequests();
+  }, []);
+
+  const latestRequest = requests[0] || null;
+
+  const submitMobileChange = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const newMobile = String(data.get("newMobile") || "").replace(/\D/g, "");
+    const alternateMobile = String(data.get("alternateMobile") || "").replace(/\D/g, "");
+    const reason = String(data.get("reason") || "").trim();
+    const applicationNote = String(data.get("applicationNote") || "").trim();
+    if (!/^\d{10}$/.test(newMobile)) {
+      toast.error("Enter a valid 10-digit new mobile number.");
+      return;
+    }
+    if (alternateMobile && !/^\d{10}$/.test(alternateMobile)) {
+      toast.error("Alternate contact number must be 10 digits.");
+      return;
+    }
+    if (!reason) {
+      toast.error("Select a reason for mobile number change.");
+      return;
+    }
+    if (!idProofFile) {
+      toast.error("Upload ID proof before submitting.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const idProof = await fileToUploadPayload(idProofFile);
+      const mobileProof = mobileProofFile ? await fileToUploadPayload(mobileProofFile) : null;
+      const response = await fetch("/api/v1/trader/mobile-change-requests", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newMobile, alternateMobile, reason, applicationNote, documents: { idProof, mobileProof } }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not submit mobile change request.");
+      toast.success("Mobile change request sent to admin for approval.");
+      form.reset();
+      setIdProofFile(null);
+      setMobileProofFile(null);
+      await loadMobileRequests();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not submit mobile change request.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <DashLayout kind="owner">
       <PageTitle title="Mobile Number Change Application" subtitle="Submit a formal request to update your registered mobile number." />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
         <Card className="border-border/60">
           <CardContent className="p-6">
-            <form
-              className="grid gap-5"
-              onSubmit={(e) => {
-                e.preventDefault();
-                toast.success("Mobile number change application submitted");
-                (e.currentTarget as HTMLFormElement).reset();
-              }}
-            >
+            <form className="grid gap-5" onSubmit={submitMobileChange}>
               <div className="rounded-lg bg-secondary/60 p-4">
                 <h2 className="font-display font-semibold text-primary-dark">Applicant details</h2>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   <div>
                     <Label>Gala owner name</Label>
-                    <Input value={me.name} disabled />
+                    <Input value={profile?.full_name || ""} disabled />
                   </div>
                   <div>
                     <Label>Gala number</Label>
-                    <Input value={me.gala} disabled />
+                    <Input value={profile?.gala_number || ""} disabled />
                   </div>
                   <div>
                     <Label>Business name</Label>
-                    <Input value={me.business} disabled />
+                    <Input value={profile?.business_name || ""} disabled />
                   </div>
                   <div>
                     <Label>Market section</Label>
-                    <Input value={me.section} disabled />
+                    <Input value={section} disabled />
                   </div>
                 </div>
               </div>
@@ -1386,23 +4329,23 @@ export function OwnerMobileChangePage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label>Current registered mobile *</Label>
-                  <Input value={me.mobile} disabled />
+                  <Input value={profile?.mobile || ""} disabled />
                 </div>
                 <div>
                   <Label>New mobile number *</Label>
-                  <Input required type="tel" pattern="\d{10}" maxLength={10} placeholder="10-digit mobile number" />
+                  <Input name="newMobile" required type="tel" pattern="\d{10}" maxLength={10} placeholder="10-digit mobile number" />
                 </div>
                 <div>
                   <Label>Alternate contact number</Label>
-                  <Input type="tel" pattern="\d{10}" maxLength={10} placeholder="Optional 10-digit number" />
+                  <Input name="alternateMobile" type="tel" pattern="\d{10}" maxLength={10} placeholder="Optional 10-digit number" />
                 </div>
                 <div>
                   <Label>Reason for change *</Label>
-                  <Select defaultValue="Lost SIM card">
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Select name="reason" defaultValue={MOBILE_CHANGE_REASONS[0]}>
+                    <SelectTrigger className="text-muted-foreground"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {["Lost SIM card", "Changed service provider", "Old number inactive", "Phone theft", "Personal number change"].map((reason) => (
-                        <SelectItem key={reason} value={reason}>{reason}</SelectItem>
+                      {MOBILE_CHANGE_REASONS.map((reason) => (
+                        <SelectItem key={reason} value={reason} className="text-muted-foreground focus:text-primary-dark">{reason}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -1410,22 +4353,22 @@ export function OwnerMobileChangePage() {
               </div>
 
               <div>
-                <Label>Application note *</Label>
-                <Textarea required rows={4} placeholder="Write a short request explaining why the registered mobile number should be changed." />
+                <Label>Application note</Label>
+                <Textarea name="applicationNote" rows={4} placeholder="Optional note explaining why the registered mobile number should be changed." />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-secondary/40 p-4 text-center text-sm transition hover:border-primary hover:bg-secondary">
+                <label className={`flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm transition hover:border-primary ${idProofFile ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>
                   <User className="h-6 w-6 text-primary" />
-                  <span className="font-medium text-primary-dark">Upload ID proof *</span>
-                  <span className="text-xs text-muted-foreground">Aadhaar, PAN, or license image/PDF</span>
-                  <input type="file" accept="image/*,.pdf" className="hidden" required />
+                  <span className="font-medium text-primary-dark">{idProofFile ? "ID proof selected" : "Upload ID proof *"}</span>
+                  <span className={`max-w-full truncate text-xs ${idProofFile ? "font-medium text-success" : "text-muted-foreground"}`}>{idProofFile ? idProofFile.name : "Aadhaar, PAN, or license image/PDF"}</span>
+                  <input type="file" accept="image/*,.pdf" className="hidden" required onChange={(event) => setIdProofFile(event.target.files?.[0] || null)} />
                 </label>
-                <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-secondary/40 p-4 text-center text-sm transition hover:border-primary hover:bg-secondary">
+                <label className={`flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm transition hover:border-primary ${mobileProofFile ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>
                   <Phone className="h-6 w-6 text-primary" />
-                  <span className="font-medium text-primary-dark">Upload mobile proof</span>
-                  <span className="text-xs text-muted-foreground">SIM receipt, bill, or screenshot</span>
-                  <input type="file" accept="image/*,.pdf" className="hidden" />
+                  <span className="font-medium text-primary-dark">{mobileProofFile ? "Mobile proof selected" : "Upload mobile proof"}</span>
+                  <span className={`max-w-full truncate text-xs ${mobileProofFile ? "font-medium text-success" : "text-muted-foreground"}`}>{mobileProofFile ? mobileProofFile.name : "SIM receipt, bill, or screenshot"}</span>
+                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={(event) => setMobileProofFile(event.target.files?.[0] || null)} />
                 </label>
               </div>
 
@@ -1436,13 +4379,48 @@ export function OwnerMobileChangePage() {
 
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs text-muted-foreground">Admin approval is required before the new number becomes active.</p>
-                <Button className="bg-primary"><Phone className="mr-1 h-4 w-4" /> Submit Application</Button>
+                <Button className="bg-primary" disabled={submitting}><Phone className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Application"}</Button>
               </div>
             </form>
           </CardContent>
         </Card>
 
         <div className="space-y-6">
+          {latestRequest && (
+            <Card className="border-border/60">
+              <CardContent className="p-6">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-display font-bold text-primary-dark">My request status</h2>
+                    <div className="mt-1 font-mono text-xs text-muted-foreground">{latestRequest.request_code}</div>
+                  </div>
+                  <StatusBadge status={latestRequest.status} />
+                </div>
+                <div className="mt-4 space-y-3 text-sm">
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-muted-foreground">Requested mobile</div>
+                    <div className="font-mono font-medium text-primary-dark">{latestRequest.new_mobile}</div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-muted-foreground">Reason</div>
+                    <div className="font-medium text-primary-dark">{latestRequest.reason}</div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-muted-foreground">Admin response</div>
+                    <div className="font-medium text-primary-dark">
+                      {latestRequest.admin_remarks || (latestRequest.status === "pending" ? "Waiting for admin approval." : "-")}
+                    </div>
+                    {latestRequest.decided_at && (
+                      <div className="mt-1 text-xs text-muted-foreground">{new Date(latestRequest.decided_at).toLocaleString("en-IN")}</div>
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Submitted on {new Date(latestRequest.created_at).toLocaleString("en-IN")}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           <Card className="border-saffron/40 bg-saffron/5">
             <CardContent className="p-6">
               <h2 className="font-display font-bold text-primary-dark">Application checklist</h2>
@@ -1456,34 +4434,220 @@ export function OwnerMobileChangePage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/60">
-            <CardContent className="p-6">
-              <h2 className="font-display font-bold text-primary-dark">Recent applications</h2>
-              <div className="mt-4 space-y-3">
-                {MOBILE_REQUESTS.slice(0, 3).map((r) => (
-                  <div key={r.id} className="rounded-lg border p-3 text-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="font-mono text-xs text-muted-foreground">{r.id}</div>
-                      <StatusBadge status={r.status} />
-                    </div>
-                    <div className="mt-2 font-medium text-primary-dark">{r.newMobile}</div>
-                    <div className="text-xs text-muted-foreground">{r.reason}</div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </DashLayout>
   );
 }
 
+type MemberNotification = {
+  id: number;
+  notification_type: string;
+  title: string;
+  message: string;
+  action_url?: string | null;
+  priority: "normal" | "high" | "critical";
+  delivery_status: string;
+  read_at?: string | null;
+  created_at: string;
+};
+
 export function OwnerNotificationsPage() {
+  const router = useRouter();
+  const [notifications, setNotifications] = useState<MemberNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [openNotification, setOpenNotification] = useState<MemberNotification | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const lastRangNotificationId = useRef<number | null>(null);
+
+  const loadNotifications = async () => {
+    const response = await fetch("/api/v1/trader/notifications", { credentials: "include" });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Could not load notifications.");
+    setNotifications(result.notifications || []);
+    setUnreadCount(Number(result.unreadCount || 0));
+  };
+
+  useEffect(() => {
+    let active = true;
+    const cleanupSoundUnlock = installNotificationSoundUnlock();
+    const load = async () => {
+      try {
+        await loadNotifications();
+      } catch (error) {
+        if (active) toast.error(error instanceof Error ? error.message : "Could not load notifications.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    load();
+    const timer = window.setInterval(load, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      cleanupSoundUnlock();
+    };
+  }, []);
+
+  useEffect(() => {
+    const latestUnreadRiskAlert = notifications.find((notification) =>
+      (!notification.read_at && notification.delivery_status !== "read")
+      && (notification.notification_type === "risk_alert" || notification.priority === "critical")
+    );
+    if (!latestUnreadRiskAlert || lastRangNotificationId.current === latestUnreadRiskAlert.id) return;
+
+    lastRangNotificationId.current = latestUnreadRiskAlert.id;
+    if (!playNotificationTone()) {
+      toast.info("Tap Enable to ring risk alerts", {
+        action: {
+          label: "Enable",
+          onClick: () => {
+            unlockNotificationSound();
+            playNotificationTone();
+          },
+        },
+      });
+    }
+  }, [notifications]);
+
+  const markRead = async (notification: MemberNotification) => {
+    if (notification.notification_type === "risk_alert" || notification.priority === "critical") {
+      unlockNotificationSound();
+      setSoundEnabled(true);
+      playNotificationTone();
+    }
+    if (!notification.read_at && notification.delivery_status !== "read") {
+      const response = await fetch(`/api/v1/trader/notifications/${notification.id}/read`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not update notification.");
+      await loadNotifications();
+    }
+    setOpenNotification({ ...notification, delivery_status: "read", read_at: notification.read_at || new Date().toISOString() });
+  };
+
+  const markAllRead = async () => {
+    const response = await fetch("/api/v1/trader/notifications/read-all", {
+      method: "PATCH",
+      credentials: "include",
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Could not update notifications.");
+    toast.success("Notifications marked as read.");
+    await loadNotifications();
+  };
+
+  const enableSound = () => {
+    unlockNotificationSound();
+    setSoundEnabled(true);
+    if (playNotificationTone()) {
+      toast.success("Notification sound enabled.");
+    } else {
+      toast.info("Sound is enabled. Chrome may allow it after one more click.");
+    }
+  };
+
   return (
     <DashLayout kind="owner">
-      <PageTitle title="Notifications" subtitle="Recent alerts about notices, complaints, and market updates." />
-      <Card className="border-border/60"><CardContent className="p-6"><div className="space-y-3">{NOTIFICATIONS.map((n) => <div key={n.id} className={`flex items-center gap-3 rounded-lg border p-3 ${!n.read ? "bg-secondary/60" : ""}`}><div className="grid h-10 w-10 place-items-center rounded-lg bg-primary text-white"><Bell className="h-4 w-4" /></div><div className="flex-1"><div className="font-medium text-primary-dark">{n.title}</div><div className="text-xs text-muted-foreground">{new Date(n.date).toLocaleDateString("en-IN")}</div></div>{!n.read && <Badge className="bg-saffron text-primary-dark">New</Badge>}</div>)}</div></CardContent></Card>
+      <PageTitle
+        title="Notifications"
+        subtitle="Payment risk alerts, notices, complaints, and market updates saved to your inbox."
+        action={
+          <div className="flex flex-wrap gap-2">
+            <Button variant={soundEnabled ? "secondary" : "outline"} onClick={enableSound}>
+              <Bell className="mr-1 h-4 w-4" /> {soundEnabled ? "Sound On" : "Enable Sound"}
+            </Button>
+            {unreadCount > 0 && (
+              <Button variant="outline" onClick={() => markAllRead().catch((error) => toast.error(error.message))}>
+                Mark all read
+              </Button>
+            )}
+          </div>
+        }
+      />
+      <Card className="border-border/60">
+        <CardContent className="p-6">
+          {loading ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">Loading notifications...</div>
+          ) : notifications.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">No notifications yet.</div>
+          ) : (
+            <div className="space-y-3">
+              {notifications.map((notification) => {
+                const unread = !notification.read_at && notification.delivery_status !== "read";
+                const isRisk = notification.notification_type === "risk_alert" || notification.priority === "critical";
+                return (
+                  <button
+                    key={notification.id}
+                    type="button"
+                    onClick={() => markRead(notification).catch((error) => toast.error(error.message))}
+                    className={`flex w-full items-start gap-3 rounded-lg border p-3 text-left transition hover:border-primary/40 hover:bg-secondary/50 ${unread ? "bg-secondary/60" : "bg-background"}`}
+                  >
+                    <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg text-white ${isRisk ? "bg-destructive" : "bg-primary"}`}>
+                      {isRisk ? <ShieldAlert className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="font-medium text-primary-dark">{notification.title}</div>
+                        {unread && <Badge className="bg-saffron text-primary-dark">New</Badge>}
+                        {isRisk && <Badge className="bg-destructive text-white">Risk alert</Badge>}
+                      </div>
+                      <div className="mt-1 text-sm text-muted-foreground">{notification.message}</div>
+                      <div className="mt-2 text-xs text-muted-foreground">{new Date(notification.created_at).toLocaleString("en-IN")}</div>
+                    </div>
+                    {notification.action_url && <Eye className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <Dialog open={Boolean(openNotification)} onOpenChange={(open) => !open && setOpenNotification(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-primary-dark">
+              {openNotification?.priority === "critical" || openNotification?.notification_type === "risk_alert" ? (
+                <ShieldAlert className="h-5 w-5 text-destructive" />
+              ) : (
+                <Bell className="h-5 w-5 text-primary" />
+              )}
+              {openNotification?.title}
+            </DialogTitle>
+            <DialogDescription>
+              {openNotification ? new Date(openNotification.created_at).toLocaleString("en-IN") : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className={`rounded-lg border p-4 text-sm ${openNotification?.priority === "critical" || openNotification?.notification_type === "risk_alert" ? "border-destructive/30 bg-destructive/5" : "bg-secondary/40"}`}>
+              {openNotification?.message}
+            </div>
+            {openNotification?.notification_type === "risk_alert" && (
+              <div className="rounded-lg border bg-background p-4 text-sm text-muted-foreground">
+                This payment risk alert is saved permanently in your notification history. Check the customer risk record before trading further.
+              </div>
+            )}
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button variant="outline" onClick={() => setOpenNotification(null)}>Close</Button>
+              {openNotification?.action_url && (
+                <Button
+                  className="bg-primary"
+                  onClick={() => {
+                    const target = openNotification.action_url;
+                    setOpenNotification(null);
+                    router.navigate({ to: target || "/member/notifications" });
+                  }}
+                >
+                  Open Related Page
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashLayout>
   );
 }
@@ -1492,7 +4656,7 @@ export function OwnerHelpPage() {
   return (
     <DashLayout kind="owner">
       <PageTitle title="Help & Support" subtitle="Contact association office or learn how to use portal services." />
-      <div className="grid gap-4 md:grid-cols-3"><SupportCard icon={Phone} title="Call office" body="+91 20 2645 1122" /><SupportCard icon={Mail} title="Email support" body="office@vpp-marketyard.in" /><SupportCard icon={HelpCircle} title="Portal desk" body="Mon-Sat, 8 AM-6 PM" /></div>
+      <div className="grid gap-4 md:grid-cols-3"><SupportCard icon={FileText} title="Registration No." body="Maharashtra-1026/2013" /><SupportCard icon={Mail} title="Email support" body="aadateassociation1@gmail.com" /><SupportCard icon={HelpCircle} title="Office address" body="First Floor, Pan Bazar Building, Gultekdi, Pune - 411037" /></div>
       <Card className="mt-6 border-border/60"><CardContent className="p-6"><h2 className="font-display font-bold text-primary-dark">Common help topics</h2><div className="mt-4 grid gap-3 md:grid-cols-2">{["How to raise a complaint", "How to download notices", "How mobile number approval works", "How to update gala profile"].map((t) => <div key={t} className="rounded-lg border p-4 text-sm font-medium text-primary-dark">{t}</div>)}</div></CardContent></Card>
     </DashLayout>
   );
@@ -1503,8 +4667,8 @@ export function AdminHelpPage() {
     <DashLayout kind="admin">
       <PageTitle title="Help & Support" subtitle="Admin support desk, escalation contacts, and portal operating guidance." />
       <div className="grid gap-4 md:grid-cols-3">
-        <SupportCard icon={Phone} title="Admin helpline" body="+91 20 2645 1122" />
-        <SupportCard icon={Mail} title="Technical support" body="office@vpp-marketyard.in" />
+        <SupportCard icon={FileText} title="Registration No." body="Maharashtra-1026/2013" />
+        <SupportCard icon={Mail} title="Technical support" body="aadateassociation1@gmail.com" />
         <SupportCard icon={HelpCircle} title="Office hours" body="Mon-Sat, 8 AM-6 PM" />
       </div>
       <Card className="mt-6 border-border/60">

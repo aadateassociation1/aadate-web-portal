@@ -1,27 +1,26 @@
 import { createFileRoute, Link } from "@/lib/simple-router";
+import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/public/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowRight, Bell, ClipboardList, Download, FileText, Newspaper, Phone,
   UserCog, MessageSquare, TrendingUp, Users, Clock, ShieldCheck,
-  CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera,
+  CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee,
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
 import sourabhKunjirImg from "@/assets/sourabh Kunjir.png";
 import { useI18n } from "@/lib/i18n";
-import {
-  MARKET_UPDATES, NOTICES, CURRENT_CHAIRMAN, LOBBY_CHAIRMAN, COMMITTEE,
-} from "@/lib/mock";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "VPP Market Yard - Digital Portal for Traders" },
-      { name: "description", content: "Connecting 850+ traders with market yard administration. Market updates, notices, complaints, official documents." },
-      { property: "og:title", content: "VPP Market Yard - Digital Portal for Traders" },
-      { property: "og:description", content: "Secure digital platform for traders of Vishal Purandhar Patasanstha Market Yard." },
+      { title: "Shri Chhatrapati Shivaji Market Yard Adte Association - Digital Portal" },
+      { name: "description", content: "Connecting 850+ Members with market yard administration. Market updates, notices, complaints, official documents." },
+      { property: "og:title", content: "Shri Chhatrapati Shivaji Market Yard Adte Association - Digital Portal" },
+      { property: "og:description", content: "Secure digital platform for Members of Shri Chhatrapati Shivaji Market Yard Adte Association." },
     ],
   }),
   component: Home,
@@ -57,9 +56,80 @@ const GALLERY_TILES = [
 
 function Home() {
   const { t, lang } = useI18n();
-  const ticker = MARKET_UPDATES.slice(0, 6);
-  const updates = MARKET_UPDATES.slice(0, 6);
-  const notices = NOTICES.slice(0, 4);
+  type PublicContent = { id: number; title_en: string; content_en?: string; published_at: string | null; created_at: string; parsed?: { category?: string; details?: string }; attachments?: Array<{ id: number; attachment_type: string; original_filename: string }> };
+  type CommitteeMemberRecord = { id: number; full_name: string; name_mr: string | null; designation: string; gala_number: string | null; term_label: string | null; message: string | null; photo_url: string | null };
+  type PublicReview = { id: number; rating_value: number; review_text: string | null; reviewer_type: "trader" | "customer"; reviewer_name: string; business_name: string; trader_code: string; trader_name: string; gala_number: string | null; customer_code: string | null; created_at: string; attachments?: Array<{ id: number; attachment_type: "image" | "video"; original_filename: string; mime_type: string; file_size_bytes: number }> };
+  type PublicPrice = { item_id: number; category: string; name_en: string; name_mr: string; min_price: number; max_price: number; modal_price: number; unit: string; change_amount: number | null; change_direction: string; published_at: string | null };
+  const [updates, setUpdates] = useState<PublicContent[]>([]);
+  const [notices, setNotices] = useState<PublicContent[]>([]);
+  const [gallery, setGallery] = useState<PublicContent[]>([]);
+  const [committee, setCommittee] = useState<CommitteeMemberRecord[]>([]);
+  const [reviews, setReviews] = useState<PublicReview[]>([]);
+  const [prices, setPrices] = useState<PublicPrice[]>([]);
+  const [selectedNotice, setSelectedNotice] = useState<PublicContent | null>(null);
+  useEffect(() => {
+    fetch("/api/v1/public/posts").then((r) => r.json()).then((result) => { if (result.ok) setUpdates(result.posts || []); }).catch(() => undefined);
+    fetch("/api/v1/public/notices").then((r) => r.json()).then((result) => { if (result.ok) setNotices(result.notices || []); }).catch(() => undefined);
+    fetch("/api/v1/public/gallery").then((r) => r.json()).then((result) => { if (result.ok) setGallery(result.items || []); }).catch(() => undefined);
+    fetch("/api/v1/public/committee").then((r) => r.json()).then((result) => { if (result.ok) setCommittee(result.members || []); }).catch(() => undefined);
+    fetch("/api/v1/public/ratings").then((r) => r.json()).then((result) => { if (result.ok) setReviews(result.reviews || []); }).catch(() => undefined);
+    fetch("/api/v1/public/market-prices").then((r) => r.json()).then((result) => { if (result.ok) setPrices(result.prices || []); }).catch(() => undefined);
+  }, []);
+  const ticker = updates.slice(0, 6);
+  const heroSubtitle = t("hero.sub");
+  const chairman = committee.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
+  const lobbyChairman = committee.find((member) => member.designation.toLowerCase().includes("lobby"));
+  const committeeMembers = committee.filter((member) => member.id !== chairman?.id && member.id !== lobbyChairman?.id);
+  const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
+  const chairmanCopy = lang === "mr"
+    ? {
+        current: "सध्याचे अध्यक्ष",
+        role: "अध्यक्ष",
+        title: "नेतृत्व",
+        term: "कार्यकाळ",
+        name: chairman?.name_mr || "श्री. सौरभ कुंजीर",
+        secondaryName: "",
+        intro: "त्यांच्या नेतृत्वाखाली संघटना पारदर्शक प्रशासन, जलद तक्रार निवारण, नियमित बाजार माहिती आणि प्रत्येक व्यापारी व गाळाधारकासाठी अधिक चांगल्या डिजिटल सेवांवर लक्ष केंद्रित करत आहे.",
+        quote: "प्रत्येक व्यापाऱ्यासाठी पारदर्शक, डिजिटल आणि सेवा-केंद्रित मार्केट यार्ड उभारण्यासाठी आपण सर्वजण एकत्र काम करत आहोत.",
+        focus: ["डिजिटल सूचना प्रवेश", "सभासद-केंद्रित मदत", "बाजार अद्यतने", "पारदर्शक कार्यप्रवाह"],
+      }
+    : {
+        current: "Current Chairman",
+        role: "Chairman",
+        title: "Leadership",
+        term: "Term",
+        name: chairman?.full_name || "Shri. Sourabh Kunjir",
+        secondaryName: chairman?.name_mr || "",
+        intro: "Under his leadership, the association is focused on transparent administration, faster complaint resolution, regular market communication, and better digital services for every trader and gala owner.",
+        quote: chairman?.message || "Together, we are building a transparent, digital and service-focused market yard for every trader.",
+        focus: ["Digital notice access", "Member-first support", "Market updates", "Transparent workflow"],
+      };
+  const downloadNotice = (notice: PublicContent) => {
+    const attachment = notice.attachments?.[0];
+    if (attachment) {
+      window.open(`/api/v1/public/content-attachments/${attachment.id}/download?download=1`, "_blank", "noopener,noreferrer");
+      return;
+    }
+    const report = [
+      "Shri Chhatrapati Shivaji Market Yard Adte Association",
+      "Official Notice",
+      "",
+      `Title: ${notice.title_en}`,
+      `Category: ${notice.parsed?.category || "Notice"}`,
+      `Date: ${new Date(notice.published_at || notice.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}`,
+      "",
+      notice.parsed?.details || notice.content_en || "",
+    ].join("\n");
+    const blob = new Blob([report], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${notice.title_en || "notice"}.txt`.replace(/[\\/:*?"<>|]+/g, "-");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <SiteLayout>
@@ -74,7 +144,7 @@ function Home() {
               {[...ticker, ...ticker].map((u, i) => (
                 <span key={i} className="inline-flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary-dark" />
-                  {lang === "mr" ? u.titleMr : u.title}
+                  {u.title_en}
                 </span>
               ))}
             </div>
@@ -92,16 +162,18 @@ function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/70 via-primary/30 to-primary-fresh/10" aria-hidden />
         <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/45 via-transparent to-white/10" aria-hidden />
         <div className="container-page relative grid gap-10 py-16 md:py-24 lg:grid-cols-2 lg:items-center">
-          <div>
+          <div className="text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-saffron/40 bg-saffron/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-saffron">
               <ShieldCheck className="h-3.5 w-3.5" /> Official Association Portal
             </span>
-            <h1 className="mt-5 font-display text-3xl font-bold leading-tight sm:text-4xl md:text-5xl lg:text-6xl">
+            <h1 className="mt-5 max-w-3xl text-left font-display text-3xl font-bold leading-snug sm:text-4xl md:text-5xl lg:text-[3.4rem]">
               {t("hero.title")}
             </h1>
-            <p className="mt-5 max-w-xl text-base sm:text-lg text-white/85">
-              {t("hero.sub")}
-            </p>
+            {heroSubtitle && (
+              <p className="mt-5 max-w-xl text-base sm:text-lg text-white/85">
+                {heroSubtitle}
+              </p>
+            )}
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg" className="bg-saffron text-saffron-foreground hover:bg-saffron/90">
                 <Link to="/login">{t("hero.cta.login")} <ArrowRight className="ml-1 h-4 w-4" /></Link>
@@ -139,16 +211,16 @@ function Home() {
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-primary">About the Association</span>
             <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">
-              Serving Maharashtra's farmers &amp; traders since 2009
+              Serving Maharashtra's farmers &amp; Members since 2009
             </h2>
             <p className="mt-5 text-muted-foreground leading-relaxed">
-              Vishal Purandhar Patasanstha Market Yard Owners Association represents over 850 traders
-              operating across vegetable, fruit, grain, flower and agricultural sections. Our digital
+              Shri Chhatrapati Shivaji Market Yard Adte Association represents Members
+              operating from the Market Yard at Gultekdi, Pune. Our digital
               transformation initiative delivers transparent administration, faster complaint resolution
               and instant access to notices - all in Marathi and English.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              {["Transparent complaint workflow", "Digital notice archive", "Bilingual EN / मराठी", "Verified trader accounts"].map((f) => (
+              {["Transparent complaint workflow", "Digital notice archive", "Bilingual EN / Marathi", "Verified Member accounts"].map((f) => (
                 <div key={f} className="flex items-start gap-2 text-sm">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary-fresh" /> {f}
                 </div>
@@ -172,7 +244,7 @@ function Home() {
           <div className="max-w-2xl">
             <span className="text-xs font-bold uppercase tracking-wider text-primary">{t("section.services")}</span>
             <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">
-              Everything a trader needs, in one portal
+              Everything a Member needs, in one portal
             </h2>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -191,63 +263,110 @@ function Home() {
         </div>
       </section>
 
-      {/* Chairman & Lobby chairman */}
+      {/* Chairman */}
       <section className="bg-cream py-16 md:py-20">
         <div className="container-page">
           <div className="max-w-2xl">
             <span className="text-xs font-bold uppercase tracking-wider text-primary">{t("section.chairman")}</span>
-            <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Leadership</h2>
+            <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">{chairmanCopy.title}</h2>
           </div>
-          <div className="mx-auto mt-10 grid max-w-5xl justify-center gap-10 md:grid-cols-[minmax(0,460px)_minmax(0,460px)] lg:gap-14">
-            <Card className="overflow-hidden border-border/60">
-              <div className="relative h-72 bg-secondary sm:h-80">
-                <img
-                  src={sourabhKunjirImg}
-                  alt="Sourabh Kunjir"
-                  className="h-full w-full object-cover object-[center_18%]"
-                />
-                <div className="absolute left-5 top-5">
-                  <Badge className="bg-saffron text-saffron-foreground hover:bg-saffron">Current Chairman</Badge>
-                </div>
-              </div>
-              <CardContent className="p-6 sm:p-8">
-                <h3 className="font-display text-2xl font-bold text-primary-dark">{CURRENT_CHAIRMAN.name}</h3>
-                <div className="text-sm text-muted-foreground">{CURRENT_CHAIRMAN.nameMr}</div>
-                <div className="mt-1 text-xs font-semibold text-primary">Term: {CURRENT_CHAIRMAN.term}</div>
-                <p className="mt-3 text-sm text-foreground/80 leading-relaxed italic">
-                  "{CURRENT_CHAIRMAN.message}"
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="overflow-hidden border-border/60">
-              <div className="grid h-72 place-items-center bg-secondary sm:h-80">
-                <div className="grid h-36 w-36 place-items-center rounded-3xl bg-background font-display text-4xl font-bold text-primary shadow-md">AD</div>
-              </div>
-              <CardContent className="p-6 sm:p-8">
-                <Badge variant="outline" className="border-primary text-primary">Lobby Chairman</Badge>
-                <h3 className="mt-2 font-display text-2xl font-bold text-primary-dark">{LOBBY_CHAIRMAN.name}</h3>
-                <p className="mt-3 text-sm text-foreground/80 leading-relaxed">{LOBBY_CHAIRMAN.intro}</p>
-              </CardContent>
-            </Card>
+          <div className="mx-auto mt-10 max-w-6xl">
+            {chairman && (
+              <Card className="overflow-hidden border-border/60 shadow-sm">
+                <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,54%)_minmax(0,46%)]">
+                  <div className="relative min-h-[420px] bg-secondary sm:min-h-[500px] lg:min-h-[560px]">
+                    <img
+                      src={chairman.photo_url || sourabhKunjirImg}
+                      alt={chairman.full_name}
+                      className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
+                    />
+                    <div className="absolute left-5 top-5">
+                      <Badge className="bg-saffron text-saffron-foreground hover:bg-saffron">{chairmanCopy.current}</Badge>
+                    </div>
+                  </div>
+                  <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
+                    <Badge variant="outline" className="w-fit border-primary text-primary">{chairmanCopy.role}</Badge>
+                    <h3 className="mt-4 font-display text-3xl font-bold text-primary-dark sm:text-4xl">{chairmanCopy.name}</h3>
+                    {chairmanCopy.secondaryName && <div className="mt-1 text-base text-muted-foreground">{chairmanCopy.secondaryName}</div>}
+                    {chairman.term_label && <div className="mt-3 text-sm font-semibold text-primary">{chairmanCopy.term}: {chairman.term_label}</div>}
+                    <p className="mt-5 text-base leading-relaxed text-foreground/80">
+                      {chairmanCopy.intro}
+                    </p>
+                    <p className="mt-5 border-l-4 border-saffron pl-4 text-base leading-relaxed text-foreground/80 italic">
+                      "{chairmanCopy.quote}"
+                    </p>
+                    <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                      {chairmanCopy.focus.map((item) => (
+                        <div key={item} className="rounded-lg bg-secondary/55 px-4 py-3 text-sm font-semibold text-primary-dark">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Committee */}
           <div className="mt-14">
             <h3 className="font-display text-2xl font-bold text-primary-dark">{t("section.committee")}</h3>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {COMMITTEE.slice(2).map((m) => (
-                <Card key={m.id} className="border-border/60 text-center">
-                  <CardContent className="p-5">
-                    <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-secondary font-display text-lg font-bold text-primary">
-                      {m.name.split(" ").slice(-1)[0][0]}
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {committeeMembers.slice(0, 8).map((m) => (
+                <Card key={m.id} className="overflow-hidden border-border/60 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                  <CardContent className="px-4 py-3">
+                    <div className="mx-auto grid h-40 w-40 place-items-center overflow-hidden rounded-full border-4 border-white bg-secondary font-display text-2xl font-bold text-primary shadow-md ring-1 ring-border">
+                      {m.photo_url ? <img src={m.photo_url} alt={m.full_name} className="h-full w-full object-cover object-top" /> : initials(m.full_name)}
                     </div>
-                    <h4 className="mt-3 font-semibold text-primary-dark">{m.name}</h4>
-                    <div className="text-xs text-primary font-medium">{m.designation}</div>
-                    {m.gala && <div className="mt-1 text-xs text-muted-foreground">Gala {m.gala}</div>}
+                    <h4 className="mt-2 font-display font-semibold leading-snug text-primary-dark">{m.full_name}</h4>
+                    <div className="mt-1.5 inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">{m.designation}</div>
+                    {m.gala_number && <div className="mt-1.5 text-xs font-medium text-muted-foreground">Gala {m.gala_number}</div>}
                   </CardContent>
                 </Card>
               ))}
+              {committee.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground sm:col-span-2 lg:col-span-3">No committee members published yet.</div>}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Daily market prices */}
+      <section className="bg-secondary/35 py-16 md:py-20">
+        <div className="container-page">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="max-w-2xl">
+              <span className="text-xs font-bold uppercase tracking-wider text-primary">आजचे बाजार भाव</span>
+              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Daily Market Prices</h2>
+              <p className="mt-3 text-sm text-muted-foreground">Latest published vegetable and fruit rates from the market yard.</p>
+            </div>
+            <Button asChild variant="outline"><Link to="/market-prices">View All Market Prices <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {prices.slice(0, 8).map((price) => (
+              <Card key={price.item_id} className="border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <Badge variant="secondary" className="capitalize">{price.category}</Badge>
+                      <h3 className="mt-3 font-display text-lg font-bold leading-snug text-primary-dark">{price.name_en}</h3>
+                      <div className="text-sm text-muted-foreground">{price.name_mr}</div>
+                    </div>
+                    <IndianRupee className="h-9 w-9 shrink-0 rounded-lg bg-primary p-2 text-white" />
+                  </div>
+                  <div className="mt-5 font-display text-2xl font-bold text-primary-dark">
+                    ₹{price.min_price} - ₹{price.max_price}
+                    <span className="ml-1 text-sm font-semibold text-muted-foreground">/ {price.unit}</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Average ₹{price.modal_price}</span>
+                    <span className={price.change_direction === "up" ? "font-semibold text-success" : price.change_direction === "down" ? "font-semibold text-destructive" : "text-muted-foreground"}>
+                      {price.change_amount === null ? "New" : price.change_direction === "up" ? `↑ ₹${price.change_amount}` : price.change_direction === "down" ? `↓ ₹${Math.abs(price.change_amount)}` : "— ₹0"}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {prices.length === 0 && <div className="rounded-lg border bg-background p-8 text-center text-sm text-muted-foreground sm:col-span-2 lg:col-span-4">Today's market prices have not been published yet. Please check again shortly.</div>}
           </div>
         </div>
       </section>
@@ -263,25 +382,23 @@ function Home() {
             <Button asChild variant="outline"><Link to="/updates">View all updates <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {updates.map((u) => (
+            {updates.slice(0, 6).map((u) => (
               <Card key={u.id} className="border-border/60 transition hover:shadow-lg">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-secondary text-primary-dark">{u.category}</Badge>
-                    {u.emergency && <Badge className="bg-destructive text-white">Emergency</Badge>}
-                    {u.featured && <Badge className="bg-saffron text-saffron-foreground">Featured</Badge>}
+                    <Badge variant="secondary" className="bg-secondary text-primary-dark">{u.parsed?.category || "General"}</Badge>
                   </div>
                   <h3 className="mt-3 font-display font-semibold text-primary-dark line-clamp-2">
-                    {lang === "mr" ? u.titleMr : u.title}
+                    {u.title_en}
                   </h3>
-                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{u.summary}</p>
+                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{u.parsed?.details || ""}</p>
                   <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{new Date(u.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
-                    <span>{u.views} views</span>
+                    <span>{new Date(u.published_at || u.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
                   </div>
                 </CardContent>
               </Card>
             ))}
+            {updates.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground md:col-span-2 lg:col-span-3">No market updates yet.</div>}
           </div>
         </div>
       </section>
@@ -297,26 +414,50 @@ function Home() {
             <Button asChild variant="outline"><Link to="/notices">View all notices <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
           <div className="mt-10 grid gap-4 md:grid-cols-2">
-            {notices.map((n) => (
+            {notices.slice(0, 4).map((n) => (
               <Card key={n.id} className="border-border/60">
                 <CardContent className="p-6">
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <Badge variant="outline" className="border-primary/40 text-primary">{n.category}</Badge>
-                    <span>Notice #{n.number}</span>
-                    <span>- {new Date(n.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                    <Badge variant="outline" className="border-primary/40 text-primary">{n.parsed?.category || "Notice"}</Badge>
+                    <span>Notice #{n.id}</span>
+                    <span>- {new Date(n.published_at || n.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
                   </div>
-                  <h3 className="mt-3 font-display font-semibold text-primary-dark">{n.title}</h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{n.description}</p>
+                  <h3 className="mt-3 font-display font-semibold text-primary-dark">{n.title_en}</h3>
+                  <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{n.parsed?.details || ""}</p>
                   <div className="mt-4 flex gap-2">
-                    <Button size="sm" variant="outline"><FileText className="h-4 w-4 mr-1" /> View</Button>
-                    <Button size="sm" className="bg-primary"><Download className="h-4 w-4 mr-1" /> Download</Button>
+                    <Button size="sm" variant="outline" onClick={() => setSelectedNotice(n)}><FileText className="h-4 w-4 mr-1" /> View</Button>
+                    <Button size="sm" className="bg-primary" onClick={() => downloadNotice(n)}><Download className="h-4 w-4 mr-1" /> Download</Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
+            {notices.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground md:col-span-2">No notices yet.</div>}
           </div>
         </div>
       </section>
+
+      <Dialog open={!!selectedNotice} onOpenChange={(open) => !open && setSelectedNotice(null)}>
+        <DialogContent className="max-w-2xl">
+          {selectedNotice && (
+            <>
+              <DialogHeader>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="border-primary/40 text-primary">{selectedNotice.parsed?.category || "Notice"}</Badge>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {new Date(selectedNotice.published_at || selectedNotice.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                  </span>
+                </div>
+                <DialogTitle className="pt-2 font-display text-2xl text-primary-dark">{selectedNotice.title_en}</DialogTitle>
+                <DialogDescription>{selectedNotice.parsed?.details || selectedNotice.content_en || ""}</DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
+                <Button variant="outline" onClick={() => setSelectedNotice(null)}>Close</Button>
+                <Button className="bg-primary" onClick={() => downloadNotice(selectedNotice)}><Download className="mr-1 h-4 w-4" /> Download</Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* How it works */}
       <section className="py-16 md:py-20">
@@ -353,21 +494,68 @@ function Home() {
             <Button asChild variant="outline"><Link to="/gallery">Open gallery <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
           <div className="mt-10 grid gap-4 grid-cols-2 md:grid-cols-3">
-            {GALLERY_TILES.map((label, i) => (
-              <div key={i} className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-secondary">
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                  style={{ backgroundImage: `url(${heroImg})`, filter: `hue-rotate(${i * 25}deg)` }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/85 via-primary-dark/20 to-transparent" />
+            {gallery.slice(0, 6).map((item) => {
+              const image = item.attachments?.find((file) => file.attachment_type === "image");
+              return (
+              <div key={item.id} className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-secondary">
+                {image && <img src={`/api/v1/public/content-attachments/${image.id}/download`} className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+                <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/55 via-primary-dark/10 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-4 text-white">
                   <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-saffron">
                     <Camera className="h-3.5 w-3.5" /> Photo
                   </div>
-                  <div className="mt-1 font-display font-semibold">{label}</div>
+                  <div className="mt-1 font-display font-semibold">{item.title_en}</div>
                 </div>
               </div>
+            )})}
+            {gallery.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground md:col-span-3">No gallery items yet.</div>}
+          </div>
+        </div>
+      </section>
+
+      {/* Public reviews */}
+      <section className="py-16 md:py-20">
+        <div className="container-page">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="max-w-2xl">
+              <span className="text-xs font-bold uppercase tracking-wider text-primary">Portal reviews</span>
+              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Portal Feedback</h2>
+              <p className="mt-3 text-sm text-muted-foreground">Approved feedback from Members and customers.</p>
+            </div>
+          </div>
+          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {reviews.slice(0, 6).map((review) => (
+              <Card key={review.id} className="border-border/60 shadow-sm">
+                <CardContent className="flex h-full flex-col p-6">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex text-saffron">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className={`h-4 w-4 ${star <= review.rating_value ? "fill-current" : ""}`} />
+                      ))}
+                    </div>
+                    <Badge variant="outline" className="capitalize">{review.reviewer_type}</Badge>
+                  </div>
+                  <p className="mt-4 flex-1 text-sm leading-relaxed text-foreground/80">{review.review_text}</p>
+                  {review.attachments && review.attachments.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {review.attachments.map((file) => (
+                        <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/public/rating-attachments/${file.id}/download`, "_blank", "noopener,noreferrer")}>
+                          <Download className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "Image" : "Video"}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-5 rounded-lg bg-secondary/40 p-3">
+                    <div className="font-display font-semibold leading-snug text-primary-dark">{review.reviewer_name}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {review.reviewer_type === "customer" ? `${review.customer_code || "Customer"} via ` : ""}
+                      {review.business_name || review.trader_name} - Gala {review.gala_number || "-"}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
+            {reviews.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground md:col-span-2 lg:col-span-3">No portal reviews reshared yet.</div>}
           </div>
         </div>
       </section>
@@ -387,7 +575,7 @@ function Home() {
                 <Link to="/register">Register Your Gala</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white hover:text-primary-dark">
-                <Link to="/login">Traders</Link>
+                <Link to="/login">Members</Link>
               </Button>
             </div>
           </div>
@@ -396,3 +584,4 @@ function Home() {
     </SiteLayout>
   );
 }
+

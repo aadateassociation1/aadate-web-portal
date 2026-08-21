@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { translateDocumentToMarathi } from "@/lib/marathi";
+import { translateDocumentToMarathi, translateToMarathi } from "@/lib/marathi";
 
 export type Lang = "en" | "mr";
 
@@ -9,27 +9,28 @@ const dict = {
     "nav.about": "About",
     "nav.chairman": "Lobby",
     "nav.committee": "Committee",
+    "nav.marketPrices": "Market Prices",
     "nav.updates": "Market Updates",
     "nav.notices": "Notices",
     "nav.gallery": "Gallery",
     "nav.contact": "Contact",
-    "nav.login": "Traders",
+    "nav.login": "Members",
     "nav.register": "Register",
     "nav.logout": "Logout",
-    "assoc.name": "Vishal Purandhar Patasanstha",
-    "assoc.short": "Market Yard Owners Association",
-    "hero.title": "Connecting Every Trader with the Market Yard Administration",
-    "hero.sub": "A secure digital platform for market updates, complaints, official notices, documents and communication.",
-    "hero.cta.login": "Traders",
+    "assoc.name": "Shri Chhatrapati Shivaji Market Yard Adte Association",
+    "assoc.short": "Shri Chhatrapati Shivaji Market Yard Adte Association",
+    "hero.title": "प्रत्येक आडते व्यापारी यांना मार्केट यार्ड व्यवसाय व प्रशासन यांच्याशी जोडणारे पोर्टल.",
+    "hero.sub": "",
+    "hero.cta.login": "Members",
     "hero.cta.register": "Register Your Gala",
     "hero.cta.updates": "View Latest Market Updates",
-    "stats.owners": "Registered Traders",
+    "stats.owners": "Registered Members",
     "stats.portal": "Digital Market Yard Portal",
     "stats.access": "Access to Notices",
     "stats.resolution": "Faster Complaint Resolution",
     "section.services": "Portal Services",
     "section.chairman": "Chairman's Desk",
-    "section.committee": "Committee Traders",
+    "section.committee": "Committee Members",
     "section.updates": "Latest Market Updates",
     "section.notices": "Latest Notices",
     "section.how": "How the Portal Works",
@@ -42,6 +43,7 @@ const dict = {
     "nav.about": "आमच्याविषयी",
     "nav.chairman": "लॉबी",
     "nav.committee": "समिती",
+    "nav.marketPrices": "????? ???",
     "nav.updates": "बाजार अद्यतने",
     "nav.notices": "सूचना",
     "nav.gallery": "गॅलरी",
@@ -72,7 +74,16 @@ const dict = {
   },
 } as const;
 
-type Key = keyof typeof dict["en"];
+const cleanDict = {
+  ...dict,
+  en: {
+    ...dict.en,
+    "hero.title": "Connecting every Member with market yard business and administration.",
+    "hero.sub": "A secure digital platform for market updates, complaints, official notices, documents and communication.",
+  },
+} as const;
+
+type Key = keyof typeof cleanDict["en"];
 
 const Ctx = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: (k: Key) => string }>({
   lang: "en",
@@ -115,8 +126,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     setLangState(l);
     if (typeof window !== "undefined") localStorage.setItem("lang", l);
   };
-  const t = (k: Key) => (dict[lang] as Record<string, string>)[k] ?? k;
+  const t = (k: Key) => {
+    const english = cleanDict.en[k] ?? k;
+    return lang === "mr" ? translateToMarathi(english) : english;
+  };
   return <Ctx.Provider value={{ lang, setLang, t }}>{children}</Ctx.Provider>;
 }
 
 export const useI18n = () => useContext(Ctx);
+

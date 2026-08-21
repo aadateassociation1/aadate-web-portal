@@ -2,22 +2,31 @@ import { Link, useRouterState } from "@/lib/simple-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   Menu, X,
-  Clock, Mail, Phone, Sprout,
+  Clock, Mail,
   Facebook, Twitter, Youtube, MapPin, ChevronRight,
+  ArrowUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import logoSrc from "@/assets/logo.png";
 
 const NAV = [
   { to: "/", key: "nav.home" as const },
   { to: "/about", key: "nav.about" as const },
   { to: "/chairman", key: "nav.chairman" as const },
+  { to: "/market-prices", key: "nav.marketPrices" as const },
   { to: "/updates", key: "nav.updates" as const },
   { to: "/notices", key: "nav.notices" as const },
   { to: "/gallery", key: "nav.gallery" as const },
   { to: "/contact", key: "nav.contact" as const },
 ];
+
+const ASSOCIATION_NAME = "Shri Chhatrapati Shivaji Market Yard Adte Association";
+const ASSOCIATION_REGISTRATION = "Registration No.: Maharashtra-1026/2013";
+const ASSOCIATION_PTR = "P.T.R. No.: F. 41841 / Pune";
+const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shri Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
+const ASSOCIATION_EMAIL = "aadateassociation1@gmail.com";
 
 function LangSwitcher({ tone = "dark" }: { tone?: "dark" | "light" }) {
   const { lang, setLang } = useI18n();
@@ -58,9 +67,8 @@ function TopBar() {
     <div className="hero-gradient text-white/90 text-xs">
       <div className="container-page flex flex-wrap items-center justify-between gap-2 py-2">
         <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-          <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> +91 20 2645 1122</span>
-          <span className="hidden sm:inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> office@vpp-marketyard.in</span>
-          <span className="hidden md:inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Mon-Sat, 8 AM - 6 PM</span>
+          <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {ASSOCIATION_EMAIL}</span>
+          <span className="hidden md:inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {ASSOCIATION_REGISTRATION}</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="hidden sm:inline">{now.toLocaleString(lang === "mr" ? "mr-IN" : "en-IN", { dateStyle: "medium", timeStyle: "medium" })}</span>
@@ -86,21 +94,15 @@ function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 shadow-sm backdrop-blur-sm">
       <div className="container-page flex min-h-[66px] items-center gap-3 py-2 xl:gap-5">
-        <Link to="/" className="flex min-w-0 shrink items-center gap-2.5 sm:min-w-[250px] xl:shrink-0">
-          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl saffron-gradient shadow-sm sm:h-12 sm:w-12">
-            <Sprout className="h-6 w-6 text-primary-dark" strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0">
-            <div className="truncate font-display text-sm font-bold leading-tight text-primary-dark sm:text-base">
-              {t("assoc.name")}
-            </div>
-            <div className="truncate text-[11px] font-medium leading-tight text-muted-foreground">
-              {t("assoc.short")}
-            </div>
-          </div>
+        <Link to="/" className="flex min-w-0 shrink items-center sm:min-w-[220px] xl:shrink-0">
+          <img
+            src={logoSrc}
+            alt={ASSOCIATION_NAME}
+            className="h-12 w-auto max-w-[190px] object-contain sm:h-14 sm:max-w-[230px]"
+          />
         </Link>
 
-        <nav className="ml-auto hidden min-w-0 items-center justify-end gap-0.5 xl:flex">
+        <nav className="mx-auto hidden min-w-0 items-center justify-center gap-0.5 xl:flex">
           {NAV.map((n) => (
             <Link
               key={n.to}
@@ -179,19 +181,21 @@ function Footer() {
     <footer className="mt-16 bg-primary-dark text-white/90">
       <div className="container-page grid gap-10 py-14 md:grid-cols-4">
         <div>
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="grid h-11 w-11 place-items-center rounded-xl saffron-gradient">
-              <Sprout className="h-6 w-6 text-primary-dark" strokeWidth={2.5} />
-            </div>
-            <div className="font-display font-bold text-white">{t("assoc.short")}</div>
+          <div className="mb-3">
+            <img
+              src={logoSrc}
+              alt={ASSOCIATION_NAME}
+              className="h-14 w-auto max-w-[230px] rounded bg-white p-1.5 object-contain"
+            />
           </div>
-          <p className="text-sm text-white/70 leading-relaxed">
-            Serving 850+ traders with transparent digital administration since 2009.
+          <p className="text-sm leading-relaxed text-white/70">
+            {ASSOCIATION_REGISTRATION}<br />
+            {ASSOCIATION_PTR}
           </p>
           <div className="mt-4 flex gap-3">
-            <a className="grid h-9 w-9 place-items-center rounded-full bg-white/10 hover:bg-saffron hover:text-primary-dark transition"><Facebook className="h-4 w-4" /></a>
-            <a className="grid h-9 w-9 place-items-center rounded-full bg-white/10 hover:bg-saffron hover:text-primary-dark transition"><Twitter className="h-4 w-4" /></a>
-            <a className="grid h-9 w-9 place-items-center rounded-full bg-white/10 hover:bg-saffron hover:text-primary-dark transition"><Youtube className="h-4 w-4" /></a>
+            <a className="grid h-9 w-9 place-items-center rounded-full bg-white/10 transition hover:bg-saffron hover:text-primary-dark"><Facebook className="h-4 w-4" /></a>
+            <a className="grid h-9 w-9 place-items-center rounded-full bg-white/10 transition hover:bg-saffron hover:text-primary-dark"><Twitter className="h-4 w-4" /></a>
+            <a className="grid h-9 w-9 place-items-center rounded-full bg-white/10 transition hover:bg-saffron hover:text-primary-dark"><Youtube className="h-4 w-4" /></a>
           </div>
         </div>
         <div>
@@ -221,9 +225,10 @@ function Footer() {
         <div>
           <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider text-saffron">Contact</h4>
           <ul className="space-y-3 text-sm text-white/70">
-            <li className="flex gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> Market Yard Road, Saswad, Purandar, Pune 412301</li>
-            <li className="flex gap-2"><Phone className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> +91 20 2645 1122</li>
-            <li className="flex gap-2"><Mail className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> office@vpp-marketyard.in</li>
+            <li className="flex gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> {ASSOCIATION_ADDRESS}</li>
+            <li className="flex gap-2"><Mail className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> {ASSOCIATION_EMAIL}</li>
+            <li className="flex gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> {ASSOCIATION_REGISTRATION}</li>
+            <li className="flex gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> {ASSOCIATION_PTR}</li>
             <li className="flex gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> Mon-Sat, 8 AM - 6 PM</li>
           </ul>
         </div>
@@ -258,24 +263,27 @@ function Footer() {
   );
 }
 
-function WhatsAppFAB() {
+function ScrollTopFAB() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const updateVisibility = () => setVisible(window.scrollY > 320);
+    updateVisibility();
+    window.addEventListener("scroll", updateVisibility, { passive: true });
+    return () => window.removeEventListener("scroll", updateVisibility);
+  }, []);
+
   return (
-    <a
-      href="https://wa.me/912026451122"
-      target="_blank"
-      rel="noreferrer"
-      className="fixed bottom-5 right-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl hover:scale-105 transition"
-      aria-label="Contact on WhatsApp"
+    <button
+      type="button"
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      className={`fixed bottom-24 right-5 z-50 grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-xl transition hover:scale-105 hover:bg-primary/90 ${
+        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"
+      }`}
+      aria-label="Scroll to top"
     >
-      <svg
-        className="h-7 w-7"
-        viewBox="0 0 32 32"
-        fill="currentColor"
-        aria-hidden="true"
-      >
-        <path d="M16.04 3.2A12.72 12.72 0 0 0 5.22 22.6L3.8 28.8l6.34-1.48A12.72 12.72 0 1 0 16.04 3.2Zm0 22.9c-2.05 0-3.95-.6-5.55-1.65l-.4-.26-3.76.88.84-3.68-.27-.42A10.2 10.2 0 1 1 16.04 26.1Zm5.62-7.63c-.3-.16-1.82-.9-2.1-1-.28-.1-.48-.16-.68.16-.2.3-.78 1-.96 1.2-.18.22-.36.24-.66.08-.3-.16-1.28-.47-2.44-1.5-.9-.8-1.5-1.78-1.68-2.08-.18-.3-.02-.47.14-.62.14-.14.3-.36.46-.54.16-.18.2-.3.3-.5.1-.2.06-.38-.02-.54-.08-.16-.68-1.64-.94-2.24-.24-.58-.5-.5-.68-.5h-.58c-.2 0-.52.08-.8.38-.28.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.88 1.22 3.08.16.2 2.1 3.2 5.08 4.48.7.3 1.26.48 1.7.62.72.22 1.36.18 1.88.12.58-.08 1.82-.74 2.08-1.46.26-.72.26-1.34.18-1.46-.08-.12-.28-.2-.58-.36Z" />
-      </svg>
-    </a>
+      <ArrowUp className="h-5 w-5" />
+    </button>
   );
 }
 
@@ -285,7 +293,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
-      <WhatsAppFAB />
+      <ScrollTopFAB />
     </div>
   );
 }

@@ -1,85 +1,146 @@
 import { createFileRoute } from "@/lib/simple-router";
+import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/public/SiteLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CURRENT_CHAIRMAN, LOBBY_CHAIRMAN, PAST_CHAIRMEN, COMMITTEE } from "@/lib/mock";
+import { PAST_CHAIRMEN } from "@/lib/mock";
 import sourabhKunjirImg from "@/assets/sourabh Kunjir.png";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/chairman")({
   head: () => ({
     meta: [
-      { title: "Chairman & Committee - VPP Market Yard" },
-      { name: "description", content: "Meet our current chairman, lobby chairman, past chairmen and committee traders." },
-      { property: "og:title", content: "Chairman & Committee - VPP Market Yard" },
-      { property: "og:description", content: "Leadership serving 850+ traders." },
+      { title: "Chairman & Committee - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { name: "description", content: "Meet our current chairman, lobby chairman, past chairmen and committee Members." },
+      { property: "og:title", content: "Chairman & Committee - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { property: "og:description", content: "Leadership serving 850+ Members." },
     ],
   }),
   component: Chairman,
 });
 
+type CommitteeMemberRecord = {
+  id: number;
+  full_name: string;
+  name_mr: string | null;
+  designation: string;
+  gala_number: string | null;
+  term_label: string | null;
+  message: string | null;
+  photo_url: string | null;
+};
+
 function Chairman() {
+  const { lang } = useI18n();
+  const [members, setMembers] = useState<CommitteeMemberRecord[]>([]);
+
+  useEffect(() => {
+    fetch("/api/v1/public/committee")
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.ok) setMembers(result.members || []);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const chairman = members.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
+  const lobbyChairman = members.find((member) => member.designation.toLowerCase().includes("lobby"));
+  const committeeMembers = members.filter((member) => member.id !== chairman?.id && member.id !== lobbyChairman?.id);
+  const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
+  const chairmanCopy = lang === "mr"
+    ? {
+        current: "सध्याचे अध्यक्ष",
+        role: "अध्यक्ष",
+        title: "नेतृत्व",
+        term: "कार्यकाळ",
+        name: chairman?.name_mr || "श्री. सौरभ कुंजीर",
+        secondaryName: "",
+        intro: "त्यांच्या नेतृत्वाखाली संघटना पारदर्शक प्रशासन, जलद तक्रार निवारण, नियमित बाजार माहिती आणि प्रत्येक व्यापारी व गाळाधारकासाठी अधिक चांगल्या डिजिटल सेवांवर लक्ष केंद्रित करत आहे.",
+        quote: "प्रत्येक व्यापाऱ्यासाठी पारदर्शक, डिजिटल आणि सेवा-केंद्रित मार्केट यार्ड उभारण्यासाठी आपण सर्वजण एकत्र काम करत आहोत.",
+        focus: ["डिजिटल सूचना प्रवेश", "सभासद-केंद्रित मदत", "बाजार अद्यतने", "पारदर्शक कार्यप्रवाह"],
+      }
+    : {
+        current: "Current Chairman",
+        role: "Chairman",
+        title: "Leadership",
+        term: "Term",
+        name: chairman?.full_name || "Shri. Sourabh Kunjir",
+        secondaryName: chairman?.name_mr || "",
+        intro: "Under his leadership, the association is focused on transparent administration, faster complaint resolution, regular market communication, and better digital services for every trader and gala owner.",
+        quote: chairman?.message || "Together, we are building a transparent, digital and service-focused market yard for every trader.",
+        focus: ["Digital notice access", "Member-first support", "Market updates", "Transparent workflow"],
+      };
+
   return (
     <SiteLayout>
       <section className="hero-gradient text-white py-16">
         <div className="container-page">
           <h1 className="font-display text-3xl font-bold sm:text-5xl">Chairman &amp; Committee</h1>
-          <p className="mt-4 max-w-2xl text-white/85">Meet the leaders serving our 850+ traders.</p>
+          <p className="mt-4 max-w-2xl text-white/85">Meet the leaders serving our 850+ Members.</p>
         </div>
       </section>
 
       <section className="py-14">
-        <div className="container-page grid justify-center gap-10 lg:grid-cols-[minmax(0,460px)_minmax(0,460px)] lg:gap-14">
-          <Card className="overflow-hidden border-border/60 shadow-sm">
-            <div className="relative h-72 bg-secondary sm:h-80">
-              <img
-                src={sourabhKunjirImg}
-                alt="Sourabh Kunjir"
-                className="h-full w-full object-cover object-[center_18%]"
-              />
-              <div className="absolute left-5 top-5">
-                <Badge className="bg-saffron text-saffron-foreground hover:bg-saffron">Current Chairman</Badge>
-              </div>
-            </div>
-            <CardContent className="p-8">
-              <h2 className="font-display text-3xl font-bold text-primary-dark">{CURRENT_CHAIRMAN.name}</h2>
-              <div className="text-sm text-muted-foreground">{CURRENT_CHAIRMAN.nameMr}</div>
-              <div className="mt-2 text-sm font-semibold text-primary">Term: {CURRENT_CHAIRMAN.term}</div>
-              <p className="mt-4 text-foreground/80 italic leading-relaxed">"{CURRENT_CHAIRMAN.message}"</p>
-            </CardContent>
-          </Card>
-          <Card className="overflow-hidden border-border/60 shadow-sm">
-            <div className="grid h-72 place-items-center bg-secondary sm:h-80">
-              <div className="grid h-44 w-44 place-items-center rounded-3xl bg-background font-display text-5xl font-bold text-primary shadow-md">AD</div>
-            </div>
-            <CardContent className="p-8">
-              <Badge variant="outline" className="mt-4 border-primary text-primary">Lobby Chairman</Badge>
-              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark">{LOBBY_CHAIRMAN.name}</h2>
-              <p className="mt-4 text-foreground/80 leading-relaxed">{LOBBY_CHAIRMAN.intro}</p>
-            </CardContent>
-          </Card>
+        <div className="container-page">
+          <div className="max-w-2xl">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">Chairman's Desk</span>
+            <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">{chairmanCopy.title}</h2>
+          </div>
+          <div className="mx-auto mt-10 max-w-6xl">
+          {chairman && (
+            <Card className="overflow-hidden border-border/60 shadow-sm">
+              <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,54%)_minmax(0,46%)]">
+                <div className="relative min-h-[420px] bg-secondary sm:min-h-[500px] lg:min-h-[560px]">
+                  <img
+                    src={chairman.photo_url || sourabhKunjirImg}
+                    alt={chairman.full_name}
+                    className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
+                  />
+                  <div className="absolute left-5 top-5">
+                    <Badge className="bg-saffron text-saffron-foreground hover:bg-saffron">{chairmanCopy.current}</Badge>
+                  </div>
+                </div>
+                <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
+                  <Badge variant="outline" className="w-fit border-primary text-primary">{chairmanCopy.role}</Badge>
+                  <h3 className="mt-4 font-display text-3xl font-bold text-primary-dark sm:text-4xl">{chairmanCopy.name}</h3>
+                  {chairmanCopy.secondaryName && <div className="mt-1 text-base text-muted-foreground">{chairmanCopy.secondaryName}</div>}
+                  {chairman.term_label && <div className="mt-3 text-sm font-semibold text-primary">{chairmanCopy.term}: {chairman.term_label}</div>}
+                  <p className="mt-5 text-base leading-relaxed text-foreground/80">{chairmanCopy.intro}</p>
+                  <p className="mt-5 border-l-4 border-saffron pl-4 text-base leading-relaxed text-foreground/80 italic">
+                    "{chairmanCopy.quote}"
+                  </p>
+                  <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                    {chairmanCopy.focus.map((item) => (
+                      <div key={item} className="rounded-lg bg-secondary/55 px-4 py-3 text-sm font-semibold text-primary-dark">
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          </div>
         </div>
       </section>
 
       <section className="bg-leaf py-14">
         <div className="container-page">
-          <h2 className="font-display text-2xl font-bold text-primary-dark">Committee Traders</h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {COMMITTEE.map((m) => (
-              <Card key={m.id} className="text-center border-border/60">
-                <CardContent className="p-6">
-                  <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-secondary font-display text-xl font-bold text-primary">
-                    {m.name === CURRENT_CHAIRMAN.name ? (
-                      <img src={sourabhKunjirImg} alt={m.name} className="h-full w-full rounded-full object-cover object-[center_18%]" />
-                    ) : (
-                      m.name.split(" ").slice(-1)[0][0]
-                    )}
+          <h2 className="font-display text-2xl font-bold text-primary-dark">Committee Members</h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {committeeMembers.map((m) => (
+              <Card key={m.id} className="overflow-hidden border-border/60 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <CardContent className="px-4 py-3">
+                  <div className="mx-auto grid h-44 w-44 place-items-center overflow-hidden rounded-full border-4 border-white bg-secondary font-display text-2xl font-bold text-primary shadow-md ring-1 ring-border">
+                    {m.photo_url ? <img src={m.photo_url} alt={m.full_name} className="h-full w-full object-cover object-top" /> : initials(m.full_name)}
                   </div>
-                  <h3 className="mt-3 font-display font-semibold text-primary-dark">{m.name}</h3>
-                  <div className="text-xs font-medium text-primary">{m.designation}</div>
-                  {m.gala && <div className="mt-1 text-xs text-muted-foreground">Gala {m.gala}</div>}
+                  <h3 className="mt-2 font-display text-lg font-semibold leading-snug text-primary-dark">{m.full_name}</h3>
+                  <div className="mt-1.5 inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">{m.designation}</div>
+                  {m.gala_number && <div className="mt-1.5 text-xs font-medium text-muted-foreground">Gala {m.gala_number}</div>}
                 </CardContent>
               </Card>
             ))}
+            {members.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground sm:col-span-2 lg:col-span-3">No committee members published yet.</div>}
           </div>
         </div>
       </section>

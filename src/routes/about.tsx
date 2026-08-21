@@ -7,10 +7,10 @@ import heroImg from "@/assets/market-hero.jpg";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About Us - VPP Market Yard Portal" },
-      { name: "description", content: "History, mission, vision and objectives of Vishal Purandhar Patasanstha Market Yard Owners Association." },
-      { property: "og:title", content: "About Us - VPP Market Yard Portal" },
-      { property: "og:description", content: "Serving 850+ traders with transparent digital administration since 2009." },
+      { title: "About Us - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { name: "description", content: "History, mission, vision and objectives of Shri Chhatrapati Shivaji Market Yard Adte Association." },
+      { property: "og:title", content: "About Us - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { property: "og:description", content: "Serving 850+ Members with transparent digital administration since 2009." },
     ],
   }),
   component: About,
@@ -23,7 +23,7 @@ function About() {
         <div className="container-page">
           <h1 className="font-display text-3xl font-bold sm:text-5xl">About Our Association</h1>
           <p className="mt-4 max-w-2xl text-white/85">
-            The digital face of Vishal Purandhar Patasanstha Market Yard Owners Association - connecting traders, farmers and administrators since 2009.
+            The digital face of Shri Chhatrapati Shivaji Market Yard Adte Association - connecting Members, farmers and administrators.
           </p>
         </div>
       </section>
@@ -34,14 +34,14 @@ function About() {
           <div>
             <h2 className="font-display text-3xl font-bold text-primary-dark">Our Story</h2>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              Founded in 2009, our association was established to unify the shopkeepers, wholesalers and traders operating within the Purandhar Market Yard. Today we represent 852 registered traders across ten market sections - vegetables, fruits, grains, flowers, agricultural goods, packaging services and more.
+              Shri Chhatrapati Shivaji Market Yard Adte Association serves Members and commission agents operating from the Market Yard at Gultekdi, Pune. The association office is located on the first floor of Pan Bazar Building, Shri Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.
             </p>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              With the launch of this digital portal in 2026, every trader now has 24/7 access to market updates, official notices, complaint filing and administration in both English and Marathi.
+              With the launch of this digital portal in 2026, every Member now has 24/7 access to market updates, official notices, complaint filing and administration in both English and Marathi.
             </p>
             <div className="mt-6 grid grid-cols-3 gap-4">
               {[
-                { n: "852", l: "Traders" },
+                { n: "852", l: "Members" },
                 { n: "10", l: "Market Sections" },
                 { n: "15+", l: "Years of service" },
               ].map((s) => (
@@ -58,7 +58,7 @@ function About() {
       <section className="bg-leaf py-16">
         <div className="container-page grid gap-6 md:grid-cols-3">
           {[
-            { icon: Target, title: "Mission", body: "Empower every trader with transparent, digital and timely administration." },
+            { icon: Target, title: "Mission", body: "Empower every Member with transparent, digital and timely administration." },
             { icon: Eye, title: "Vision", body: "To be Maharashtra's most connected and farmer-friendly market yard." },
             { icon: Heart, title: "Values", body: "Trust, transparency, cooperation and continuous improvement." },
           ].map((v) => (

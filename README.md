@@ -21,6 +21,30 @@ npm i
 npm run dev
 ```
 
+## Local Market Yard Apps
+
+This repo is moving toward the three-app architecture from the build guide:
+
+- Public website and Trader login: `npm run dev`
+- Separate Admin Hub: `npm run dev:admin`
+- Shared Backend API: `npm run dev:backend`
+
+Local URLs currently used:
+
+- Public website: `http://127.0.0.1:8083`
+- Admin Hub: `http://127.0.0.1:8090`
+- Backend API: `http://127.0.0.1:4007/api/v1/health`
+
+The backend reads database credentials from `.env` only. Do not hardcode MSG91,
+Cloudflare R2, AiSensy, or other secrets in source files.
+
+Useful backend checks:
+
+```sh
+npm run db:init
+curl http://127.0.0.1:4007/api/v1/health
+```
+
 ## Built with
 
 - Vite React

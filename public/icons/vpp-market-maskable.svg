@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Shri Chhatrapati Shivaji Market Yard Adte Association">
+  <rect width="512" height="512" fill="#e37814"/>
+  <circle cx="256" cy="256" r="154" fill="#FFF7E6"/>
+  <path d="M258 374c-11 0-20-9-20-20V236c0-11 9-20 20-20s20 9 20 20v118c0 11-9 20-20 20Z" fill="#86c127"/>
+  <path d="M258 254c-39 0-70-31-70-70v-32h32c39 0 70 31 70 70v32h-32Zm-27-58c8 10 19 16 32 16-8-10-19-16-32-16Z" fill="#86c127"/>
+  <path d="M258 294v-32h32c39 0 70-31 70-70v-32h-32c-39 0-70 31-70 70v64Zm43-74c8-10 19-16 32-16-8 10-19 16-32 16Z" fill="#86c127"/>
+  <path d="M170 382h172c11 0 20 9 20 20s-9 20-20 20H170c-11 0-20-9-20-20s9-20 20-20Z" fill="#86c127"/>
+</svg>

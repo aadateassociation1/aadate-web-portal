@@ -9,12 +9,17 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-admin
 dist-ssr
 .output
 .vinxi
 .tanstack/**
 .nitro
 *.local
+.env
+uploads/
+.tmp-chrome-profile/
+.tmp-chrome-profile-2/
 
 # Wrangler / Cloudflare
 .wrangler/

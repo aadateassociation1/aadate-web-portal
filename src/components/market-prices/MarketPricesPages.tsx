@@ -1,0 +1,582 @@
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { ArrowDown, ArrowUp, BarChart3, Calendar, Copy, Download, Eye, Filter, IndianRupee, Minus, Plus, Save, Search, Store } from "lucide-react";
+import { toast } from "sonner";
+import { DashLayout } from "@/components/dashboard/DashLayout";
+import { SiteLayout } from "@/components/public/SiteLayout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+
+const CATEGORIES = [
+  { value: "all", label: "All Items", mr: "सर्व" },
+  { value: "vegetable", label: "Vegetables", mr: "भाजीपाला" },
+  { value: "fruit", label: "Fruits", mr: "फळे" },
+];
+const UNITS = ["Kg", "Quintal", "Dozen", "Piece", "Bunch", "Bundle", "Crate", "Box", "Tray"];
+
+type MarketPriceRow = {
+  item_id: number;
+  price_id: number | null;
+  category: "vegetable" | "fruit";
+  name_en: string;
+  name_mr: string;
+  variety: string | null;
+  default_unit: string;
+  display_order: number;
+  is_active: number;
+  price_date: string | null;
+  min_price: number | null;
+  max_price: number | null;
+  modal_price: number | null;
+  unit: string | null;
+  arrival_quantity: number | null;
+  arrival_unit: string | null;
+  quality_grade: string | null;
+  notes: string | null;
+  status: "draft" | "published" | null;
+  published_at: string | null;
+  price_updated_at: string | null;
+  previous_price: number | null;
+  change_amount: number | null;
+  change_percent: number | null;
+  change_direction: "up" | "down" | "same" | "none";
+};
+
+type MarketSummary = {
+  total_items: number;
+  updated_today: number;
+  pending_update: number;
+  last_published: string | null;
+};
+
+type DraftRow = {
+  itemId: number;
+  minPrice: string;
+  maxPrice: string;
+  modalPrice: string;
+  unit: string;
+  arrivalQuantity: string;
+  arrivalUnit: string;
+  qualityGrade: string;
+  notes: string;
+};
+
+function todayInput() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 10);
+}
+
+function formatDate(value: string | null | undefined, withTime = false) {
+  if (!value) return "-";
+  return new Date(value).toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
+  });
+}
+
+function currency(value: number | null | undefined) {
+  return value === null || value === undefined ? "-" : `₹${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+}
+
+function categoryLabel(value: string) {
+  return CATEGORIES.find((category) => category.value === value)?.label || value;
+}
+
+function marketItemKey(row: MarketPriceRow) {
+  return [
+    row.category,
+    row.name_en.trim().toLowerCase(),
+    row.name_mr.trim(),
+    (row.variety || "").trim().toLowerCase(),
+    row.default_unit,
+  ].join("|");
+}
+
+function dedupeMarketItems(rows: MarketPriceRow[]) {
+  const byItem = new Map<string, MarketPriceRow>();
+  rows.forEach((row) => {
+    const key = marketItemKey(row);
+    const existing = byItem.get(key);
+    const hasSamePriceState = Boolean(existing?.price_id) === Boolean(row.price_id);
+    if (!existing || (!existing.price_id && row.price_id) || (hasSamePriceState && row.item_id < existing.item_id)) {
+      byItem.set(key, row);
+    }
+  });
+  return Array.from(byItem.values()).sort((a, b) => (
+    a.category.localeCompare(b.category)
+    || a.display_order - b.display_order
+    || a.name_en.localeCompare(b.name_en)
+  ));
+}
+
+function changeView(row: MarketPriceRow) {
+  if (row.change_amount === null) return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> New</span>;
+  if (row.change_direction === "up") return <span className="inline-flex items-center gap-1 font-semibold text-success"><ArrowUp className="h-4 w-4" /> {currency(row.change_amount)} {row.change_percent !== null ? `(${row.change_percent}%)` : ""}</span>;
+  if (row.change_direction === "down") return <span className="inline-flex items-center gap-1 font-semibold text-destructive"><ArrowDown className="h-4 w-4" /> {currency(Math.abs(row.change_amount))} {row.change_percent !== null ? `(${row.change_percent}%)` : ""}</span>;
+  return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> ₹0</span>;
+}
+
+function CategoryTabs({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-4">
+      {CATEGORIES.map((category) => (
+        <button
+          key={category.value}
+          type="button"
+          onClick={() => onChange(category.value)}
+          className={`rounded-lg border px-4 py-3 text-left transition ${value === category.value ? "border-primary bg-secondary text-primary-dark shadow-sm" : "border-border bg-background hover:bg-secondary/60"}`}
+        >
+          <div className="font-display font-semibold">{category.label}</div>
+          <div className="text-xs text-muted-foreground">{category.mr}</div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
+  const [rows, setRows] = useState<MarketPriceRow[]>([]);
+  const [date, setDate] = useState("");
+  const [lastPublished, setLastPublished] = useState<string | null>(null);
+  const [category, setCategory] = useState("all");
+  const [search, setSearch] = useState("");
+  const [historyItem, setHistoryItem] = useState<MarketPriceRow | null>(null);
+  const [history, setHistory] = useState<MarketPriceRow[]>([]);
+
+  const load = async () => {
+    const params = new URLSearchParams();
+    if (category !== "all") params.set("category", category);
+    if (search.trim()) params.set("search", search.trim());
+    const response = await fetch(`/api/v1/public/market-prices?${params.toString()}`);
+    const result = await response.json();
+    if (result.ok) {
+      setRows(result.prices || []);
+      setDate(result.date || "");
+      setLastPublished(result.lastPublished || null);
+    }
+  };
+
+  useEffect(() => { load().catch(() => undefined); }, [category]);
+
+  const filtered = useMemo(() => rows.filter((row) => {
+    const q = search.toLowerCase();
+    return !q || row.name_en.toLowerCase().includes(q) || row.name_mr.includes(search);
+  }), [rows, search]);
+
+  const openHistory = async (row: MarketPriceRow) => {
+    setHistoryItem(row);
+    const response = await fetch(`/api/v1/public/market-prices/${row.item_id}/history`);
+    const result = await response.json();
+    if (result.ok) setHistory((result.history || []).slice(0, 1));
+  };
+
+  const content = (
+    <>
+      <section className={mode === "public" ? "hero-gradient py-14 text-white" : ""}>
+        <div className={mode === "public" ? "container-page" : ""}>
+          <h1 className="font-display text-3xl font-bold sm:text-5xl">Today's Market Prices</h1>
+          <p className={`mt-2 ${mode === "public" ? "text-white/80" : "text-muted-foreground"}`}>आजचे बाजार भाव</p>
+          <div className={`mt-4 text-sm ${mode === "public" ? "text-white/75" : "text-muted-foreground"}`}>
+            Last Updated: {formatDate(lastPublished, true)}
+          </div>
+        </div>
+      </section>
+
+      <section className={mode === "public" ? "py-10" : "mt-6"}>
+        <div className={mode === "public" ? "container-page" : ""}>
+          <CategoryTabs value={category} onChange={setCategory} />
+          <Card className="mt-5 border-border/60">
+            <CardContent className="p-4 sm:p-5">
+              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search commodity..." className="pl-9" />
+                </div>
+                <Button variant="outline" onClick={load}><Filter className="mr-2 h-4 w-4" /> Refresh</Button>
+              </div>
+              <div className="mt-5 hidden overflow-hidden rounded-lg border md:block">
+                <table className="w-full text-sm">
+                  <thead className="bg-secondary/60 text-left text-muted-foreground">
+                    <tr>
+                      <th className="p-3">Commodity</th>
+                      <th className="p-3 text-right">Min</th>
+                      <th className="p-3 text-right">Max</th>
+                      <th className="p-3 text-right">Avg</th>
+                      <th className="p-3">Change</th>
+                      <th className="p-3">Unit</th>
+                      <th className="p-3 text-right">History</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((row) => (
+                      <tr key={row.item_id} className="border-t">
+                        <td className="p-3">
+                          <div className="font-display font-semibold text-primary-dark">{row.name_en} / {row.name_mr}</div>
+                          <div className="text-xs text-muted-foreground">{categoryLabel(row.category)} {row.variety ? `- ${row.variety}` : ""}</div>
+                        </td>
+                        <td className="p-3 text-right font-semibold">{currency(row.min_price)}</td>
+                        <td className="p-3 text-right font-semibold">{currency(row.max_price)}</td>
+                        <td className="p-3 text-right font-bold text-primary-dark">{currency(row.modal_price)}</td>
+                        <td className="p-3">{changeView(row)}</td>
+                        <td className="p-3">{row.unit}</td>
+                        <td className="p-3 text-right"><Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-5 grid gap-3 md:hidden">
+                {filtered.map((row) => (
+                  <div key={row.item_id} className="rounded-lg border p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-display font-semibold text-primary-dark">{row.name_en}</div>
+                        <div className="text-sm text-muted-foreground">{row.name_mr}</div>
+                      </div>
+                      <Badge variant="secondary">{row.unit}</Badge>
+                    </div>
+                    <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-lg bg-secondary/50 p-2"><div className="text-xs text-muted-foreground">Min</div><div className="font-bold">{currency(row.min_price)}</div></div>
+                      <div className="rounded-lg bg-secondary/50 p-2"><div className="text-xs text-muted-foreground">Max</div><div className="font-bold">{currency(row.max_price)}</div></div>
+                      <div className="rounded-lg bg-secondary/50 p-2"><div className="text-xs text-muted-foreground">Avg</div><div className="font-bold">{currency(row.modal_price)}</div></div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-sm">
+                      {changeView(row)}
+                      <Button size="sm" variant="outline" onClick={() => openHistory(row)}>History</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {filtered.length === 0 && (
+                <div className="rounded-lg border p-8 text-center text-muted-foreground">
+                  Today's market prices have not been published yet. Please check again shortly.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <Dialog open={!!historyItem} onOpenChange={(open) => !open && setHistoryItem(null)}>
+        <DialogContent className="max-w-xl">
+          {historyItem && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{historyItem.name_en} / {historyItem.name_mr}</DialogTitle>
+                <DialogDescription>Today's published price</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                {history.map((row) => (
+                  <div key={row.price_id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <div className="font-medium">{formatDate(row.price_date)}</div>
+                      <div className="text-xs text-muted-foreground">{row.quality_grade || "Standard"} - {row.unit}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-display text-lg font-bold text-primary-dark">{currency(row.modal_price)}</div>
+                      <div className="text-xs text-muted-foreground">{currency(row.min_price)} - {currency(row.max_price)}</div>
+                    </div>
+                  </div>
+                ))}
+                {history.length === 0 && <div className="rounded-lg border p-3 text-sm text-muted-foreground">No published price available for today.</div>}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+
+  if (mode === "trader") return <DashLayout kind="owner">{content}</DashLayout>;
+  return <SiteLayout>{content}</SiteLayout>;
+}
+
+export function PublicMarketPricesPage() {
+  return <MarketPriceReadOnly mode="public" />;
+}
+
+export function TraderMarketPricesPage() {
+  return <MarketPriceReadOnly mode="trader" />;
+}
+
+export function AdminMarketPricesPage() {
+  const [date, setDate] = useState(todayInput());
+  const [category, setCategory] = useState("all");
+  const [search, setSearch] = useState("");
+  const [rows, setRows] = useState<MarketPriceRow[]>([]);
+  const [summary, setSummary] = useState<MarketSummary | null>(null);
+  const [drafts, setDrafts] = useState<Record<number, DraftRow>>({});
+  const [saving, setSaving] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [historyItem, setHistoryItem] = useState<MarketPriceRow | null>(null);
+  const [history, setHistory] = useState<MarketPriceRow[]>([]);
+  const [newItem, setNewItem] = useState({ category: "vegetable", nameEn: "", nameMr: "", variety: "", defaultUnit: "Kg", displayOrder: "100", isActive: true });
+
+  const load = async () => {
+    const params = new URLSearchParams({ date });
+    if (category !== "all") params.set("category", category);
+    if (search.trim()) params.set("search", search.trim());
+    const response = await fetch(`/api/v1/admin/market-prices?${params.toString()}`, { credentials: "include" });
+    const result = await response.json();
+    if (!result.ok) throw new Error(result.error || "Market prices failed to load");
+    const uniquePrices = dedupeMarketItems(result.prices || []);
+    setRows(uniquePrices);
+    setSummary(result.summary ? {
+      ...result.summary,
+      total_items: uniquePrices.length,
+      updated_today: uniquePrices.filter((row) => row.price_id).length,
+      pending_update: uniquePrices.filter((row) => !row.price_id).length,
+    } : null);
+    const nextDrafts: Record<number, DraftRow> = {};
+    uniquePrices.forEach((row: MarketPriceRow) => {
+      nextDrafts[row.item_id] = {
+        itemId: row.item_id,
+        minPrice: row.min_price?.toString() || "",
+        maxPrice: row.max_price?.toString() || "",
+        modalPrice: row.modal_price?.toString() || "",
+        unit: row.unit || row.default_unit || "Kg",
+        arrivalQuantity: row.arrival_quantity?.toString() || "",
+        arrivalUnit: row.arrival_unit || row.default_unit || "Kg",
+        qualityGrade: row.quality_grade || "",
+        notes: row.notes || "",
+      };
+    });
+    setDrafts(nextDrafts);
+  };
+
+  useEffect(() => { load().catch((error) => toast.error(error.message)); }, [date, category]);
+
+  const filtered = useMemo(() => rows.filter((row) => {
+    const q = search.toLowerCase();
+    return !q || row.name_en.toLowerCase().includes(q) || row.name_mr.includes(search) || (row.variety || "").toLowerCase().includes(q);
+  }), [rows, search]);
+
+  const setDraft = (itemId: number, field: keyof DraftRow, value: string) => {
+    setDrafts((current) => {
+      const row = current[itemId];
+      const next = { ...row, [field]: value };
+      if ((field === "minPrice" || field === "maxPrice") && next.minPrice !== "" && next.maxPrice !== "") {
+        const min = Number(next.minPrice);
+        const max = Number(next.maxPrice);
+        if (Number.isFinite(min) && Number.isFinite(max)) next.modalPrice = String(((min + max) / 2).toFixed(2).replace(/\.00$/, ""));
+      }
+      return { ...current, [itemId]: next };
+    });
+  };
+
+  const saveRows = async (status: "draft" | "published") => {
+    const records = Object.values(drafts).filter((row) => row.minPrice !== "" || row.maxPrice !== "" || row.modalPrice !== "");
+    if (records.length === 0) {
+      toast.error("Enter at least one commodity price");
+      return;
+    }
+    setSaving(true);
+    try {
+      const response = await fetch("/api/v1/admin/market-prices/bulk-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ date, status, records }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Save failed");
+      toast.success(status === "published" ? "Today's market prices published" : "Draft prices saved");
+      await load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const copyPrevious = async () => {
+    const response = await fetch("/api/v1/admin/market-prices/copy-previous", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ date }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) {
+      toast.error(result.error || "Copy failed");
+      return;
+    }
+    toast.success(`${result.copied || 0} previous prices copied as draft`);
+    await load();
+  };
+
+  const saveItem = async (event: FormEvent) => {
+    event.preventDefault();
+    const response = await fetch("/api/v1/admin/market-items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ ...newItem, displayOrder: Number(newItem.displayOrder), defaultUnit: newItem.defaultUnit }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) {
+      toast.error(result.error || "Item save failed");
+      return;
+    }
+    toast.success("New market item added");
+    setAddOpen(false);
+    setNewItem({ category: "vegetable", nameEn: "", nameMr: "", variety: "", defaultUnit: "Kg", displayOrder: "100", isActive: true });
+    await load();
+  };
+
+  const openHistory = async (row: MarketPriceRow) => {
+    setHistoryItem(row);
+    const response = await fetch(`/api/v1/admin/market-prices/${row.item_id}/history`, { credentials: "include" });
+    const result = await response.json();
+    if (result.ok) setHistory((result.history || []).slice(0, 1));
+  };
+
+  return (
+    <DashLayout kind="admin">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-primary-dark">Daily Market Prices</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Manage today's vegetable and fruit market prices</p>
+          <p className="text-sm font-semibold text-primary">दैनिक बाजार भाव</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => window.open(`/api/v1/admin/market-prices/export?date=${date}`, "_blank")}><Download className="mr-2 h-4 w-4" /> Export Today's Prices</Button>
+          <Button onClick={() => setAddOpen(true)} className="bg-primary"><Plus className="mr-2 h-4 w-4" /> Add New Item</Button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <Card><CardContent className="flex items-center gap-3 p-5"><Calendar className="h-9 w-9 rounded-lg bg-secondary p-2 text-primary" /><div><div className="text-xs text-muted-foreground">Today's Date</div><div className="font-display font-bold text-primary-dark">{formatDate(date)}</div></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-3 p-5"><Store className="h-9 w-9 rounded-lg bg-primary p-2 text-white" /><div><div className="text-xs text-muted-foreground">Total Items</div><div className="font-display text-2xl font-bold text-primary-dark">{summary?.total_items || 0}</div></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-3 p-5"><Save className="h-9 w-9 rounded-lg bg-success p-2 text-white" /><div><div className="text-xs text-muted-foreground">Updated Today</div><div className="font-display text-2xl font-bold text-primary-dark">{summary?.updated_today || 0}</div></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-3 p-5"><IndianRupee className="h-9 w-9 rounded-lg bg-saffron p-2 text-primary-dark" /><div><div className="text-xs text-muted-foreground">Pending Update</div><div className="font-display text-2xl font-bold text-primary-dark">{summary?.pending_update || 0}</div></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-3 p-5"><BarChart3 className="h-9 w-9 rounded-lg bg-secondary p-2 text-primary" /><div><div className="text-xs text-muted-foreground">Last Published</div><div className="font-display text-sm font-bold text-primary-dark">{formatDate(summary?.last_published, true)}</div></div></CardContent></Card>
+      </div>
+
+      <div className="mt-6 grid gap-4">
+        <CategoryTabs value={category} onChange={setCategory} />
+        <Card className="border-border/60">
+          <CardContent className="p-4 sm:p-5">
+            <div className="grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)_auto_auto_auto]">
+              <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search English or Marathi commodity..." className="pl-9" />
+              </div>
+              <Button variant="outline" onClick={copyPrevious}><Copy className="mr-2 h-4 w-4" /> Copy Previous Day</Button>
+              <Button variant="outline" disabled={saving} onClick={() => saveRows("draft")}>Save Draft</Button>
+              <Button disabled={saving} onClick={() => saveRows("published")} className="bg-primary">Save & Publish Today's Prices</Button>
+            </div>
+
+            <div className="mt-5 overflow-x-auto rounded-lg border">
+              <table className="w-full min-w-[680px] table-fixed text-sm">
+                <colgroup>
+                  <col className="w-[170px]" />
+                  <col className="w-[95px]" />
+                  <col className="w-[86px]" />
+                  <col className="w-[86px]" />
+                  <col className="w-[86px]" />
+                  <col className="w-[105px]" />
+                  <col className="w-[85px]" />
+                </colgroup>
+                <thead className="bg-secondary/60 text-left text-muted-foreground">
+                  <tr>
+                    <th className="whitespace-nowrap p-3">Item</th>
+                    <th className="whitespace-nowrap p-3">Yesterday</th>
+                    <th className="whitespace-nowrap p-3">Min</th>
+                    <th className="whitespace-nowrap p-3">Max</th>
+                    <th className="whitespace-nowrap p-3">Avg</th>
+                    <th className="whitespace-nowrap p-3">Unit</th>
+                    <th className="whitespace-nowrap p-3">Status</th>
+                    <th className="whitespace-nowrap p-3 text-right">History</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((row) => {
+                    const draft = drafts[row.item_id];
+                    return (
+                      <tr key={row.item_id} className="border-t align-top">
+                        <td className="p-3">
+                          <div className="truncate font-display font-semibold text-primary-dark">{row.name_en}</div>
+                          <div className="truncate text-xs text-muted-foreground">{row.name_mr} - {categoryLabel(row.category)}</div>
+                        </td>
+                        <td className="whitespace-nowrap p-3">{currency(row.previous_price)}</td>
+                        <td className="p-3"><Input className="h-9 w-16 px-2" type="number" min="0" value={draft?.minPrice || ""} onChange={(event) => setDraft(row.item_id, "minPrice", event.target.value)} /></td>
+                        <td className="p-3"><Input className="h-9 w-16 px-2" type="number" min="0" value={draft?.maxPrice || ""} onChange={(event) => setDraft(row.item_id, "maxPrice", event.target.value)} /></td>
+                        <td className="p-3"><Input className="h-9 w-16 px-2" type="number" min="0" value={draft?.modalPrice || ""} onChange={(event) => setDraft(row.item_id, "modalPrice", event.target.value)} /></td>
+                        <td className="p-3">
+                          <Select value={draft?.unit || row.default_unit} onValueChange={(value) => setDraft(row.item_id, "unit", value)}>
+                            <SelectTrigger className="h-9 w-20 px-2"><SelectValue /></SelectTrigger>
+                            <SelectContent>{UNITS.map((unit) => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </td>
+                        <td className="whitespace-nowrap p-3">
+                          <Badge className={row.status === "published" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}>
+                            {row.status || "Pending"}
+                          </Badge>
+                        </td>
+                        <td className="whitespace-nowrap p-3 text-right"><Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Add New Market Item</DialogTitle>
+            <DialogDescription>New item becomes available immediately for daily price entry.</DialogDescription>
+          </DialogHeader>
+          <form className="grid gap-4" onSubmit={saveItem}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div><Label>Category *</Label><Select value={newItem.category} onValueChange={(value) => setNewItem((item) => ({ ...item, category: value }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{CATEGORIES.filter((item) => item.value !== "all").map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select></div>
+              <div><Label>Default Unit *</Label><Select value={newItem.defaultUnit} onValueChange={(value) => setNewItem((item) => ({ ...item, defaultUnit: value }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{UNITS.map((unit) => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}</SelectContent></Select></div>
+              <div><Label>Item Name - English *</Label><Input value={newItem.nameEn} onChange={(event) => setNewItem((item) => ({ ...item, nameEn: event.target.value }))} required /></div>
+              <div><Label>Item Name - Marathi *</Label><Input value={newItem.nameMr} onChange={(event) => setNewItem((item) => ({ ...item, nameMr: event.target.value }))} required /></div>
+              <div><Label>Variety</Label><Input value={newItem.variety} onChange={(event) => setNewItem((item) => ({ ...item, variety: event.target.value }))} placeholder="Local, Hybrid, Grade A" /></div>
+              <div><Label>Display Order</Label><Input type="number" value={newItem.displayOrder} onChange={(event) => setNewItem((item) => ({ ...item, displayOrder: event.target.value }))} /></div>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg border p-3">
+              <input type="checkbox" checked={newItem.isActive} onChange={(event) => setNewItem((item) => ({ ...item, isActive: event.target.checked }))} />
+              <span className="text-sm font-medium">Active item</span>
+            </div>
+            <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button><Button type="submit" className="bg-primary">Save Item</Button></div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!historyItem} onOpenChange={(open) => !open && setHistoryItem(null)}>
+        <DialogContent className="max-w-xl">
+          {historyItem && (
+            <>
+              <DialogHeader><DialogTitle>{historyItem.name_en} / {historyItem.name_mr}</DialogTitle><DialogDescription>Today's published price</DialogDescription></DialogHeader>
+              <Textarea className="hidden" />
+              <div className="space-y-2">
+                {history.map((row) => (
+                  <div key={row.price_id} className="grid grid-cols-[1fr_auto] gap-3 rounded-lg border p-3">
+                    <div><div className="font-semibold">{formatDate(row.price_date)}</div><div className="text-xs text-muted-foreground">{row.status} - {row.quality_grade || "Standard"}</div></div>
+                    <div className="text-right"><div className="font-display font-bold text-primary-dark">{currency(row.modal_price)}</div><div className="text-xs text-muted-foreground">{currency(row.min_price)} - {currency(row.max_price)} / {row.unit}</div></div>
+                  </div>
+                ))}
+                {history.length === 0 && <div className="rounded-lg border p-3 text-sm text-muted-foreground">No published price available for today.</div>}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </DashLayout>
+  );
+}

@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useRouter } from "@/lib/simple-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@/lib/simple-router";
+import { useState, type FormEvent } from "react";
 import { SiteLayout } from "@/components/public/SiteLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,36 +7,99 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle2, ChevronLeft, ChevronRight, Upload } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/register")({
-  head: () => ({ meta: [{ title: "Register Your Gala - VPP Market Yard Portal" }, { name: "description", content: "Multi-step trader registration form." }] }),
+  head: () => ({ meta: [{ title: "Member Registration - Shri Chhatrapati Shivaji Market Yard Adte Association Portal" }, { name: "description", content: "Member registration form." }] }),
   component: Register,
 });
 
-const STEPS = ["Personal Info", "Gala Info", "Login Info", "Documents", "Review"];
-const CATEGORIES = ["Vegetables", "Fruits", "Grains", "Flowers", "Spices", "Agricultural goods", "Grocery", "Packaging material", "Transport service", "Other"];
+const DEPARTMENT_OPTIONS = [
+  { value: "भाजीपाला / Vegetables", label: "भाजीपाला / Vegetables" },
+  { value: "केळी विभाग / Banana Department", label: "केळी विभाग / Banana Department" },
+  { value: "फळविभाग / Fruit Department", label: "फळविभाग / Fruit Department" },
+  { value: "कांदा-बटाटा / Onion-Potato", label: "कांदा-बटाटा / Onion-Potato" },
+];
 
 function Register() {
-  const [step, setStep] = useState(0);
-  const [data, setData] = useState<Record<string, string>>({ category: "Vegetables" });
+  const [mode, setMode] = useState<"new" | "add-gala">("new");
   const [agree, setAgree] = useState(false);
   const [done, setDone] = useState<string | null>(null);
-  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
+  const [duplicateMember, setDuplicateMember] = useState<{ memberName?: string; traderCode?: string } | null>(null);
 
-  const set = (k: string, v: string) => setData((d) => ({ ...d, [k]: v }));
-  const next = () => setStep((s) => Math.min(STEPS.length - 1, s + 1));
-  const prev = () => setStep((s) => Math.max(0, s - 1));
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const srNo = String(formData.get("srNo") || "").trim();
+    const number = String(formData.get("number") || "").trim();
+    const business = String(formData.get("business") || "").trim();
+    const name = String(formData.get("name") || "").trim();
+    const address = String(formData.get("address") || "").trim();
+    const section = String(formData.get("section") || "").trim();
+    const mobile = String(formData.get("mobile") || "").replace(/\D/g, "");
+    const username = String(formData.get("username") || "").trim();
+    const password = String(formData.get("password") || "");
+    const confirm = String(formData.get("confirm") || "");
 
-  const submit = () => {
-    if (!agree) { toast.error("Please accept the terms and conditions"); return; }
-    if (data.password !== data.confirm) { toast.error("Passwords do not match"); return; }
-    if (!/^\d{10}$/.test(data.mobile || "")) { toast.error("Mobile number must be 10 digits"); return; }
-    const app = `REG-${Math.floor(100000 + Math.random() * 899999)}`;
-    setDone(app);
-    toast.success("Registration submitted successfully");
+    if (!business || !address || !section || (mode === "new" && (!name || !username))) {
+      toast.error("Please fill all registration fields.");
+      return;
+    }
+    if (!/^\d{10}$/.test(mobile)) {
+      toast.error("Contact number must be 10 digits.");
+      return;
+    }
+    if (password.length < 8 || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      toast.error("Password must be 8+ characters with a number and symbol.");
+      return;
+    }
+    if (mode === "new" && password !== confirm) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+    if (!agree) {
+      toast.error("Please accept the confirmation checkbox.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await fetch(mode === "new" ? "/api/v1/auth/trader/register" : "/api/v1/auth/trader/add-gala", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          username,
+          mobile,
+          password,
+          business,
+          gala: address,
+          address,
+          section,
+          associationSequenceNumber: srNo,
+          associationRegistrationNumber: number,
+        }),
+      });
+      const text = await response.text();
+      const result = text ? JSON.parse(text) : null;
+      if (!response.ok || !result?.ok) {
+        if (result?.duplicateMobile) {
+          setDuplicateMember({ memberName: result.memberName, traderCode: result.traderCode });
+          setMode("add-gala");
+        }
+        throw new Error(result?.error || `Registration failed (${response.status})`);
+      }
+      setDone(result.applicationId);
+      toast.success("Registration submitted successfully.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Registration failed.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (done) {
@@ -48,7 +111,7 @@ function Register() {
               <CardContent className="p-10">
                 <CheckCircle2 className="mx-auto h-16 w-16 text-success" />
                 <h1 className="mt-5 font-display text-2xl font-bold text-primary-dark">Registration submitted</h1>
-                <p className="mt-3 text-muted-foreground">Your application <span className="font-mono font-bold text-primary">{done}</span> has been received. You will be able to log in after admin approval - typically within 48 hours.</p>
+                <p className="mt-3 text-muted-foreground">Your application <span className="font-mono font-bold text-primary">{done}</span> has been received. You will be able to log in after admin approval.</p>
                 <div className="mt-6 flex justify-center gap-3">
                   <Button asChild variant="outline"><Link to="/">Back to Home</Link></Button>
                   <Button asChild className="bg-primary"><Link to="/login">Go to Login</Link></Button>
@@ -66,104 +129,94 @@ function Register() {
       <section className="bg-leaf py-12">
         <div className="container-page max-w-3xl">
           <h1 className="font-display text-3xl font-bold text-primary-dark">Register Your Gala</h1>
-          <p className="mt-2 text-muted-foreground">Complete all 5 steps. Admin approval is required before you can log in.</p>
+          <p className="mt-2 text-muted-foreground">
+            {mode === "new" ? "Fill member details, login details, and confirmation." : "Add one more gala/shop to an existing member login using the registered mobile and password."}
+          </p>
 
-          <div className="mt-8 flex items-center gap-2 overflow-x-auto pb-2">
-            {STEPS.map((s, i) => (
-              <div key={s} className="flex items-center gap-2 shrink-0">
-                <div className={`grid h-8 w-8 place-items-center rounded-full text-xs font-bold ${i <= step ? "bg-primary text-white" : "bg-secondary text-muted-foreground"}`}>{i + 1}</div>
-                <span className={`text-xs font-medium ${i === step ? "text-primary" : "text-muted-foreground"}`}>{s}</span>
-                {i < STEPS.length - 1 && <div className={`h-0.5 w-6 ${i < step ? "bg-primary" : "bg-border"}`} />}
-              </div>
-            ))}
+          <div className="mt-5 inline-flex max-w-full flex-wrap gap-1 rounded-lg border bg-background p-1 shadow-sm">
+            <Button type="button" size="sm" variant={mode === "new" ? "default" : "ghost"} className={mode === "new" ? "h-9 bg-primary px-4" : "h-9 px-4"} onClick={() => { setMode("new"); setDuplicateMember(null); }}>
+              New Member Registration
+            </Button>
+            <Button type="button" size="sm" variant={mode === "add-gala" ? "default" : "ghost"} className={mode === "add-gala" ? "h-9 bg-primary px-4" : "h-9 px-4"} onClick={() => setMode("add-gala")}>
+              Add Another Gala / Shop
+            </Button>
           </div>
+
+          {duplicateMember && (
+            <div className="mt-4 rounded-xl border border-saffron/40 bg-saffron/10 p-4 text-sm text-primary-dark">
+              <div className="font-semibold">This mobile number is already registered.</div>
+              <div className="mt-1">Add another Gala / Shop to {duplicateMember.memberName || "this member"} {duplicateMember.traderCode ? `(${duplicateMember.traderCode})` : ""} using the existing password.</div>
+            </div>
+          )}
 
           <Card className="mt-6">
             <CardContent className="p-6 sm:p-8">
-              {step === 0 && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="sm:col-span-2"><Label>Full name *</Label><Input required onChange={(e) => set("name", e.target.value)} defaultValue={data.name} /></div>
-                  <div><Label>Name in Marathi</Label><Input onChange={(e) => set("nameMr", e.target.value)} defaultValue={data.nameMr} placeholder="à¤®à¤°à¤¾à¤ à¥€à¤¤ à¤¨à¤¾à¤µ" /></div>
-                  <div><Label>Date of birth</Label><Input type="date" onChange={(e) => set("dob", e.target.value)} defaultValue={data.dob} /></div>
-                  <div><Label>Gender</Label>
-                    <Select onValueChange={(v) => set("gender", v)}>
-                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                      <SelectContent><SelectItem value="male">Male</SelectItem><SelectItem value="female">Female</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label>Aadhaar (last 4)</Label><Input maxLength={4} onChange={(e) => set("aadhaar", e.target.value)} placeholder="XXXX" /></div>
-                  <div><Label>Email *</Label><Input required type="email" onChange={(e) => set("email", e.target.value)} defaultValue={data.email} /></div>
-                  <div><Label>Registered mobile *</Label><Input required type="tel" pattern="\d{10}" maxLength={10} onChange={(e) => set("mobile", e.target.value)} defaultValue={data.mobile} placeholder="10-digit" /></div>
-                  <div><Label>Alternate mobile</Label><Input type="tel" maxLength={10} onChange={(e) => set("altMobile", e.target.value)} defaultValue={data.altMobile} /></div>
+              <form className="grid gap-4 sm:grid-cols-2" onSubmit={submit}>
+                <div>
+                  <Label>अ.नु.क्रमांक / Sr. No.</Label>
+                  <Input name="srNo" />
                 </div>
-              )}
-              {step === 1 && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div><Label>Gala number *</Label><Input required onChange={(e) => set("gala", e.target.value)} defaultValue={data.gala} placeholder="e.g. A-101" /></div>
-                  <div><Label>Market section</Label><Input onChange={(e) => set("section", e.target.value)} defaultValue={data.section} placeholder="e.g. Vegetable Section A" /></div>
-                  <div><Label>Shop category</Label>
-                    <Select value={data.category} onValueChange={(v) => set("category", v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label>Business name</Label><Input onChange={(e) => set("business", e.target.value)} defaultValue={data.business} /></div>
-                  <div><Label>Ownership type</Label>
-                    <Select onValueChange={(v) => set("ownership", v)}>
-                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                      <SelectContent><SelectItem value="owned">Owned</SelectItem><SelectItem value="rented">Rented</SelectItem><SelectItem value="lease">Lease</SelectItem></SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label>Year of establishment</Label><Input type="number" min="1950" max="2026" onChange={(e) => set("estYear", e.target.value)} defaultValue={data.estYear} /></div>
-                  <div><Label>License number</Label><Input onChange={(e) => set("license", e.target.value)} defaultValue={data.license} /></div>
-                  <div><Label>License expiry</Label><Input type="date" onChange={(e) => set("licenseExp", e.target.value)} defaultValue={data.licenseExp} /></div>
-                  <div className="sm:col-span-2"><Label>Shop address</Label><Textarea rows={2} onChange={(e) => set("address", e.target.value)} defaultValue={data.address} /></div>
+                <div>
+                  <Label>क्रमांक / Number</Label>
+                  <Input name="number" />
                 </div>
-              )}
-              {step === 2 && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div><Label>Username *</Label><Input required onChange={(e) => set("username", e.target.value)} defaultValue={data.username} /></div>
-                  <div><Label>Registered mobile</Label><Input value={data.mobile || ""} disabled /></div>
-                  <div><Label>Password *</Label><Input required type="password" minLength={8} onChange={(e) => set("password", e.target.value)} /></div>
-                  <div><Label>Confirm password *</Label><Input required type="password" minLength={8} onChange={(e) => set("confirm", e.target.value)} /></div>
-                  <div className="sm:col-span-2 text-xs text-muted-foreground">Password must be at least 8 characters, include a number and a symbol.</div>
+                <div>
+                  <Label>फर्मचे नाव / Firm Name *</Label>
+                  <Input name="business" required />
                 </div>
-              )}
-              {step === 3 && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {["Profile photo", "Gala ownership document", "Market license", "ID proof (Aadhaar)", "Other document"].map((doc) => (
-                    <label key={doc} className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border p-6 cursor-pointer hover:border-primary hover:bg-secondary/50 transition">
-                      <Upload className="h-6 w-6 text-primary" />
-                      <div className="text-sm font-medium text-primary-dark text-center">{doc}</div>
-                      <div className="text-xs text-muted-foreground">Click to upload (max 5 MB)</div>
-                      <input type="file" className="hidden" />
-                    </label>
-                  ))}
+                <div>
+                  <Label>सभासदाचे नाव / Member Name *</Label>
+                  <Input name="name" required={mode === "new"} />
                 </div>
-              )}
-              {step === 4 && (
-                <div className="space-y-4">
-                  <h3 className="font-display font-semibold text-primary-dark">Review your details</h3>
-                  <div className="grid gap-2 rounded-xl border p-4 text-sm sm:grid-cols-2">
-                    {Object.entries(data).filter(([, v]) => v).map(([k, v]) => (
-                      <div key={k}><span className="text-muted-foreground capitalize">{k}: </span><span className="font-medium">{k === "password" || k === "confirm" ? "********" : v}</span></div>
+                <div className="sm:col-span-2">
+                  <Label>पत्ता : गाळा क्रमांक / Address / Gala (Shop) No. *</Label>
+                  <Textarea name="address" required rows={2} />
+                </div>
+                <div>
+                  <Label>बाजार सेक्शन / Market section *</Label>
+                  <select
+                    name="section"
+                    required
+                    defaultValue=""
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="" disabled>Select market section</option>
+                    {DEPARTMENT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
                     ))}
-                  </div>
-                  <label className="flex gap-3 rounded-xl border p-4 cursor-pointer">
-                    <Checkbox checked={agree} onCheckedChange={(v) => setAgree(Boolean(v))} />
-                    <span className="text-sm">I accept the association's terms &amp; conditions, portal guidelines and confirm all details are accurate.</span>
-                  </label>
+                  </select>
                 </div>
-              )}
-
-              <div className="mt-8 flex justify-between">
-                <Button variant="outline" onClick={prev} disabled={step === 0}><ChevronLeft className="h-4 w-4 mr-1" /> Back</Button>
-                {step < STEPS.length - 1 ? (
-                  <Button onClick={next} className="bg-primary">Next <ChevronRight className="h-4 w-4 ml-1" /></Button>
-                ) : (
-                  <Button onClick={submit} className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Submit Registration</Button>
+                <div>
+                  <Label>संपर्क / Contact *</Label>
+                  <Input name="mobile" required type="tel" inputMode="numeric" pattern="\d{10}" maxLength={10} placeholder="10-digit" />
+                </div>
+                {mode === "new" && (
+                  <div>
+                    <Label>Username *</Label>
+                    <Input name="username" required />
+                  </div>
                 )}
-              </div>
+                <div>
+                  <Label>{mode === "new" ? "Password *" : "Existing account password *"}</Label>
+                  <Input name="password" required type="password" minLength={8} />
+                </div>
+                {mode === "new" && (
+                  <div>
+                    <Label>Confirm password *</Label>
+                    <Input name="confirm" required type="password" minLength={8} />
+                  </div>
+                )}
+                <div className="self-end text-xs text-muted-foreground">Password must be 8+ characters with a number and symbol.</div>
+                <label className="flex cursor-pointer gap-3 rounded-xl border p-4 sm:col-span-2">
+                  <Checkbox checked={agree} onCheckedChange={(value) => setAgree(Boolean(value))} />
+                  <span className="text-sm">I confirm all details are accurate and accept the association's portal guidelines.</span>
+                </label>
+                <div className="flex justify-end sm:col-span-2">
+                  <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={submitting}>
+                    {submitting ? "Submitting..." : "Submit Registration"}
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
         </div>

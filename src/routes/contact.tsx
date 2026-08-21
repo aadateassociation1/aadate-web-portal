@@ -9,12 +9,18 @@ import { Label } from "@/components/ui/label";
 import { MapPin, Phone, Mail, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
+const ASSOCIATION_NAME = "Shri Chhatrapati Shivaji Market Yard Adte Association";
+const ASSOCIATION_REGISTRATION = "Registration No.: Maharashtra-1026/2013";
+const ASSOCIATION_PTR = "P.T.R. No.: F. 41841 / Pune";
+const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shri Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
+const ASSOCIATION_EMAIL = "aadateassociation1@gmail.com";
+
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact Us - VPP Market Yard" },
+      { title: `Contact Us - ${ASSOCIATION_NAME}` },
       { name: "description", content: "Reach our office, submit an enquiry or use emergency contacts." },
-      { property: "og:title", content: "Contact Us - VPP Market Yard" },
+      { property: "og:title", content: `Contact Us - ${ASSOCIATION_NAME}` },
       { property: "og:description", content: "Office address, phone, email and enquiry form." },
     ],
   }),
@@ -36,11 +42,11 @@ function Contact() {
         <div className="container-page grid gap-8 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-1">
             {[
-              { icon: MapPin, title: "Office Address", body: "Market Yard Road, Saswad, Purandar, Pune 412301, Maharashtra" },
-              { icon: Phone, title: "Phone", body: "+91 20 2645 1122 / +91 98765 43200" },
-              { icon: Mail, title: "Email", body: "office@vpp-marketyard.in" },
+              { icon: MapPin, title: "Office Address", body: ASSOCIATION_ADDRESS },
+              { icon: Phone, title: "Registration No.", body: ASSOCIATION_REGISTRATION },
+              { icon: AlertCircle, title: "P.T.R. No.", body: ASSOCIATION_PTR },
+              { icon: Mail, title: "Email", body: ASSOCIATION_EMAIL },
               { icon: Clock, title: "Office Hours", body: "Mon - Sat, 8:00 AM - 6:00 PM" },
-              { icon: AlertCircle, title: "Emergency Contact", body: "+91 98765 00000 (24x7)" },
             ].map((c) => (
               <Card key={c.title} className="border-border/60">
                 <CardContent className="p-5 flex gap-3">
@@ -83,7 +89,7 @@ function Contact() {
                 <div className="text-center">
                   <MapPin className="mx-auto h-10 w-10 text-primary" />
                   <div className="mt-2 font-semibold text-primary-dark">Google Map placeholder</div>
-                  <div className="text-xs">Market Yard Road, Saswad, Purandar, Pune 412301</div>
+                  <div className="text-xs">Gultekdi, Pune - 411037</div>
                 </div>
               </div>
             </Card>
