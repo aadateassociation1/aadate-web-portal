@@ -62,6 +62,7 @@ self.addEventListener("push", (event) => {
     icon: "/icons/favicon.png",
     badge: "/icons/favicon.png",
     tag: data.type && data.entityId ? `${data.type}-${data.entityId}` : "market-yard-notification",
+    silent: false,
     renotify: true,
     requireInteraction: data.priority === "critical" || data.type === "payment_risk",
     vibrate: data.priority === "critical" || data.type === "payment_risk"
