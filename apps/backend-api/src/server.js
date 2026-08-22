@@ -5081,7 +5081,7 @@ app.patch("/api/v1/admin/posts/:id/decision", requireRoles("MAIN_ADMIN", "USER_A
       return;
     }
   }
-  const [[before]] = await pool.query("SELECT status FROM posts WHERE id = :postId", { postId });
+  const [[before]] = await pool.query("SELECT status, post_type, title_en, content_en FROM posts WHERE id = :postId", { postId });
   if (!before) {
     res.status(404).json({ ok: false, error: "Post not found." });
     return;
@@ -5097,6 +5097,24 @@ app.patch("/api/v1/admin/posts/:id/decision", requireRoles("MAIN_ADMIN", "USER_A
     { nextStatus, shareAudience, shareCategoryId, userId: req.user.id, postId },
   );
   await writeAudit({ req, action: `post.${decision}`, module: "posts", entityType: "posts", entityId: postId, oldValues: before, newValues: { status: nextStatus, shareAudience, shareCategoryId } });
+  if (nextStatus === "published") {
+    const parsed = safeJson(before.content_en);
+    const details = parsed?.details || before.content_en || "";
+    await notifyMembersAboutPublishedPost(pool, {
+      postId,
+      postType: before.post_type,
+      titleEn: before.title_en,
+      details,
+    });
+    setImmediate(() => {
+      sendPublishedPostPush({
+        postId,
+        postType: before.post_type,
+        titleEn: before.title_en,
+        details,
+      });
+    });
+  }
   res.json({ ok: true, postId, status: nextStatus });
 });
 

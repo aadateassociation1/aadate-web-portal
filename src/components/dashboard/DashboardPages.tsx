@@ -1796,52 +1796,47 @@ function SharedPostCard({ post, adminView = false, framed = true }: { post: Dash
   const category = post.parsed?.category || "General Request";
   const details = post.parsed?.details || post.content_en || "";
   const attachmentBase = adminView ? "/api/v1/admin/post-attachments" : "/api/v1/trader/post-attachments";
-  const identityFields = [
-    { label: "Member", value: ownerName },
-    { label: "Member code", value: post.trader_code || "-" },
-    { label: "Gala number", value: post.gala_number || "-" },
-    { label: "Business / section", value: post.business_name || post.section_name || "-" },
-  ];
-  const postFields = [
-    { label: "Post ID", value: `POST-${String(post.id).padStart(5, "0")}` },
-    { label: "Category", value: category },
-    { label: "Visible to", value: post.share_audience === "category" ? (post.share_category_name || "Selected category") : "All Members" },
-    { label: "Date", value: new Date(dateValue).toLocaleDateString("en-IN") },
-    { label: "Status", value: displayStatus },
-  ];
+  const postId = `POST-${String(post.id).padStart(5, "0")}`;
+  const visibleTo = post.share_audience === "category" ? (post.share_category_name || "Selected category") : "All Members";
+  const postedOn = new Date(dateValue).toLocaleDateString("en-IN");
+  const businessInfo = [post.business_name, post.gala_number, post.section_name].filter(Boolean).join(" - ") || "Business details not added";
   const content = (
     <>
-      <div className="space-y-4">
+      <div className="space-y-3">
         <PostMediaPreview attachments={post.attachments} previewBase={attachmentBase} />
 
-        <div className="rounded-lg border bg-secondary/20 p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="min-w-0 whitespace-normal break-words font-display text-xl font-bold leading-snug text-primary-dark">{post.title_en}</h2>
+        <article className="rounded-lg border border-primary/15 bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <span>{postId}</span>
+                <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+                <span>{postedOn}</span>
+                <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+                <span>{category}</span>
+              </div>
+              <h2 className="whitespace-normal break-words font-display text-xl font-bold leading-snug text-primary-dark sm:text-2xl">{post.title_en}</h2>
+            </div>
             <StatusBadge status={displayStatus} />
           </div>
-          <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">{details}</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {postFields.map((field) => (
-              <div key={field.label} className="rounded-md border bg-background px-3 py-2">
-                <div className="text-[11px] font-medium uppercase text-muted-foreground">{field.label}</div>
-                <div className="mt-1 whitespace-normal break-words text-sm font-semibold capitalize text-primary-dark">{field.value}</div>
-              </div>
-            ))}
+          <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">{details}</p>
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+            <span className="rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary-dark">Visible to {visibleTo}</span>
+            <span className="rounded-full bg-secondary px-3 py-1 font-semibold text-primary-dark">{displayStatus}</span>
           </div>
-        </div>
+        </article>
 
-        <div className="rounded-lg border bg-primary/5 p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div className="font-display font-semibold text-primary-dark">Member details</div>
-            {adminView && <Badge className="bg-saffron text-primary-dark">Visible after reshare</Badge>}
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {identityFields.map((field) => (
-              <div key={field.label} className="rounded-md border bg-background px-3 py-2">
-                <div className="text-[11px] font-medium uppercase text-muted-foreground">{field.label}</div>
-                <div className="mt-1 whitespace-normal break-words text-sm font-semibold text-primary-dark">{field.value}</div>
-              </div>
-            ))}
+        <div className="rounded-lg border border-border/70 bg-secondary/20 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-xs font-semibold uppercase text-muted-foreground">Posted by</div>
+              <div className="mt-1 whitespace-normal break-words font-semibold text-primary-dark">{ownerName}</div>
+              <div className="mt-0.5 whitespace-normal break-words text-xs text-muted-foreground">{businessInfo}</div>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs font-semibold text-primary-dark">
+              <span className="rounded-full bg-background px-3 py-1">{post.trader_code || "No member code"}</span>
+              {adminView && <span className="rounded-full bg-saffron/20 px-3 py-1 text-saffron-foreground">Admin reviewed</span>}
+            </div>
           </div>
         </div>
 
