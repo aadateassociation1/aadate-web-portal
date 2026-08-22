@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/register")({
@@ -28,6 +28,8 @@ function Register() {
   const [done, setDone] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [duplicateMember, setDuplicateMember] = useState<{ memberName?: string; traderCode?: string } | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -198,12 +200,44 @@ function Register() {
                 )}
                 <div>
                   <Label>{mode === "new" ? "Password *" : "Existing account password *"}</Label>
-                  <Input name="password" required type="password" minLength={8} />
+                  <div className="relative">
+                    <Input
+                      name="password"
+                      required
+                      type={showPassword ? "text" : "password"}
+                      minLength={8}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 grid w-10 place-items-center text-muted-foreground transition hover:text-foreground"
+                      onClick={() => setShowPassword((value) => !value)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
                 {mode === "new" && (
                   <div>
                     <Label>Confirm password *</Label>
-                    <Input name="confirm" required type="password" minLength={8} />
+                    <div className="relative">
+                      <Input
+                        name="confirm"
+                        required
+                        type={showConfirmPassword ? "text" : "password"}
+                        minLength={8}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 grid w-10 place-items-center text-muted-foreground transition hover:text-foreground"
+                        onClick={() => setShowConfirmPassword((value) => !value)}
+                        aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
                 )}
                 <div className="self-end text-xs text-muted-foreground">Password must be 8+ characters with a number and symbol.</div>
