@@ -1,5 +1,5 @@
 import { Link, useRouter } from "@/lib/simple-router";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   AlertTriangle, Bell, Camera, CheckCircle2, ClipboardList, Download, Eye, FileText,
   HelpCircle, History, ImagePlus, KeyRound, Mail, MessageSquare, Newspaper, Pencil, Phone, Plus, Search,
@@ -36,7 +36,6 @@ import {
   type CustomerKyc, type GalleryItem,
 } from "@/lib/mock";
 import { useAuth } from "@/lib/auth";
-import { installNotificationSoundUnlock, playNotificationTone, unlockNotificationSound } from "@/lib/notification-sound";
 
 const CHART_COLORS = ["#86c127", "#e37814", "#86c127", "#D92D20", "#7C3AED", "#0284C7"];
 const COMPLAINT_CATEGORIES = [
@@ -4873,8 +4872,6 @@ export function OwnerNotificationsPage() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [openNotification, setOpenNotification] = useState<MemberNotification | null>(null);
-  const [soundEnabled, setSoundEnabled] = useState(false);
-  const lastRangNotificationId = useRef<number | null>(null);
 
   const loadNotifications = async () => {
     const response = await fetch("/api/v1/trader/notifications", { credentials: "include" });
@@ -4886,7 +4883,6 @@ export function OwnerNotificationsPage() {
 
   useEffect(() => {
     let active = true;
-    const cleanupSoundUnlock = installNotificationSoundUnlock();
     const load = async () => {
       try {
         await loadNotifications();
@@ -4901,37 +4897,10 @@ export function OwnerNotificationsPage() {
     return () => {
       active = false;
       window.clearInterval(timer);
-      cleanupSoundUnlock();
     };
   }, []);
 
-  useEffect(() => {
-    const latestUnreadRiskAlert = notifications.find((notification) =>
-      (!notification.read_at && notification.delivery_status !== "read")
-      && (notification.notification_type === "risk_alert" || notification.priority === "critical")
-    );
-    if (!latestUnreadRiskAlert || lastRangNotificationId.current === latestUnreadRiskAlert.id) return;
-
-    lastRangNotificationId.current = latestUnreadRiskAlert.id;
-    if (!playNotificationTone()) {
-      toast.info("Tap Enable to ring risk alerts", {
-        action: {
-          label: "Enable",
-          onClick: () => {
-            unlockNotificationSound();
-            playNotificationTone();
-          },
-        },
-      });
-    }
-  }, [notifications]);
-
   const markRead = async (notification: MemberNotification) => {
-    if (notification.notification_type === "risk_alert" || notification.priority === "critical") {
-      unlockNotificationSound();
-      setSoundEnabled(true);
-      playNotificationTone();
-    }
     if (!notification.read_at && notification.delivery_status !== "read") {
       const response = await fetch(`/api/v1/trader/notifications/${notification.id}/read`, {
         method: "PATCH",
@@ -4955,16 +4924,6 @@ export function OwnerNotificationsPage() {
     await loadNotifications();
   };
 
-  const enableSound = () => {
-    unlockNotificationSound();
-    setSoundEnabled(true);
-    if (playNotificationTone()) {
-      toast.success("Notification sound enabled.");
-    } else {
-      toast.info("Sound is enabled. Chrome may allow it after one more click.");
-    }
-  };
-
   return (
     <DashLayout kind="owner">
       <PageTitle
@@ -4972,9 +4931,6 @@ export function OwnerNotificationsPage() {
         subtitle="Payment risk alerts, notices, complaints, and market updates saved to your inbox."
         action={
           <div className="flex flex-wrap gap-2">
-            <Button variant={soundEnabled ? "secondary" : "outline"} onClick={enableSound}>
-              <Bell className="mr-1 h-4 w-4" /> {soundEnabled ? "Sound On" : "Enable Sound"}
-            </Button>
             {unreadCount > 0 && (
               <Button variant="outline" onClick={() => markAllRead().catch((error) => toast.error(error.message))}>
                 Mark all read

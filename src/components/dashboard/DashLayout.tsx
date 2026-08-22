@@ -10,7 +10,6 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { installNotificationSoundUnlock, playNotificationTone, unlockNotificationSound } from "@/lib/notification-sound";
 import { canUseWebPush, enableWebPush, getPushStatus, sendTestWebPush } from "@/lib/push-notifications";
 
 const OWNER_NAV = [
@@ -122,7 +121,6 @@ export function DashLayout({ kind, children }: Props) {
   useEffect(() => {
     if (kind !== "owner" || loading || !user || user.role !== "owner") return;
     let active = true;
-    const cleanupSoundUnlock = installNotificationSoundUnlock();
 
     const loadCounts = () => {
       fetch("/api/v1/trader/notification-counts", { credentials: "include" })
@@ -136,23 +134,10 @@ export function DashLayout({ kind, children }: Props) {
               action: {
                 label: "View",
                 onClick: () => {
-                  unlockNotificationSound();
-                  playNotificationTone();
                   router.navigate({ to: "/member/notifications" });
                 },
               },
             });
-            if (!playNotificationTone()) {
-              toast.info("Tap once to enable notification sound", {
-                action: {
-                  label: "Enable",
-                  onClick: () => {
-                    unlockNotificationSound();
-                    playNotificationTone();
-                  },
-                },
-              });
-            }
           }
           previousMemberUnreadCount.current = nextCount;
           setMemberUnreadCount(nextCount);
@@ -164,7 +149,6 @@ export function DashLayout({ kind, children }: Props) {
     return () => {
       active = false;
       window.clearInterval(timer);
-      cleanupSoundUnlock();
     };
   }, [kind, loading, user, router]);
 
