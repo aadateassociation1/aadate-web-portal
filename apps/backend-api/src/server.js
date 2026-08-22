@@ -427,7 +427,7 @@ async function saveComplaintAttachmentFile({ complaintId, attachmentType, origin
     ? new Set(["video/mp4", "video/webm", "video/quicktime"])
     : new Set(["image/jpeg", "image/png", "image/webp"]);
   const extensions = attachmentType === "video" ? new Set([".mp4", ".webm", ".mov"]) : new Set([".jpg", ".jpeg", ".png", ".webp"]);
-  if (buffer.length <= 0 || buffer.length > MAX_MEDIA_UPLOAD_BYTES) throw new Error("Each complaint image or video must be 1 MB or smaller.");
+  if (buffer.length <= 0 || buffer.length > MAX_MEDIA_UPLOAD_BYTES) throw new Error("Each complaint image or video must be 5 MB or smaller.");
   if (!allowed.has(safeMimeType) || !extensions.has(path.extname(String(originalFilename || "")).toLowerCase())) {
     throw new Error(`${attachmentType === "video" ? "Video" : "Image"} attachment type is not supported.`);
   }
@@ -437,7 +437,7 @@ async function saveComplaintAttachmentFile({ complaintId, attachmentType, origin
   const storagePath = path.join(COMPLAINT_UPLOAD_ROOT, storageFileName);
   await fs.writeFile(storagePath, buffer);
   return {
-    storageKey: `uploads/complaint-documents/${storageFileName}`,
+    storageKey: path.relative(process.cwd(), storagePath),
     originalFilename: safeFileName,
     mimeType: safeMimeType,
     fileSizeBytes: buffer.length,
@@ -5076,12 +5076,16 @@ app.get("/api/v1/admin/complaint-attachments/:id/download", requireRoles("MAIN_A
     res.status(404).json({ ok: false, error: "Attachment not found." });
     return;
   }
-  const filePath = path.resolve(process.cwd(), attachment.storage_key);
+  const filePath = await resolveExistingStoredFilePath(attachment.storage_key);
   const disposition = String(req.query.download || "") === "1" ? "attachment" : "inline";
   await recordDownloadEvent({ sourceTable: "complaint_attachments", sourceId: attachmentId, req });
   res.setHeader("Content-Type", attachment.mime_type);
-  res.setHeader("Content-Disposition", `${disposition}; filename="${attachment.original_filename.replace(/"/g, "")}"`);
-  res.sendFile(filePath);
+  res.setHeader("Content-Disposition", `${disposition}; filename="${String(attachment.original_filename || "complaint-attachment").replace(/"/g, "")}"`);
+  res.sendFile(filePath, (error) => {
+    if (error && !res.headersSent) {
+      res.status(404).json({ ok: false, error: "Attachment file is missing on the server." });
+    }
+  });
 });
 
 app.patch("/api/v1/admin/complaints/:id/status", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
