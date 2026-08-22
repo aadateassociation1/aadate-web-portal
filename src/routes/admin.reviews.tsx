@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, Download, Star, ThumbsDown } from "lucide-react";
+import { CheckCircle2, Download, Star, ThumbsDown, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -90,6 +90,22 @@ function AdminReviews() {
     }
   };
 
+  const deleteReview = async (review: RatingReview) => {
+    if (!window.confirm("Delete this approved review from the public website and admin list?")) return;
+    try {
+      const response = await fetch(`/api/v1/admin/ratings/${review.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Delete failed");
+      toast.success("Review deleted");
+      loadReviews();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Delete failed");
+    }
+  };
+
   return (
     <DashLayout kind="admin">
       <div className="space-y-6">
@@ -149,12 +165,17 @@ function AdminReviews() {
                     </TableCell>
                     <TableCell className="w-[110px] min-w-[110px] whitespace-nowrap"><StatusBadge status={review.moderation_status} /></TableCell>
                     <TableCell className="text-right">
-                      {review.moderation_status === "pending" && (
-                        <div className="inline-flex gap-1">
+                      <div className="inline-flex gap-1">
+                        {review.moderation_status === "pending" && (
+                          <>
                           <Button size="sm" className="bg-success text-white" onClick={() => decide(review, "approve")}><CheckCircle2 className="mr-1 h-4 w-4" />Reshare</Button>
                           <Button size="sm" variant="outline" onClick={() => decide(review, "reject")}><ThumbsDown className="mr-1 h-4 w-4" />Reject</Button>
-                        </div>
-                      )}
+                          </>
+                        )}
+                        {review.moderation_status !== "pending" && (
+                          <Button size="sm" variant="destructive" onClick={() => deleteReview(review)}><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

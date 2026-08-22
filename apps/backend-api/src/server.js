@@ -5605,6 +5605,29 @@ app.patch("/api/v1/admin/ratings/:id/decision", requireRoles("MAIN_ADMIN", "USER
   res.json({ ok: true, ratingId, status: nextStatus });
 });
 
+app.delete("/api/v1/admin/ratings/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const ratingId = Number(req.params.id);
+  if (!ratingId) {
+    res.status(400).json({ ok: false, error: "Valid rating id is required." });
+    return;
+  }
+  const [[before]] = await pool.query("SELECT id, moderation_status, rating_scope, review_text FROM ratings WHERE id = :ratingId LIMIT 1", { ratingId });
+  if (!before) {
+    res.status(404).json({ ok: false, error: "Review not found." });
+    return;
+  }
+  const [attachments] = await pool.query("SELECT storage_key FROM rating_attachments WHERE rating_id = :ratingId", { ratingId });
+  await pool.query("DELETE FROM ratings WHERE id = :ratingId", { ratingId });
+  for (const attachment of attachments) {
+    const filePath = await resolveExistingStoredFilePath(attachment.storage_key);
+    if (isPathInside(filePath, PERSISTENT_UPLOAD_ROOT) || isPathInside(filePath, path.resolve(process.cwd(), "uploads"))) {
+      fs.unlink(filePath).catch(() => undefined);
+    }
+  }
+  await writeAudit({ req, action: "rating.delete", module: "ratings", entityType: "ratings", entityId: ratingId, oldValues: before });
+  res.json({ ok: true, ratingId, deleted: true });
+});
+
 app.get("/api/v1/admin/reports/analytics", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (_req, res) => {
   const [[summary]] = await pool.query(`
     SELECT
