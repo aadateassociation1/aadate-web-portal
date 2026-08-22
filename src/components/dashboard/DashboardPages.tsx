@@ -675,7 +675,7 @@ export function AdminRegistrationsPage() {
 
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Registration Approvals" subtitle="Review new Member registrations and approve them directly." />
+      <PageTitle title="Registration Approvals" subtitle="Review new members and pending gala/shop additions." />
       {loading && <Card className="border-border/60"><CardContent className="p-6 text-sm text-muted-foreground">Loading pending registrations...</CardContent></Card>}
       {!loading && pending.length === 0 && <Card className="border-border/60"><CardContent className="p-6 text-sm text-muted-foreground">No pending Member registrations.</CardContent></Card>}
       <div className="grid gap-4 lg:grid-cols-2">
@@ -699,8 +699,18 @@ export function AdminRegistrationsPage() {
                   </div>
                   <div className="mt-5 flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" onClick={() => loadDetails(o)}><Eye className="mr-1 h-4 w-4" /> View documents</Button>
-                    <Button size="sm" className="bg-success text-white" onClick={() => decide(o, "approve")}><ThumbsUp className="mr-1 h-4 w-4" /> Approve now</Button>
-                    <Button size="sm" variant="outline" onClick={() => decide(o, "reject")}><ThumbsDown className="mr-1 h-4 w-4" /> Reject</Button>
+                    {o.verification_status === "approved" ? (
+                      Number(o.pending_gala_count || 0) > 0 && (
+                        <Button size="sm" className="bg-saffron text-primary-dark" onClick={() => loadDetails(o)}>
+                          <Eye className="mr-1 h-4 w-4" /> Review pending gala/shop
+                        </Button>
+                      )
+                    ) : (
+                      <>
+                        <Button size="sm" className="bg-success text-white" onClick={() => decide(o, "approve")}><ThumbsUp className="mr-1 h-4 w-4" /> Approve now</Button>
+                        <Button size="sm" variant="outline" onClick={() => decide(o, "reject")}><ThumbsDown className="mr-1 h-4 w-4" /> Reject</Button>
+                      </>
+                    )}
                     <Button size="sm" variant="ghost">Request info</Button>
                   </div>
                 </div>
