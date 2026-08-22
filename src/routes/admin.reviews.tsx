@@ -47,7 +47,7 @@ function StatusBadge({ status }: { status: string }) {
     : status === "rejected"
       ? "bg-destructive/15 text-destructive"
       : "bg-warning/15 text-warning";
-  return <Badge className={`inline-flex min-w-max whitespace-nowrap capitalize ${classes}`}>{status}</Badge>;
+  return <Badge className={`inline-flex min-w-[82px] justify-center whitespace-nowrap capitalize ${classes}`}>{status}</Badge>;
 }
 
 function AdminReviews() {
@@ -119,7 +119,7 @@ function AdminReviews() {
                   <TableHead>Reviewer</TableHead>
                   <TableHead>Review</TableHead>
                   <TableHead>Media</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[110px] min-w-[110px] whitespace-nowrap">Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -147,7 +147,7 @@ function AdminReviews() {
                         )) : <span className="text-xs text-muted-foreground">No media</span>}
                       </div>
                     </TableCell>
-                    <TableCell><StatusBadge status={review.moderation_status} /></TableCell>
+                    <TableCell className="w-[110px] min-w-[110px] whitespace-nowrap"><StatusBadge status={review.moderation_status} /></TableCell>
                     <TableCell className="text-right">
                       {review.moderation_status === "pending" && (
                         <div className="inline-flex gap-1">
