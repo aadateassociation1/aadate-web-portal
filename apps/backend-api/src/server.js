@@ -3732,13 +3732,30 @@ app.get("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) => 
     `SELECT c.id, c.customer_code, c.full_name, c.mobile, c.kyc_status, c.risk_status, c.created_at,
             aadhaar.masked_value AS aadhaar_masked,
             pan.masked_value AS pan_masked,
-            tc.relationship_status
+            tc.relationship_status,
+            MAX(tc.linked_at) AS linked_at,
+            COUNT(CASE WHEN wc.status IN ('approved','active','partially_paid','disputed') AND wc.visibility = 'market_summary' THEN wc.id END) AS active_market_warning_count,
+            COALESCE(SUM(CASE WHEN wc.status IN ('approved','active','partially_paid','disputed') AND wc.visibility = 'market_summary' THEN wc.current_outstanding_amount ELSE 0 END), 0) AS verified_market_outstanding,
+            latest_wc.trader_statement AS latest_warning_note,
+            latest_trader.business_name AS latest_warning_trader
        FROM trader_customers tc
        JOIN customers c ON c.id = tc.customer_id
        LEFT JOIN customer_identifiers aadhaar ON aadhaar.customer_id = c.id AND aadhaar.identifier_type = 'aadhaar'
        LEFT JOIN customer_identifiers pan ON pan.customer_id = c.id AND pan.identifier_type = 'pan'
+       LEFT JOIN warning_cases wc ON wc.customer_id = c.id
+       LEFT JOIN warning_cases latest_wc ON latest_wc.id = (
+         SELECT wc2.id FROM warning_cases wc2
+          WHERE wc2.customer_id = c.id
+            AND wc2.status IN ('approved','active','partially_paid','disputed')
+            AND wc2.visibility = 'market_summary'
+          ORDER BY wc2.updated_at DESC, wc2.id DESC
+          LIMIT 1
+       )
+       LEFT JOIN traders latest_trader ON latest_trader.id = latest_wc.reported_by_trader_id
       WHERE tc.trader_id = :traderId
-      ORDER BY tc.linked_at DESC`,
+      GROUP BY c.id, c.customer_code, c.full_name, c.mobile, c.kyc_status, c.risk_status, c.created_at,
+               aadhaar.masked_value, pan.masked_value, tc.relationship_status, latest_wc.trader_statement, latest_trader.business_name
+      ORDER BY linked_at DESC`,
     { traderId },
   );
   res.json({ ok: true, customers: rows });

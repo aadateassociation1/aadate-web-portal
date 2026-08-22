@@ -3192,6 +3192,10 @@ export function OwnerKycPage() {
     pan_masked: string | null;
     kyc_status: string;
     risk_status?: string;
+    active_market_warning_count?: number;
+    verified_market_outstanding?: number;
+    latest_warning_note?: string | null;
+    latest_warning_trader?: string | null;
     created_at: string;
   };
   type RiskSearchResult = {
@@ -3227,11 +3231,22 @@ export function OwnerKycPage() {
   const [warningSaving, setWarningSaving] = useState(false);
   const [recordFilter, setRecordFilter] = useState<"all" | "verified" | "risk">("all");
   const riskStatuses = ["warning_2", "high_risk", "blocked", "disputed"];
+  const hasRiskWarning = (record: TraderKycRecord) =>
+    Number(record.active_market_warning_count || 0) > 0 || riskStatuses.includes(record.risk_status || "");
+  const showRecordAction = (record: TraderKycRecord) => {
+    if (hasRiskWarning(record)) {
+      toast.error(
+        `${record.full_name} has ${Number(record.active_market_warning_count || 0)} risk alert(s). Outstanding: Rs. ${Number(record.verified_market_outstanding || 0).toLocaleString("en-IN")}. ${record.latest_warning_note || ""}`.trim(),
+      );
+      return;
+    }
+    toast.info(`${record.full_name} KYC is stored in database`);
+  };
   const verifiedRecords = records.filter((record) => record.kyc_status === "verified");
-  const riskRecords = records.filter((record) => riskStatuses.includes(record.risk_status || ""));
+  const riskRecords = records.filter((record) => hasRiskWarning(record));
   const visibleRecords = records.filter((record) => {
     if (recordFilter === "verified") return record.kyc_status === "verified";
-    if (recordFilter === "risk") return riskStatuses.includes(record.risk_status || "");
+    if (recordFilter === "risk") return hasRiskWarning(record);
     return true;
   });
 
@@ -3514,7 +3529,7 @@ export function OwnerKycPage() {
               <SearchBar placeholder="Search customer KYC..." />
             </div>
             <div className="overflow-x-auto">
-              <Table className="min-w-[780px] table-fixed">
+              <Table className="min-w-[840px] table-fixed">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[190px]">Customer</TableHead>
@@ -3523,7 +3538,7 @@ export function OwnerKycPage() {
                     <TableHead className="w-[115px]">PAN</TableHead>
                     <TableHead className="w-[110px]">Status</TableHead>
                     <TableHead className="w-[110px]">Date</TableHead>
-                    <TableHead className="w-[70px] text-center">Action</TableHead>
+                    <TableHead className="w-[120px] text-center">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -3535,7 +3550,15 @@ export function OwnerKycPage() {
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.pan_masked || "-"}</TableCell>
                       <TableCell className="align-top"><span className="inline-flex whitespace-nowrap"><StatusBadge status={record.kyc_status} /></span></TableCell>
                       <TableCell className="whitespace-nowrap align-top">{new Date(record.created_at).toLocaleDateString("en-IN")}</TableCell>
-                      <TableCell className="text-center align-top"><Button size="sm" variant="ghost" onClick={() => toast.info(`${record.full_name} KYC is stored in database`)}><Eye className="h-4 w-4" /></Button></TableCell>
+                      <TableCell className="text-center align-top">
+                        {hasRiskWarning(record) ? (
+                          <Button size="sm" variant="destructive" className="h-8 whitespace-nowrap" onClick={() => showRecordAction(record)}>
+                            <AlertTriangle className="mr-1 h-3.5 w-3.5" /> Risk
+                          </Button>
+                        ) : (
+                          <Button size="sm" variant="ghost" onClick={() => showRecordAction(record)}><Eye className="h-4 w-4" /></Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
