@@ -22,8 +22,10 @@ const COMMITTEE_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "committee-photo
 const MAX_MEDIA_UPLOAD_BYTES = 5 * 1024 * 1024;
 const MAX_DOCUMENT_UPLOAD_BYTES = 5 * 1024 * 1024;
 const REQUIRED_TRADER_DASHBOARD_DOCUMENT_TYPES = ["profile_photo", "aadhaar_masked", "pan", "market_registration"];
-const DATA_RETENTION_DAYS = 5;
+const DATA_RETENTION_DAYS = 7;
 const DATA_RETENTION_MS = DATA_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+const RISK_NOTIFICATION_RETENTION_DAYS = 90;
+const RISK_NOTIFICATION_RETENTION_MS = RISK_NOTIFICATION_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 const DATA_RETENTION_CHECK_INTERVAL_MS = 10 * 60 * 1000;
 const DOCUMENT_TYPE_LABELS = {
   profile_photo: "Profile photo",
@@ -1046,10 +1048,12 @@ async function removeStorageFiles(storageKeys = []) {
 
 async function cleanRetainedContent() {
   const cutoff = new Date(Date.now() - DATA_RETENTION_MS);
+  const riskNotificationCutoff = new Date(Date.now() - RISK_NOTIFICATION_RETENTION_MS);
   const cleanupResults = {
     postsRemoved: 0,
     marketPricesRemoved: 0,
     complaintsRemoved: 0,
+    notificationsRemoved: 0,
     filesRemoved: 0,
   };
 
@@ -1115,6 +1119,20 @@ async function cleanRetainedContent() {
     cleanupResults.filesRemoved += complaintFiles.length;
   }
 
+  const [notificationResult] = await pool.query(
+    `DELETE FROM notifications
+      WHERE (
+          notification_type NOT IN ('risk_alert', 'risk_cleared')
+          AND COALESCE(read_at, sent_at, created_at) < :cutoff
+        )
+         OR (
+          notification_type IN ('risk_alert', 'risk_cleared')
+          AND COALESCE(read_at, sent_at, created_at) < :riskNotificationCutoff
+        )`,
+    { cutoff, riskNotificationCutoff },
+  );
+  cleanupResults.notificationsRemoved = notificationResult.affectedRows || 0;
+
   return cleanupResults;
 }
 
@@ -1122,9 +1140,9 @@ function scheduleRetentionCleanup() {
   const runCleanup = async () => {
     try {
       const result = await cleanRetainedContent();
-      if (result.postsRemoved || result.marketPricesRemoved || result.complaintsRemoved) {
+      if (result.postsRemoved || result.marketPricesRemoved || result.complaintsRemoved || result.notificationsRemoved) {
         console.log(
-          `Retention cleanup removed ${result.postsRemoved} posts, ${result.marketPricesRemoved} market prices, ${result.complaintsRemoved} complaints, and ${result.filesRemoved} files.`,
+          `Retention cleanup removed ${result.postsRemoved} posts, ${result.marketPricesRemoved} market prices, ${result.complaintsRemoved} complaints, ${result.notificationsRemoved} notifications, and ${result.filesRemoved} files.`,
         );
       }
     } catch (error) {
@@ -2470,6 +2488,18 @@ app.patch("/api/v1/trader/notifications/read-all", requireRoles("TRADER"), async
     { userId: req.user.id },
   );
   res.json({ ok: true, updated: result.affectedRows || 0 });
+});
+
+app.delete("/api/v1/trader/notifications/read", requireRoles("TRADER"), async (req, res) => {
+  const [result] = await pool.query(
+    `DELETE FROM notifications
+      WHERE user_id = :userId
+        AND channel = 'in_app'
+        AND (delivery_status = 'read' OR read_at IS NOT NULL)
+        AND notification_type NOT IN ('risk_alert', 'risk_cleared')`,
+    { userId: req.user.id },
+  );
+  res.json({ ok: true, deleted: result.affectedRows || 0 });
 });
 
 async function attachContentFiles(rows) {

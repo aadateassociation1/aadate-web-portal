@@ -4924,6 +4924,17 @@ export function OwnerNotificationsPage() {
     await loadNotifications();
   };
 
+  const clearReadNotifications = async () => {
+    const response = await fetch("/api/v1/trader/notifications/read", {
+      method: "DELETE",
+      credentials: "include",
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Could not clear notifications.");
+    toast.success(`${Number(result.deleted || 0)} read notification(s) cleared.`);
+    await loadNotifications();
+  };
+
   return (
     <DashLayout kind="owner">
       <PageTitle
@@ -4936,6 +4947,9 @@ export function OwnerNotificationsPage() {
                 Mark all read
               </Button>
             )}
+            <Button variant="outline" onClick={() => clearReadNotifications().catch((error) => toast.error(error.message))}>
+              Clear read
+            </Button>
           </div>
         }
       />
