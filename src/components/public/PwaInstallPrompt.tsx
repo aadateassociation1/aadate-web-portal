@@ -1,4 +1,4 @@
-import { Download } from "lucide-react";
+import { Download, Share2, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -78,10 +78,19 @@ export function PwaInstallPrompt() {
   if (standalone || dismissed || (!promptEvent && !canShowManualHelp)) return null;
 
   const install = async () => {
-    if (!promptEvent) return;
+    if (!promptEvent) {
+      if (platform === "android") {
+        alert("Chrome menu (⋮) उघडा आणि Install app किंवा Add to Home screen निवडा.");
+      }
+      return;
+    }
     await promptEvent.prompt();
-    await promptEvent.userChoice;
+    const choice = await promptEvent.userChoice;
     setPromptEvent(null);
+    if (choice.outcome === "accepted") {
+      handleInstallRecorded();
+      setDismissed(true);
+    }
   };
 
   const dismiss = () => {
@@ -89,23 +98,45 @@ export function PwaInstallPrompt() {
     setDismissed(true);
   };
 
+  const handleInstallRecorded = () => {
+    fetch("/api/analytics/pwa-install", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        deviceId: getPwaDeviceId(),
+        platform: detectPlatform(),
+      }),
+    }).catch(() => undefined);
+  };
+
   const helpText = promptEvent
-    ? "Install this portal for faster app-style access."
+    ? "Tap Install to add this portal like an app."
     : platform === "ios"
-      ? "Tap Share, then Add to Home Screen."
-      : "Open Chrome menu, then tap Install app or Add to Home screen.";
+      ? "iPhone: Share icon tap करा, मग Add to Home Screen निवडा."
+      : "Android: Chrome menu (⋮) मधून Install app / Add to Home screen निवडा.";
 
   return (
-    <div className="fixed bottom-24 left-4 right-4 z-50 mx-auto flex max-w-md items-center gap-3 rounded-md border bg-background p-3 shadow-lg sm:left-auto sm:right-5">
-      <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-secondary text-primary">
-        <Download className="h-4 w-4" />
+    <div className="fixed bottom-24 left-3 right-3 z-50 mx-auto flex max-w-lg items-start gap-3 rounded-lg border border-primary/20 bg-background p-3 shadow-xl sm:left-auto sm:right-5">
+      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary">
+        {platform === "ios" ? <Share2 className="h-4 w-4" /> : <Download className="h-4 w-4" />}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-primary-dark">Install Market Yard app</div>
-        <div className="text-xs text-muted-foreground">{helpText}</div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-primary-dark">
+          <Smartphone className="h-4 w-4" />
+          Install Market Yard app
+        </div>
+        <div className="mt-1 text-xs leading-relaxed text-muted-foreground">{helpText}</div>
+        {platform === "ios" && (
+          <div className="mt-2 rounded-md bg-secondary/60 px-2 py-1.5 text-xs text-primary-dark">
+            Safari मध्ये खाली/वरचा Share button → Add to Home Screen → Add.
+          </div>
+        )}
       </div>
-      {promptEvent && <Button size="sm" className="bg-primary" onClick={install}>Install</Button>}
-      <Button size="sm" variant="ghost" onClick={dismiss}>Later</Button>
+      <div className="flex shrink-0 flex-col gap-2">
+        {(promptEvent || platform === "android") && <Button size="sm" className="bg-primary" onClick={install}>Install</Button>}
+        <Button size="sm" variant="ghost" onClick={dismiss}>Later</Button>
+      </div>
     </div>
   );
 }
