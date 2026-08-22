@@ -14,6 +14,7 @@ const ASSOCIATION_REGISTRATION = "Registration No.: Maharashtra-1026/2013";
 const ASSOCIATION_PTR = "P.T.R. No.: F. 41841 / Pune";
 const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shri Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
 const ASSOCIATION_EMAIL = "aadateassociation1@gmail.com";
+const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -72,7 +73,7 @@ function Contact() {
                 >
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div><Label>Full name</Label><Input required placeholder="Your name" /></div>
-                    <div><Label>Mobile</Label><Input required type="tel" pattern="\d{10}" placeholder="10-digit mobile" /></div>
+                    <div><Label>Mobile</Label><Input required type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10-digit mobile" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} /></div>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div><Label>Email</Label><Input required type="email" placeholder="you@example.com" /></div>

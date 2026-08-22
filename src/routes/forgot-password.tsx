@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { KeyRound, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
+const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
+
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({ meta: [{ title: "Forgot Password - Shri Chhatrapati Shivaji Market Yard Adte Association Portal" }] }),
   component: ForgotPasswordPage,
@@ -124,7 +126,7 @@ function ForgotPasswordPage() {
               <div className="space-y-4">
                 <div>
                   <Label>Registered mobile number</Label>
-                  <Input value={mobile} onChange={(event) => setMobile(event.target.value)} placeholder="10-digit mobile number" inputMode="numeric" maxLength={10} disabled={step !== "mobile"} />
+                  <Input value={mobile} onChange={(event) => setMobile(limitDigits(event.target.value, 10))} placeholder="10-digit mobile number" inputMode="numeric" maxLength={10} pattern="\d{10}" disabled={step !== "mobile"} />
                 </div>
                 <Button type="button" className="w-full bg-primary" onClick={sendOtp} disabled={loading || step !== "mobile"}>
                   {loading && step === "mobile" ? "Sending..." : "Send OTP"}
@@ -134,7 +136,7 @@ function ForgotPasswordPage() {
                   <>
                     <div>
                       <Label>OTP</Label>
-                      <Input value={otp} onChange={(event) => setOtp(event.target.value)} placeholder="6-digit OTP" inputMode="numeric" maxLength={6} />
+                      <Input value={otp} onChange={(event) => setOtp(limitDigits(event.target.value, 6))} placeholder="6-digit OTP" inputMode="numeric" maxLength={6} pattern="\d{6}" />
                     </div>
                     <Button type="button" className="w-full bg-primary" onClick={verifyOtp} disabled={loading || step !== "otp"}>
                       {loading && step === "otp" ? "Verifying..." : "Verify OTP"}

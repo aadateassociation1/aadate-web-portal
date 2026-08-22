@@ -82,6 +82,8 @@ const COMPLAINT_PRIORITIES = [
   { value: "high", en: "High", mr: "उच्च" },
   { value: "urgent", en: "Emergency", mr: "आपत्कालीन" },
 ];
+const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
+const limitPan = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
 const MOBILE_CHANGE_REASONS = [
   "Lost SIM or phone",
   "Old number is inactive",
@@ -3120,12 +3122,12 @@ export function OwnerProfilePage() {
               <Field label="Gala number" value={profile?.gala_number || ""} readOnly />
               <div>
                 <Label>Aadhaar number *</Label>
-                <Input name="aadhaar" required={!profile?.aadhaar_masked} inputMode="numeric" maxLength={12} placeholder={profile?.aadhaar_masked || "12 digit Aadhaar"} />
+                <Input name="aadhaar" required={!profile?.aadhaar_masked} inputMode="numeric" maxLength={12} pattern="\d{12}" placeholder={profile?.aadhaar_masked || "12 digit Aadhaar"} onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 12); }} />
                 {profile?.aadhaar_masked && <p className="mt-1 text-xs text-muted-foreground">Saved as {profile.aadhaar_masked}. Enter only to replace.</p>}
               </div>
               <div>
                 <Label>PAN number *</Label>
-                <Input name="pan" required={!profile?.pan_masked} maxLength={10} placeholder={profile?.pan_masked || "ABCDE1234F"} className="uppercase" />
+                <Input name="pan" required={!profile?.pan_masked} maxLength={10} pattern="[A-Za-z]{5}\d{4}[A-Za-z]" placeholder={profile?.pan_masked || "ABCDE1234F"} className="uppercase" onInput={(event) => { event.currentTarget.value = limitPan(event.currentTarget.value); }} />
                 {profile?.pan_masked && <p className="mt-1 text-xs text-muted-foreground">Saved as {profile.pan_masked}. Enter only to replace.</p>}
               </div>
               <div>
@@ -3139,13 +3141,19 @@ export function OwnerProfilePage() {
                 <Label>Licence number</Label>
                 <Input name="licenceNumber" defaultValue={profile?.licence_number || profile?.market_registration_number || ""} />
               </div>
-              <Field label="Alternate mobile" name="alternateMobile" value={profile?.alternate_mobile || ""} />
+              <div>
+                <Label>Alternate mobile</Label>
+                <Input name="alternateMobile" defaultValue={profile?.alternate_mobile || ""} type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10 digit mobile" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
+              </div>
               <Field label="Address line 1" name="addressLine1" value={profile?.address_line1 || ""} />
               <Field label="Address line 2" name="addressLine2" value={profile?.address_line2 || ""} />
               <Field label="Village / City" name="villageCity" value={profile?.village_city || ""} />
               <Field label="Taluka" name="taluka" value={profile?.taluka || ""} />
               <Field label="District" name="district" value={profile?.district || ""} />
-              <Field label="Pincode" name="pincode" value={profile?.pincode || ""} />
+              <div>
+                <Label>Pincode</Label>
+                <Input name="pincode" defaultValue={profile?.pincode || ""} inputMode="numeric" maxLength={6} pattern="\d{6}" placeholder="6 digit pincode" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 6); }} />
+              </div>
               <div className="sm:col-span-2 rounded-lg bg-secondary/50 p-3 text-sm text-muted-foreground">Current address: {formatTraderAddress(profile) || "-"}</div>
               <div className="sm:col-span-2 flex justify-end">
                 <Button className="bg-primary" disabled={saving}>{saving ? "Saving..." : "Save mandatory details"}</Button>
@@ -3470,15 +3478,15 @@ export function OwnerKycPage() {
               </div>
               <div>
                 <Label>Phone number *</Label>
-                <Input name="phone" required type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10-digit mobile number" />
+                <Input name="phone" required type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10-digit mobile number" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
               </div>
               <div>
                 <Label>Aadhaar number *</Label>
-                <Input name="aadhaar" required inputMode="numeric" maxLength={14} pattern="[0-9 ]{12,14}" placeholder="1234 5678 9012" />
+                <Input name="aadhaar" required inputMode="numeric" maxLength={12} pattern="\d{12}" placeholder="12 digit Aadhaar" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 12); }} />
               </div>
               <div>
                 <Label>PAN number *</Label>
-                <Input name="pan" required maxLength={10} pattern="[A-Za-z]{5}\d{4}[A-Za-z]" placeholder="ABCDE1234F" className="uppercase" />
+                <Input name="pan" required maxLength={10} pattern="[A-Za-z]{5}\d{4}[A-Za-z]" placeholder="ABCDE1234F" className="uppercase" onInput={(event) => { event.currentTarget.value = limitPan(event.currentTarget.value); }} />
               </div>
               <div>
                 <Label>Address *</Label>
@@ -4443,13 +4451,13 @@ export function MobileChangeApplicationForm({ compact = false }: { compact?: boo
             </div>
             <div>
               <Label>New mobile number *</Label>
-              <Input required type="tel" pattern="\d{10}" maxLength={10} placeholder="10-digit mobile number" />
+              <Input required type="tel" inputMode="numeric" pattern="\d{10}" maxLength={10} placeholder="10-digit mobile number" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
             </div>
             {!compact && (
               <>
                 <div>
                   <Label>Alternate contact number</Label>
-                  <Input type="tel" pattern="\d{10}" maxLength={10} placeholder="Optional 10-digit number" />
+                  <Input type="tel" inputMode="numeric" pattern="\d{10}" maxLength={10} placeholder="Optional 10-digit number" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
                 </div>
                 <div>
                   <Label>Reason for change *</Label>
@@ -4630,11 +4638,11 @@ export function OwnerMobileChangePage() {
                 </div>
                 <div>
                   <Label>New mobile number *</Label>
-                  <Input name="newMobile" required type="tel" pattern="\d{10}" maxLength={10} placeholder="10-digit mobile number" />
+                  <Input name="newMobile" required type="tel" inputMode="numeric" pattern="\d{10}" maxLength={10} placeholder="10-digit mobile number" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
                 </div>
                 <div>
                   <Label>Alternate contact number</Label>
-                  <Input name="alternateMobile" type="tel" pattern="\d{10}" maxLength={10} placeholder="Optional 10-digit number" />
+                  <Input name="alternateMobile" type="tel" inputMode="numeric" pattern="\d{10}" maxLength={10} placeholder="Optional 10-digit number" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
                 </div>
                 <div>
                   <Label>Reason for change *</Label>

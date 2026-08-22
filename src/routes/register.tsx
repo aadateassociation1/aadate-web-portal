@@ -21,6 +21,7 @@ const DEPARTMENT_OPTIONS = [
   { value: "फळविभाग / Fruit Department", label: "फळविभाग / Fruit Department" },
   { value: "कांदा-बटाटा / Onion-Potato", label: "कांदा-बटाटा / Onion-Potato" },
 ];
+const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
 
 function Register() {
   const [mode, setMode] = useState<"new" | "add-gala">("new");
@@ -190,7 +191,7 @@ function Register() {
                 </div>
                 <div>
                   <Label>संपर्क / Contact *</Label>
-                  <Input name="mobile" required type="tel" inputMode="numeric" pattern="\d{10}" maxLength={10} placeholder="10-digit" />
+                  <Input name="mobile" required type="tel" inputMode="numeric" pattern="\d{10}" maxLength={10} placeholder="10-digit" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
                 </div>
                 {mode === "new" && (
                   <div>
