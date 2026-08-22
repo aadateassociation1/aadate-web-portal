@@ -3411,12 +3411,12 @@ export function OwnerKycPage() {
 
       <Card className="mb-6 border-border/60">
         <CardContent className="p-6">
-          <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
             <div>
               <h2 className="font-display text-lg font-bold text-primary-dark">Global customer KYC search</h2>
               <p className="mt-1 text-sm text-muted-foreground">Search before adding KYC. If customer KYC already exists, link it to your dashboard instead of creating a duplicate.</p>
             </div>
-            <Badge className="bg-secondary text-primary-dark">Gala {profile?.gala_number || "-"}</Badge>
+            {profile?.gala_number && <Badge className="w-fit bg-secondary text-primary-dark">Gala {profile.gala_number}</Badge>}
           </div>
           <form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={(event) => { event.preventDefault(); void searchSharedCustomers(riskQuery.trim()); }}>
             <Input value={riskQuery} onChange={(event) => setRiskQuery(event.target.value)} placeholder="Search by customer name, mobile, or customer code" />
