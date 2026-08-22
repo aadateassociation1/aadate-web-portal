@@ -81,6 +81,59 @@ const COMPLAINT_PRIORITIES = [
   { value: "high", en: "High", mr: "उच्च" },
   { value: "urgent", en: "Emergency", mr: "आपत्कालीन" },
 ];
+const MEMBER_POST_CATEGORIES = [
+  "Market Rate Update",
+  "Stock Available",
+  "Bulk Sale Offer",
+  "Fresh Arrival",
+  "Gala Announcement",
+  "Transport / Loading Help",
+  "Payment / Billing Issue",
+  "Facility Issue",
+  "Lost and Found",
+  "General Request",
+  "Buyer Requirement",
+  "Urgent Buyer Requirement",
+  "Wholesale Requirement",
+  "Product Requirement",
+  "Excess Stock Clearance",
+  "Discount / Special Offer",
+  "Price Drop Alert",
+  "Price Increase Alert",
+  "Daily Market Update",
+  "Auction / Sale Notice",
+  "Vehicle Available",
+  "Vehicle Required",
+  "Loading Labour Required",
+  "Loading Labour Available",
+  "Delivery / Transport Delay",
+  "Warehouse / Storage Required",
+  "Warehouse / Storage Available",
+  "Packaging Material Required",
+  "Crates / Boxes Required",
+  "Crates / Boxes Available",
+  "Market Timing Update",
+  "Holiday / Market Closure Notice",
+  "Weather Alert",
+  "Rain / Waterlogging Alert",
+  "Traffic / Entry Alert",
+  "Parking Update",
+  "Security Alert",
+  "Electricity Issue",
+  "Water Supply Issue",
+  "Cleanliness Issue",
+  "Drainage Issue",
+  "Shop / Gala Maintenance",
+  "Association Notice",
+  "Meeting Announcement",
+  "Member Announcement",
+  "Government / APMC Notice",
+  "Document / Licence Reminder",
+  "Payment Reminder",
+  "Emergency Alert",
+  "Help Required",
+  "Other",
+];
 const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
 const limitPan = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
 const MOBILE_CHANGE_REASONS = [
@@ -4123,7 +4176,7 @@ export function OwnerPostPage() {
   const { profile } = useTraderProfile();
   const { logout } = useAuth();
   const router = useRouter();
-  const [postCategory, setPostCategory] = useState("Market Update");
+  const [postCategory, setPostCategory] = useState("Market Rate Update");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [myPosts, setMyPosts] = useState<DashboardPost[]>([]);
@@ -4178,7 +4231,7 @@ export function OwnerPostPage() {
       if (!response.ok || !result.ok) throw new Error(result.error || "Could not submit post.");
       toast.success(`Post submitted with ${images.length} image(s) and ${videos.length} video(s).`);
       form.reset();
-      setPostCategory("Market Update");
+      setPostCategory("Market Rate Update");
       setImageFiles([]);
       setVideoFiles([]);
       await loadMyPosts();
@@ -4227,18 +4280,7 @@ export function OwnerPostPage() {
                   <Select value={postCategory} onValueChange={setPostCategory}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {[
-                        "Market Rate Update",
-                        "Stock Available",
-                        "Bulk Sale Offer",
-                        "Fresh Arrival",
-                        "Gala Announcement",
-                        "Transport or Loading Help",
-                        "Payment or Billing Issue",
-                        "Facility Issue",
-                        "Lost and Found",
-                        "General Request",
-                      ].map((type) => (
+                      {MEMBER_POST_CATEGORIES.map((type) => (
                         <SelectItem key={type} value={type}>{type}</SelectItem>
                       ))}
                     </SelectContent>
