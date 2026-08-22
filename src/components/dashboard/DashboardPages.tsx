@@ -890,11 +890,20 @@ export function AdminComplaintsPage() {
     created_by_mobile: string;
     gala_number: string | null;
     trader_code: string | null;
+    created_at: string;
+    updated_at?: string | null;
+    assigned_to_user_id?: number | null;
     parsed?: { category?: string; description?: string };
-    attachments?: Array<{ id: number; attachment_type: string; original_filename: string; file_size_bytes: number }>;
+    attachments?: Array<{ id: number; attachment_type: string; original_filename: string; file_size_bytes: number; mime_type?: string | null }>;
   };
+  type ComplaintAttachment = NonNullable<AdminComplaint["attachments"]>[number];
   const [complaints, setComplaints] = useState<AdminComplaint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [selectedComplaint, setSelectedComplaint] = useState<AdminComplaint | null>(null);
+  const [previewAttachment, setPreviewAttachment] = useState<ComplaintAttachment | null>(null);
 
   const loadComplaints = async () => {
     setLoading(true);
@@ -917,6 +926,106 @@ export function AdminComplaintsPage() {
   const activeCount = complaints.filter((item) => ["open", "in_progress", "waiting_user"].includes(item.status)).length;
   const resolvedCount = complaints.filter((item) => ["resolved", "closed"].includes(item.status)).length;
   const emergencyCount = complaints.filter((item) => item.priority === "urgent" || item.priority === "emergency").length;
+  const priorityOptions = [
+    { value: "all", label: "All priorities" },
+    { value: "low", label: "Low" },
+    { value: "medium", label: "Medium" },
+    { value: "high", label: "High" },
+    { value: "urgent", label: "Emergency" },
+  ];
+  const statusOptions = [
+    { value: "all", label: "All statuses" },
+    { value: "open", label: "Open" },
+    { value: "in_progress", label: "In progress" },
+    { value: "waiting_user", label: "Waiting user" },
+    { value: "resolved", label: "Resolved" },
+    { value: "closed", label: "Closed" },
+  ];
+  const statusLabels: Record<string, string> = {
+    open: "Open",
+    in_progress: "In progress",
+    waiting_user: "Waiting user",
+    resolved: "Resolved",
+    closed: "Closed",
+  };
+  const priorityLabel = (priority: string) => {
+    if (priority === "urgent" || priority === "emergency") return "Emergency";
+    return priority ? priority[0].toUpperCase() + priority.slice(1) : "-";
+  };
+  const priorityClasses = (priority: string) => (
+    priority === "urgent" || priority === "emergency"
+      ? "bg-destructive text-white"
+      : priority === "high"
+        ? "bg-warning text-white"
+        : priority === "medium"
+          ? "bg-saffron/20 text-saffron-foreground"
+          : "bg-secondary text-primary-dark"
+  );
+  const formatDate = (value?: string | null) => {
+    if (!value) return "-";
+    return new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  };
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return "-";
+    return new Date(value).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
+  const attachmentUrl = (file: ComplaintAttachment, download = false) =>
+    `/api/v1/admin/complaint-attachments/${file.id}/download${download ? "?download=1" : ""}`;
+  const filteredComplaints = complaints.filter((item) => {
+    const haystack = [
+      item.ticket_number,
+      item.subject,
+      item.parsed?.category,
+      item.parsed?.description,
+      item.created_by_name,
+      item.created_by_mobile,
+      item.trader_code,
+      item.gala_number,
+    ].filter(Boolean).join(" ").toLowerCase();
+    return (!search.trim() || haystack.includes(search.trim().toLowerCase()))
+      && (statusFilter === "all" || item.status === statusFilter)
+      && (priorityFilter === "all" || item.priority === priorityFilter || (priorityFilter === "urgent" && item.priority === "emergency"));
+  });
+  const updateComplaintStatus = async (complaint: AdminComplaint, status: string) => {
+    const remarks = `Complaint marked ${statusLabels[status] || status} by admin.`;
+    try {
+      const response = await fetch(`/api/v1/admin/complaints/${complaint.id}/status`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, remarks }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not update complaint.");
+      toast.success(`${complaint.ticket_number} updated`);
+      await loadComplaints();
+      setSelectedComplaint((current) => current && current.id === complaint.id ? { ...current, status, updated_at: new Date().toISOString() } : current);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update complaint.");
+    }
+  };
+  const StatusControl = ({ complaint }: { complaint: AdminComplaint }) => (
+    <Select value={complaint.status} onValueChange={(status) => updateComplaintStatus(complaint, status)}>
+      <SelectTrigger className={`h-9 w-full min-w-36 font-semibold ${complaintStatusTriggerClasses[complaint.status] || "border-muted bg-muted text-muted-foreground"}`}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="open" className="font-medium text-saffron-foreground">Open</SelectItem>
+        <SelectItem value="in_progress" className="font-medium text-info">In progress</SelectItem>
+        <SelectItem value="waiting_user" className="font-medium text-chart-5">Waiting user</SelectItem>
+        <SelectItem value="resolved" className="font-medium text-success">Resolved</SelectItem>
+        <SelectItem value="closed" className="font-medium text-muted-foreground">Closed</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+  const ComplaintPreview = ({ complaint }: { complaint: AdminComplaint }) => (
+    <>
+      <div className="line-clamp-2 whitespace-normal break-words font-semibold leading-snug text-primary-dark">{complaint.subject}</div>
+      <div className="mt-1 line-clamp-2 whitespace-normal break-words text-xs leading-5 text-muted-foreground">
+        {complaint.parsed?.category || "General"} • {complaint.parsed?.description || "No description provided."}
+      </div>
+    </>
+  );
 
   return (
     <DashLayout kind="admin">
@@ -929,89 +1038,194 @@ export function AdminComplaintsPage() {
       </div>
       <Card className="border-border/60">
         <CardContent className="p-6">
-          <div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <SearchBar placeholder="Search complaints..." />
-            <Button variant="outline" className="whitespace-nowrap">Filter status</Button>
+          <div className="mb-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
+            <div className="relative min-w-0">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input className="pl-9" placeholder="Search complaints..." value={search} onChange={(event) => setSearch(event.target.value)} />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{statusOptions.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{priorityOptions.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
+            </Select>
           </div>
-          <div className="overflow-x-auto">
-            <Table className="min-w-[1120px] table-fixed">
-              <TableHeader><TableRow><TableHead className="w-28">ID</TableHead><TableHead className="w-[42%]">Complaint</TableHead><TableHead className="w-44">Owner</TableHead><TableHead className="w-24">Priority</TableHead><TableHead className="w-28">Files</TableHead><TableHead className="w-28">Status</TableHead><TableHead className="w-28">Assigned</TableHead><TableHead className="w-40 text-right">Action</TableHead></TableRow></TableHeader>
+
+          <div className="hidden overflow-x-auto lg:block">
+            <Table className="min-w-[1180px] table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[90px] whitespace-nowrap">ID</TableHead>
+                  <TableHead className="w-[36%] min-w-[300px] whitespace-nowrap">Complaint</TableHead>
+                  <TableHead className="w-[150px] whitespace-nowrap">Owner</TableHead>
+                  <TableHead className="w-[110px] whitespace-nowrap">Priority</TableHead>
+                  <TableHead className="w-[130px] whitespace-nowrap">Status</TableHead>
+                  <TableHead className="w-[120px] whitespace-nowrap">Assigned Date</TableHead>
+                  <TableHead className="w-[120px] whitespace-nowrap">View</TableHead>
+                  <TableHead className="w-[150px] text-right whitespace-nowrap">Action</TableHead>
+                </TableRow>
+              </TableHeader>
               <TableBody>
-                {complaints.map((c) => (
+                {filteredComplaints.map((c) => (
                   <TableRow key={c.id} className="align-top">
                     <TableCell className="break-words font-mono text-xs leading-5">{c.ticket_number}</TableCell>
-                    <TableCell>
-                      <div className="whitespace-normal break-words font-medium leading-snug text-primary-dark">{c.subject}</div>
-                      <div className="mt-1 line-clamp-3 whitespace-normal break-words text-xs leading-5 text-muted-foreground">{c.parsed?.category || "General"} - {c.parsed?.description || ""}</div>
-                    </TableCell>
+                    <TableCell><ComplaintPreview complaint={c} /></TableCell>
                     <TableCell>
                       <div className="whitespace-normal break-words font-medium leading-snug">{c.created_by_name}</div>
                       <div className="text-xs text-muted-foreground">
                         {c.gala_number ? `Gala ${c.gala_number} - ${c.trader_code || c.created_by_mobile}` : `Admin - ${c.created_by_mobile}`}
                       </div>
                     </TableCell>
-                    <TableCell><Badge className={`whitespace-nowrap ${c.priority === "urgent" || c.priority === "emergency" ? "bg-destructive text-white" : c.priority === "high" ? "bg-warning text-white" : "bg-secondary text-primary-dark"}`}>{c.priority === "urgent" ? "Emergency" : c.priority}</Badge></TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        {(c.attachments || []).map((file) => (
-                          <Button key={file.id} size="sm" variant="outline" className="h-8 justify-start whitespace-nowrap" onClick={() => window.open(`/api/v1/admin/complaint-attachments/${file.id}/download?download=1`, "_blank")}>
-                            <Download className="mr-1 h-3.5 w-3.5" /> {file.attachment_type === "image" ? "Image" : "Video"}
-                          </Button>
-                        ))}
-                        {(!c.attachments || c.attachments.length === 0) && <span className="text-xs text-muted-foreground">No files</span>}
-                      </div>
-                    </TableCell>
+                    <TableCell><Badge className={`inline-flex min-w-20 justify-center whitespace-nowrap rounded-full px-2.5 py-1 ${priorityClasses(c.priority)}`}>{priorityLabel(c.priority)}</Badge></TableCell>
                     <TableCell><span className="whitespace-nowrap"><StatusBadge status={c.status} /></span></TableCell>
-                    <TableCell className="whitespace-nowrap text-sm">{new Date(c.created_at).toLocaleDateString("en-IN")}</TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">{formatDate(c.updated_at || c.created_at)}</TableCell>
+                    <TableCell>
+                      <Button size="sm" variant="outline" className="h-9 whitespace-nowrap" onClick={() => setSelectedComplaint(c)}>
+                        <Eye className="mr-1 h-4 w-4" /> View
+                      </Button>
+                    </TableCell>
                     <TableCell className="text-right">
-                      <Select
-                        value={c.status}
-                        onValueChange={async (status) => {
-                          const statusLabels: Record<string, string> = {
-                            open: "Open",
-                            in_progress: "In progress",
-                            waiting_user: "Waiting for Member",
-                            resolved: "Resolved",
-                            closed: "Closed",
-                          };
-                          const remarks = `Complaint marked ${statusLabels[status] || status} by admin.`;
-                          try {
-                            const response = await fetch(`/api/v1/admin/complaints/${c.id}/status`, {
-                              method: "PATCH",
-                              credentials: "include",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ status, remarks }),
-                            });
-                            const result = await response.json();
-                            if (!response.ok || !result.ok) throw new Error(result.error || "Could not update complaint.");
-                            toast.success(`${c.ticket_number} updated`);
-                            await loadComplaints();
-                          } catch (error) {
-                            toast.error(error instanceof Error ? error.message : "Could not update complaint.");
-                          }
-                        }}
-                      >
-                        <SelectTrigger className={`h-9 w-36 font-semibold ${complaintStatusTriggerClasses[c.status] || "border-muted bg-muted text-muted-foreground"}`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="open" className="font-medium text-saffron-foreground">Open</SelectItem>
-                          <SelectItem value="in_progress" className="font-medium text-info">In progress</SelectItem>
-                          <SelectItem value="waiting_user" className="font-medium text-chart-5">Waiting user</SelectItem>
-                          <SelectItem value="resolved" className="font-medium text-success">Resolved</SelectItem>
-                          <SelectItem value="closed" className="font-medium text-muted-foreground">Closed</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <StatusControl complaint={c} />
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-            {!loading && complaints.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No complaints yet.</div>}
-            {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading complaints...</div>}
           </div>
+
+          <div className="grid gap-3 lg:hidden">
+            {filteredComplaints.map((c) => (
+              <div key={c.id} className="rounded-lg border bg-background p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="font-mono text-xs text-muted-foreground">{c.ticket_number}</div>
+                  <Badge className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 ${priorityClasses(c.priority)}`}>{priorityLabel(c.priority)}</Badge>
+                </div>
+                <div className="mt-3"><ComplaintPreview complaint={c} /></div>
+                <div className="mt-4 grid gap-2 text-sm">
+                  <div><span className="text-muted-foreground">Owner:</span> <span className="font-medium">{c.created_by_name}</span></div>
+                  <div><span className="text-muted-foreground">Status:</span> <StatusBadge status={c.status} /></div>
+                  <div><span className="text-muted-foreground">Date:</span> {formatDate(c.updated_at || c.created_at)}</div>
+                </div>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  <Button size="sm" variant="outline" onClick={() => setSelectedComplaint(c)}><Eye className="mr-1 h-4 w-4" /> View Complaint</Button>
+                  <StatusControl complaint={c} />
+                </div>
+              </div>
+            ))}
+          </div>
+          {!loading && filteredComplaints.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No complaints found.</div>}
+          {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading complaints...</div>}
         </CardContent>
       </Card>
+
+      <Dialog open={!!selectedComplaint} onOpenChange={(open) => !open && setSelectedComplaint(null)}>
+        <DialogContent className="max-h-[90vh] max-w-5xl overflow-hidden p-0">
+          {selectedComplaint && (
+            <div className="flex max-h-[90vh] flex-col">
+              <DialogHeader className="sticky top-0 z-10 border-b bg-background px-6 py-5">
+                <DialogTitle className="font-display text-2xl text-primary-dark">Complaint Details</DialogTitle>
+                <DialogDescription>तक्रार तपशील • {selectedComplaint.ticket_number}</DialogDescription>
+              </DialogHeader>
+              <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline" className="whitespace-nowrap">{selectedComplaint.parsed?.category || "General"}</Badge>
+                  <Badge className={`whitespace-nowrap ${priorityClasses(selectedComplaint.priority)}`}>{priorityLabel(selectedComplaint.priority)}</Badge>
+                  <StatusBadge status={selectedComplaint.status} />
+                </div>
+
+                <section>
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Complaint Subject</div>
+                  <h2 className="mt-2 whitespace-normal break-words font-display text-2xl font-bold leading-snug text-primary-dark">{selectedComplaint.subject}</h2>
+                </section>
+
+                <section>
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</div>
+                  <p className="mt-2 whitespace-pre-wrap break-words rounded-lg border bg-secondary/30 p-4 text-sm leading-6 text-foreground">
+                    {selectedComplaint.parsed?.description || selectedComplaint.description || "No description provided."}
+                  </p>
+                </section>
+
+                <section>
+                  <h3 className="font-display text-lg font-bold text-primary-dark">Complaint Information</h3>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {[
+                      ["Submitted by", selectedComplaint.created_by_name],
+                      ["Mobile", selectedComplaint.created_by_mobile],
+                      ["Owner code", selectedComplaint.trader_code || "-"],
+                      ["Gala", selectedComplaint.gala_number || "-"],
+                      ["Submitted date", formatDateTime(selectedComplaint.created_at)],
+                      ["Assigned date", formatDateTime(selectedComplaint.updated_at || selectedComplaint.created_at)],
+                      ["Last updated", formatDateTime(selectedComplaint.updated_at || selectedComplaint.created_at)],
+                      ["Assigned to", selectedComplaint.assigned_to_user_id ? "Admin team" : "-"],
+                    ].map(([label, value]) => (
+                      <div key={label} className="rounded-lg border bg-background p-3">
+                        <div className="text-xs text-muted-foreground">{label}</div>
+                        <div className="mt-1 whitespace-normal break-words text-sm font-medium text-primary-dark">{value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="font-display text-lg font-bold text-primary-dark">Evidence / Attachments</h3>
+                  <div className="mt-3 grid gap-4">
+                    {(selectedComplaint.attachments || []).map((file) => {
+                      const isImage = file.attachment_type === "image" || file.mime_type?.startsWith?.("image/");
+                      return (
+                        <div key={file.id} className="overflow-hidden rounded-lg border bg-background">
+                          {isImage ? (
+                            <button type="button" className="block w-full bg-secondary/30" onClick={() => setPreviewAttachment(file)}>
+                              <img src={attachmentUrl(file)} alt={file.original_filename} className="max-h-[420px] w-full object-contain" />
+                            </button>
+                          ) : (
+                            <div className="grid min-h-40 place-items-center bg-secondary/30 text-sm text-muted-foreground">Video attachment</div>
+                          )}
+                          <div className="flex flex-wrap items-center justify-between gap-3 p-3">
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-semibold text-primary-dark">{file.original_filename}</div>
+                              <div className="text-xs text-muted-foreground">{file.attachment_type} • {Math.ceil((file.file_size_bytes || 0) / 1024)} KB</div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" onClick={() => window.open(attachmentUrl(file), "_blank")}>View</Button>
+                              <Button size="sm" variant="outline" onClick={() => window.open(attachmentUrl(file, true), "_blank")}><Download className="mr-1 h-4 w-4" /> Download</Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {(!selectedComplaint.attachments || selectedComplaint.attachments.length === 0) && (
+                      <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">No evidence uploaded.</div>
+                    )}
+                  </div>
+                </section>
+
+                <section className="rounded-lg border bg-secondary/30 p-4">
+                  <h3 className="font-display text-lg font-bold text-primary-dark">Status / Action</h3>
+                  <div className="mt-3 max-w-xs"><StatusControl complaint={selectedComplaint} /></div>
+                </section>
+              </div>
+              <div className="border-t bg-background px-6 py-4 text-right">
+                <Button variant="outline" onClick={() => setSelectedComplaint(null)}>Close</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!previewAttachment} onOpenChange={(open) => !open && setPreviewAttachment(null)}>
+        <DialogContent className="max-h-[94vh] max-w-6xl p-4">
+          {previewAttachment && (
+            <div>
+              <DialogHeader>
+                <DialogTitle className="text-base">{previewAttachment.original_filename}</DialogTitle>
+              </DialogHeader>
+              <img src={attachmentUrl(previewAttachment)} alt={previewAttachment.original_filename} className="mt-4 max-h-[78vh] w-full rounded-lg object-contain" />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashLayout>
   );
 }
