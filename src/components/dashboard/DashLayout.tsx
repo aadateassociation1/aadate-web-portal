@@ -15,6 +15,7 @@ import { canUseWebPush, enableWebPush, getPushStatus, sendTestWebPush } from "@/
 const OWNER_NAV = [
   { to: "/member", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/member/profile", label: "My Profile", icon: User },
+  { to: "/member/notifications", label: "Notifications", icon: Bell },
   { to: "/member/gala", label: "My Gala Details", icon: Store },
   { to: "/member/market-prices", label: "Market Prices", icon: IndianRupee },
   { to: "/member/updates", label: "Market Updates", icon: Newspaper },
@@ -26,7 +27,6 @@ const OWNER_NAV = [
   { to: "/member/shared-posts", label: "Shared Posts", icon: Newspaper },
   { to: "/member/ratings", label: "Portal Reviews", icon: Star },
   { to: "/member/mobile-change", label: "Mobile Number Change", icon: Phone },
-  { to: "/member/notifications", label: "Notifications", icon: Bell },
 ];
 
 const ADMIN_NAV = [
