@@ -14,15 +14,15 @@ import { canUseWebPush, enableWebPush, getPushStatus, sendTestWebPush } from "@/
 
 const OWNER_NAV = [
   { to: "/member", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/member/profile", label: "My Profile", icon: User },
   { to: "/member/notifications", label: "Notifications", icon: Bell },
-  { to: "/member/gala", label: "My Gala Details", icon: Store },
+  { to: "/member/kyc", label: "Customer KYC", icon: IdCard },
+  { to: "/member/new-complaint", label: "Raise Complaint", icon: ClipboardList },
+  { to: "/member/complaints", label: "My Complaints", icon: MessageSquare },
   { to: "/member/market-prices", label: "Market Prices", icon: IndianRupee },
   { to: "/member/updates", label: "Market Updates", icon: Newspaper },
   { to: "/member/notices", label: "Notices & Documents", icon: FileText },
-  { to: "/member/complaints", label: "My Complaints", icon: MessageSquare },
-  { to: "/member/new-complaint", label: "Raise Complaint", icon: ClipboardList },
-  { to: "/member/kyc", label: "Customer KYC", icon: IdCard },
+  { to: "/member/profile", label: "My Profile", icon: User },
+  { to: "/member/gala", label: "My Gala Details", icon: Store },
   { to: "/member/post", label: "Submit Post", icon: ImagePlus },
   { to: "/member/shared-posts", label: "Shared Posts", icon: Newspaper },
   { to: "/member/ratings", label: "Portal Reviews", icon: Star },
@@ -170,12 +170,9 @@ export function DashLayout({ kind, children }: Props) {
   }
 
   const nav = kind === "owner" ? OWNER_NAV : ADMIN_NAV;
-  const mobileOwnerNav = [
-    OWNER_NAV[0],
-    OWNER_NAV[3],
-    OWNER_NAV[8],
-    OWNER_NAV[13],
-  ];
+  const mobileOwnerNav = ["/member", "/member/market-prices", "/member/kyc", "/member/notifications"]
+    .map((to) => OWNER_NAV.find((item) => item.to === to))
+    .filter(Boolean) as typeof OWNER_NAV;
   const title = kind === "owner" ? "Member Portal" : user.role === "main_admin" ? "Main Admin Portal" : "User Admin Portal";
   const helpLink = kind === "owner" ? "/member/help" : "/admin/help";
   const passwordLink = kind === "owner" ? "/member/change-password" : "/admin/change-password";
