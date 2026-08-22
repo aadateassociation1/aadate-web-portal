@@ -929,34 +929,40 @@ export function AdminComplaintsPage() {
       </div>
       <Card className="border-border/60">
         <CardContent className="p-6">
-          <div className="mb-4 flex flex-wrap gap-3"><SearchBar placeholder="Search complaints..." /><Button variant="outline">Filter status</Button></div>
+          <div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+            <SearchBar placeholder="Search complaints..." />
+            <Button variant="outline" className="whitespace-nowrap">Filter status</Button>
+          </div>
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Complaint</TableHead><TableHead>Owner</TableHead><TableHead>Priority</TableHead><TableHead>Files</TableHead><TableHead>Status</TableHead><TableHead>Assigned</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
+            <Table className="min-w-[1120px] table-fixed">
+              <TableHeader><TableRow><TableHead className="w-28">ID</TableHead><TableHead className="w-[42%]">Complaint</TableHead><TableHead className="w-44">Owner</TableHead><TableHead className="w-24">Priority</TableHead><TableHead className="w-28">Files</TableHead><TableHead className="w-28">Status</TableHead><TableHead className="w-28">Assigned</TableHead><TableHead className="w-40 text-right">Action</TableHead></TableRow></TableHeader>
               <TableBody>
                 {complaints.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-mono text-xs">{c.ticket_number}</TableCell>
-                    <TableCell><div className="font-medium">{c.subject}</div><div className="text-xs text-muted-foreground">{c.parsed?.category || "General"} - {c.parsed?.description || ""}</div></TableCell>
+                  <TableRow key={c.id} className="align-top">
+                    <TableCell className="break-words font-mono text-xs leading-5">{c.ticket_number}</TableCell>
                     <TableCell>
-                      <div className="font-medium">{c.created_by_name}</div>
+                      <div className="whitespace-normal break-words font-medium leading-snug text-primary-dark">{c.subject}</div>
+                      <div className="mt-1 line-clamp-3 whitespace-normal break-words text-xs leading-5 text-muted-foreground">{c.parsed?.category || "General"} - {c.parsed?.description || ""}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="whitespace-normal break-words font-medium leading-snug">{c.created_by_name}</div>
                       <div className="text-xs text-muted-foreground">
                         {c.gala_number ? `Gala ${c.gala_number} - ${c.trader_code || c.created_by_mobile}` : `Admin - ${c.created_by_mobile}`}
                       </div>
                     </TableCell>
-                    <TableCell><Badge className={c.priority === "urgent" || c.priority === "emergency" ? "bg-destructive text-white" : c.priority === "high" ? "bg-warning text-white" : "bg-secondary text-primary-dark"}>{c.priority}</Badge></TableCell>
+                    <TableCell><Badge className={`whitespace-nowrap ${c.priority === "urgent" || c.priority === "emergency" ? "bg-destructive text-white" : c.priority === "high" ? "bg-warning text-white" : "bg-secondary text-primary-dark"}`}>{c.priority === "urgent" ? "Emergency" : c.priority}</Badge></TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         {(c.attachments || []).map((file) => (
-                          <Button key={file.id} size="sm" variant="outline" className="h-8 justify-start" onClick={() => window.open(`/api/v1/admin/complaint-attachments/${file.id}/download?download=1`, "_blank")}>
+                          <Button key={file.id} size="sm" variant="outline" className="h-8 justify-start whitespace-nowrap" onClick={() => window.open(`/api/v1/admin/complaint-attachments/${file.id}/download?download=1`, "_blank")}>
                             <Download className="mr-1 h-3.5 w-3.5" /> {file.attachment_type === "image" ? "Image" : "Video"}
                           </Button>
                         ))}
                         {(!c.attachments || c.attachments.length === 0) && <span className="text-xs text-muted-foreground">No files</span>}
                       </div>
                     </TableCell>
-                    <TableCell><StatusBadge status={c.status} /></TableCell>
-                    <TableCell>{new Date(c.created_at).toLocaleDateString("en-IN")}</TableCell>
+                    <TableCell><span className="whitespace-nowrap"><StatusBadge status={c.status} /></span></TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">{new Date(c.created_at).toLocaleDateString("en-IN")}</TableCell>
                     <TableCell className="text-right">
                       <Select
                         value={c.status}
