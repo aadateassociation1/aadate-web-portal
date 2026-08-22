@@ -555,9 +555,14 @@ async function saveRatingAttachmentFile({ ratingId, attachmentType, originalFile
 }
 
 async function getRequestUser(req, roles = []) {
-  const cookieName = getSessionCookieNameForRoles(roles);
-  const session = verifySessionToken(getCookie(req, cookieName));
-  if (session?.userId) {
+  const cookieNames = roles.some((role) => role === "MAIN_ADMIN" || role === "USER_ADMIN") && roles.includes("TRADER")
+    ? ["admin_session_token", "trader_session_token"]
+    : [getSessionCookieNameForRoles(roles)];
+
+  for (const cookieName of cookieNames) {
+    const session = verifySessionToken(getCookie(req, cookieName));
+    if (!session?.userId) continue;
+
     const [rows] = await pool.query(
       `SELECT u.id, u.username, u.mobile, u.full_name, u.status, r.code AS role,
               t.id AS trader_id, t.verification_status AS trader_status
@@ -565,7 +570,7 @@ async function getRequestUser(req, roles = []) {
          JOIN roles r ON r.id = u.role_id
          LEFT JOIN traders t ON t.user_id = u.id
         WHERE u.id = :userId
-        LIMIT 1`,
+      LIMIT 1`,
       { userId: session.userId },
     );
     if (rows[0]) return rows[0];
