@@ -921,6 +921,34 @@ async function sendPublishedPostPush({ postId, postType, titleEn, details }) {
   }
 }
 
+async function notifyAllMembersNow({ type, title, message, actionUrl, relatedEntityType = null, relatedEntityId = null, priority = "normal" }) {
+  await createMemberNotifications(pool, {
+    type,
+    title,
+    message,
+    relatedEntityType,
+    relatedEntityId,
+    actionUrl,
+    priority,
+  });
+  setImmediate(() => {
+    sendPushToAllMembers({
+      title,
+      body: message,
+      url: actionUrl,
+      type,
+      entityId: relatedEntityId,
+      priority,
+    }).catch((error) => {
+      console.error("Member broadcast push notification failed", {
+        type,
+        relatedEntityId,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    });
+  });
+}
+
 async function sendRiskAlertPush({ warningId, customerName, amount }) {
   try {
     await sendPushToAllMembers({
@@ -2928,6 +2956,17 @@ app.post("/api/v1/admin/market-prices/bulk-save", requireRoles("MAIN_ADMIN", "US
     }
     await connection.commit();
     await writeAudit({ req, action: status === "published" ? "market_prices.publish_bulk" : "market_prices.save_draft", module: "market_prices", entityType: "market_prices", newValues: { date, count: normalized.length, status } });
+    if (status === "published") {
+      await notifyAllMembersNow({
+        type: "market_price",
+        title: "Daily market prices updated",
+        message: `Market prices for ${date} have been published by the association.`,
+        actionUrl: "/member/market-prices",
+        relatedEntityType: "market_prices",
+        relatedEntityId: null,
+        priority: "normal",
+      });
+    }
     res.json({ ok: true, saved: normalized.length, status });
   } catch (error) {
     await connection.rollback();
