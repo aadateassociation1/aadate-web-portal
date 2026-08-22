@@ -324,6 +324,24 @@ function resolveStoredFilePath(storageKey) {
     : path.resolve(process.cwd(), storageKey);
 }
 
+async function resolveExistingStoredFilePath(storageKey) {
+  const key = String(storageKey || "");
+  const candidates = [resolveStoredFilePath(key)];
+  if (key.startsWith("uploads/") || key.startsWith("uploads\\")) {
+    candidates.push(path.resolve(PERSISTENT_UPLOAD_ROOT, key.replace(/^uploads[\\/]/, "")));
+  }
+
+  for (const candidate of candidates) {
+    try {
+      await fs.access(candidate);
+      return candidate;
+    } catch {
+      // Try the next known storage location.
+    }
+  }
+  return candidates[0];
+}
+
 function isPathInside(childPath, parentPath) {
   const relative = path.relative(parentPath, childPath);
   return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
@@ -490,7 +508,7 @@ async function saveCommitteePhotoFile({ memberId, originalFilename, mimeType, da
   const buffer = Buffer.from(base64, "base64");
   const allowed = new Set(["image/jpeg", "image/png", "image/webp"]);
   const extensions = new Set([".jpg", ".jpeg", ".png", ".webp"]);
-  if (buffer.length <= 0 || buffer.length > MAX_MEDIA_UPLOAD_BYTES) throw new Error("Committee photo must be 1 MB or smaller.");
+  if (buffer.length <= 0 || buffer.length > MAX_MEDIA_UPLOAD_BYTES) throw new Error("Committee photo must be 5 MB or smaller.");
   if (!allowed.has(safeMimeType) || !extensions.has(path.extname(String(originalFilename || "")).toLowerCase())) {
     throw new Error("Committee photo must be JPG, PNG, or WEBP.");
   }
@@ -500,7 +518,7 @@ async function saveCommitteePhotoFile({ memberId, originalFilename, mimeType, da
   const storagePath = path.join(COMMITTEE_UPLOAD_ROOT, storageFileName);
   await fs.writeFile(storagePath, buffer);
   return {
-    storageKey: `uploads/committee-photos/${storageFileName}`,
+    storageKey: path.relative(process.cwd(), storagePath),
     originalFilename: safeFileName,
     mimeType: safeMimeType,
     fileSizeBytes: buffer.length,
@@ -2470,10 +2488,15 @@ app.get("/api/v1/public/committee/:id/photo", async (req, res) => {
     res.status(404).json({ ok: false, error: "Photo not found." });
     return;
   }
+  const photoPath = await resolveExistingStoredFilePath(member.photo_storage_key);
   res.setHeader("Content-Type", member.photo_mime_type || "image/jpeg");
   res.setHeader("Content-Disposition", `inline; filename="${String(member.photo_original_filename || "committee-photo").replace(/"/g, "")}"`);
   await recordDownloadEvent({ sourceTable: "committee_members", sourceId: memberId, req });
-  res.sendFile(path.resolve(process.cwd(), member.photo_storage_key));
+  res.sendFile(photoPath, (error) => {
+    if (error && !res.headersSent) {
+      res.status(404).json({ ok: false, error: "Photo file is missing on the server." });
+    }
+  });
 });
 
 app.get("/api/v1/public/content-attachments/:id/download", async (req, res) => {

@@ -103,6 +103,18 @@ function Home() {
         quote: chairman?.message || "Together, we are building a transparent, digital and service-focused market yard for every trader.",
         focus: ["Digital notice access", "Member-first support", "Market updates", "Transparent workflow"],
       };
+  const CommitteeAvatar = ({ member }: { member: CommitteeMemberRecord }) => {
+    const [imageFailed, setImageFailed] = useState(false);
+    if (!member.photo_url || imageFailed) return <>{initials(member.full_name)}</>;
+    return (
+      <img
+        src={member.photo_url}
+        alt={member.full_name}
+        className="h-full w-full object-cover object-top"
+        onError={() => setImageFailed(true)}
+      />
+    );
+  };
   const downloadNotice = (notice: PublicContent) => {
     const attachment = notice.attachments?.[0];
     if (attachment) {
@@ -315,7 +327,7 @@ function Home() {
                 <Card key={m.id} className="overflow-hidden border-border/60 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                   <CardContent className="px-4 py-3">
                     <div className="mx-auto grid h-40 w-40 place-items-center overflow-hidden rounded-full border-4 border-white bg-secondary font-display text-2xl font-bold text-primary shadow-md ring-1 ring-border">
-                      {m.photo_url ? <img src={m.photo_url} alt={m.full_name} className="h-full w-full object-cover object-top" /> : initials(m.full_name)}
+                      <CommitteeAvatar member={m} />
                     </div>
                     <h4 className="mt-2 font-display font-semibold leading-snug text-primary-dark">{m.full_name}</h4>
                     <div className="mt-1.5 inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">{m.designation}</div>
