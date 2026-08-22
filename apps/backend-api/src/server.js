@@ -3751,7 +3751,7 @@ app.get("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) => 
           ORDER BY wc2.updated_at DESC, wc2.id DESC
           LIMIT 1
        )
-       LEFT JOIN traders latest_trader ON latest_trader.id = latest_wc.reported_by_trader_id
+       LEFT JOIN traders latest_trader ON latest_trader.id = latest_wc.trader_id
       WHERE tc.trader_id = :traderId
       GROUP BY c.id, c.customer_code, c.full_name, c.mobile, c.kyc_status, c.risk_status, c.created_at,
                aadhaar.masked_value, pan.masked_value, tc.relationship_status, latest_wc.trader_statement, latest_trader.business_name
