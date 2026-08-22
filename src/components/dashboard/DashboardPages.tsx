@@ -1741,12 +1741,22 @@ function PostMediaPreview({ attachments = [], previewBase = "/api/v1/admin/post-
         <a href={`${previewBase}/${primaryImage.id}/download`} target="_blank" rel="noreferrer" className="group relative block">
           <div className="grid max-h-[420px] min-h-64 place-items-center bg-secondary/30">
             <img src={`${previewBase}/${primaryImage.id}/download`} alt={primaryImage.original_filename} className="max-h-[420px] w-full object-contain transition group-hover:scale-[1.005]" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-t from-black/60 to-transparent p-3 text-white">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-md bg-white/95 px-2.5 py-1 text-xs font-semibold text-primary-dark shadow">
+                  <Camera className="h-3.5 w-3.5 text-primary" /> {images.length} image{images.length === 1 ? "" : "s"}
+                </span>
+                {videos.length > 0 && (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-white/95 px-2.5 py-1 text-xs font-semibold text-primary-dark shadow">
+                    <Video className="h-3.5 w-3.5 text-primary" /> {videos.length} video{videos.length === 1 ? "" : "s"}
+                  </span>
+                )}
+              </div>
+              <span className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-semibold shadow">
+                <Eye className="h-3.5 w-3.5" /> View image
+              </span>
+            </div>
           </div>
-          {videos.length > 0 && (
-            <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-semibold text-white shadow">
-              <Video className="h-3.5 w-3.5" /> {videos.length} video{videos.length === 1 ? "" : "s"}
-            </span>
-          )}
         </a>
       ) : (
         <div className="grid h-52 place-items-center bg-secondary/40 text-center">
@@ -1757,7 +1767,7 @@ function PostMediaPreview({ attachments = [], previewBase = "/api/v1/admin/post-
           </div>
         </div>
       )}
-      {videos.length > 0 && (
+      {videos.length > 0 && !primaryImage && (
         <div className="border-t bg-secondary/20 p-3">
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-primary-dark">
             <Video className="h-4 w-4 text-primary" /> Video preview
@@ -1775,18 +1785,6 @@ function PostMediaPreview({ attachments = [], previewBase = "/api/v1/admin/post-
           </div>
         </div>
       )}
-      <div className="grid gap-3 border-t p-3 sm:grid-cols-2">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground"><Camera className="h-4 w-4 text-primary" /> Images</div>
-          <div className="mt-1 text-sm font-semibold text-primary-dark">{images.length} file{images.length === 1 ? "" : "s"}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{images.length ? images.map((file) => file.original_filename).join(", ") : "No image attached"}</div>
-        </div>
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground"><Video className="h-4 w-4 text-primary" /> Videos</div>
-          <div className="mt-1 text-sm font-semibold text-primary-dark">{videos.length} file{videos.length === 1 ? "" : "s"}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{videos.length ? videos.map((file) => file.original_filename).join(", ") : "No video attached"}</div>
-        </div>
-      </div>
     </div>
   );
 }
