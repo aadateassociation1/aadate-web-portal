@@ -5,6 +5,18 @@ function urlBase64ToUint8Array(value: string) {
   return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 }
 
+function getValidApplicationServerKey(value: string) {
+  try {
+    const key = urlBase64ToUint8Array(String(value || "").trim());
+    if (key.length !== 65 || key[0] !== 4) {
+      throw new Error("Invalid VAPID public key.");
+    }
+    return key;
+  } catch {
+    throw new Error("Phone notifications server key is invalid. Please update VAPID_PUBLIC_KEY on the VPS and restart the API.");
+  }
+}
+
 async function readApiResponse(response: Response) {
   const contentType = response.headers.get("content-type") || "";
   const body = contentType.includes("application/json")
@@ -50,7 +62,7 @@ export async function enableWebPush() {
   const existing = await registration.pushManager.getSubscription();
   const subscription = existing || await registration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(keyPayload.publicKey),
+    applicationServerKey: getValidApplicationServerKey(keyPayload.publicKey),
   });
 
   const response = await fetch("/api/v1/push/subscribe", {

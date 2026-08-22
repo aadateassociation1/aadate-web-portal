@@ -40,8 +40,34 @@ const documentUpload = multer({
   limits: { fileSize: MAX_DOCUMENT_UPLOAD_BYTES, files: 1 },
 });
 
-if (config.vapid.publicKey && config.vapid.privateKey) {
+function isValidVapidPublicKey(value) {
+  if (!value || /\s/.test(value)) return false;
+  try {
+    const normalized = String(value).replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+    const buffer = Buffer.from(padded, "base64");
+    return buffer.length === 65 && buffer[0] === 4;
+  } catch {
+    return false;
+  }
+}
+
+function isValidVapidPrivateKey(value) {
+  if (!value || /\s/.test(value)) return false;
+  try {
+    const normalized = String(value).replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+    return Buffer.from(padded, "base64").length === 32;
+  } catch {
+    return false;
+  }
+}
+
+const webPushReady = isValidVapidPublicKey(config.vapid.publicKey) && isValidVapidPrivateKey(config.vapid.privateKey);
+if (webPushReady) {
   webPush.setVapidDetails(config.vapid.subject, config.vapid.publicKey, config.vapid.privateKey);
+} else if (config.vapid.publicKey || config.vapid.privateKey) {
+  console.warn("Web push VAPID keys are configured but invalid. Generate a new pair with: npx web-push generate-vapid-keys");
 }
 
 app.use(cors({
@@ -693,7 +719,7 @@ function sanitizePushFailureReason(error) {
 }
 
 function isWebPushConfigured() {
-  return Boolean(config.vapid.publicKey && config.vapid.privateKey);
+  return webPushReady;
 }
 
 async function sendPushToSubscriptions({ subscriptions, payload, notificationId = null }) {
