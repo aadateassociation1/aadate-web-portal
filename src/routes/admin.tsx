@@ -18,6 +18,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Dashboard - Shri Chhatrapati Shivaji Market Yard Adte Association" }] }),
@@ -52,7 +53,9 @@ function AdminDash() {
     id: number;
     trader_code: string;
     full_name: string;
+    full_name_en?: string | null;
     business_name: string;
+    business_name_en?: string | null;
     mobile: string;
     email: string | null;
     gala_number: string | null;
@@ -122,6 +125,11 @@ function AdminDash() {
   const [updates, setUpdates] = useState<ContentRow[]>([]);
   const [notices, setNotices] = useState<ContentRow[]>([]);
   const [mobileRequests, setMobileRequests] = useState<MobileRequestRow[]>([]);
+  const { lang } = useI18n();
+  const memberName = (trader: Pick<AdminTrader, "full_name" | "full_name_en"> | null | undefined) =>
+    lang === "en" ? trader?.full_name_en || trader?.full_name || "" : trader?.full_name || trader?.full_name_en || "";
+  const businessName = (trader: Pick<AdminTrader, "business_name" | "business_name_en"> | null | undefined) =>
+    lang === "en" ? trader?.business_name_en || trader?.business_name || "" : trader?.business_name || trader?.business_name_en || "";
 
   const loadDashboardData = async () => {
     setLoadingTraders(true);
@@ -183,7 +191,7 @@ function AdminDash() {
       );
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || "Decision failed");
-      toast.success(`${Member.full_name} ${decision === "approve" ? "approved" : "rejected"}`);
+      toast.success(`${memberName(Member)} ${decision === "approve" ? "approved" : "rejected"}`);
       loadTraders();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Decision failed");
@@ -191,7 +199,7 @@ function AdminDash() {
   };
 
   const filteredOwners = traders.filter((o) => (
-    `${o.full_name} ${o.business_name} ${o.gala_number || ""} ${o.mobile}`
+    `${memberName(o)} ${businessName(o)} ${o.full_name} ${o.business_name} ${o.gala_number || ""} ${o.mobile}`
   ).toLowerCase().includes(q.toLowerCase()));
 
   const dashboardStats = {
@@ -331,7 +339,7 @@ function AdminDash() {
                     {filteredOwners.map((o) => (
                       <TableRow key={o.id}>
                         <TableCell className="font-mono text-xs">{o.trader_code}</TableCell>
-                        <TableCell><div className="font-medium">{o.full_name}</div><div className="text-xs text-muted-foreground">{o.business_name}</div></TableCell>
+                        <TableCell><div className="font-medium">{memberName(o)}</div><div className="text-xs text-muted-foreground">{businessName(o)}</div></TableCell>
                         <TableCell>{o.mobile}</TableCell>
                         <TableCell><Badge variant="outline">{o.gala_number || "-"}</Badge></TableCell>
                         <TableCell>{o.business_category || "-"}</TableCell>
@@ -346,7 +354,7 @@ function AdminDash() {
                               </>
                             )}
                             {o.verification_status === "approved" && (
-                              <Button size="icon" variant="ghost" onClick={() => toast.warning(`${o.full_name} suspend action is available in Member Management`)}><Ban className="h-4 w-4 text-destructive" /></Button>
+                              <Button size="icon" variant="ghost" onClick={() => toast.warning(`${memberName(o)} suspend action is available in Member Management`)}><Ban className="h-4 w-4 text-destructive" /></Button>
                             )}
                             <Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
                           </div>

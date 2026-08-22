@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Building2, Eye, MapPin, Phone, Star, Store } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/traders/$id")({
   head: () => ({ meta: [{ title: "Member Profile - Shri Chhatrapati Shivaji Market Yard Adte Association" }] }),
@@ -16,7 +17,9 @@ type TraderProfile = {
   id: number;
   trader_code: string;
   full_name: string;
+  full_name_en?: string | null;
   business_name: string;
+  business_name_en?: string | null;
   mobile: string;
   gala_number: string | null;
   section_name: string | null;
@@ -56,6 +59,7 @@ function PublicTraderProfile() {
   const [summary, setSummary] = useState<RatingSummary>({ review_count: 0, average_rating: null });
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const { lang } = useI18n();
 
   const loadProfile = async () => {
     setLoading(true);
@@ -82,6 +86,9 @@ function PublicTraderProfile() {
     if (traderId) loadProfile();
   }, [traderId]);
 
+  const displayBusinessName = lang === "en" ? trader?.business_name_en || trader?.business_name : trader?.business_name || trader?.business_name_en;
+  const displayMemberName = lang === "en" ? trader?.full_name_en || trader?.full_name : trader?.full_name || trader?.full_name_en;
+
   return (
     <SiteLayout>
       <section className="bg-leaf py-10 md:py-14">
@@ -104,8 +111,8 @@ function PublicTraderProfile() {
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <Badge className="bg-secondary text-primary-dark">{trader.trader_code}</Badge>
-                        <h1 className="mt-3 font-display text-3xl font-bold text-primary-dark">{trader.business_name}</h1>
-                        <p className="mt-1 text-muted-foreground">{trader.full_name}</p>
+                        <h1 className="mt-3 font-display text-3xl font-bold text-primary-dark">{displayBusinessName}</h1>
+                        <p className="mt-1 text-muted-foreground">{displayMemberName}</p>
                       </div>
                       <div className="rounded-lg border bg-background px-4 py-3 text-right">
                         <div className="font-display text-2xl font-bold text-primary-dark">{summary.average_rating ? Number(summary.average_rating).toFixed(1) : "-"}</div>

@@ -36,6 +36,7 @@ import {
   type CustomerKyc, type GalleryItem,
 } from "@/lib/mock";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 
 const CHART_COLORS = ["#86c127", "#e37814", "#86c127", "#D92D20", "#7C3AED", "#0284C7"];
 const COMPLAINT_CATEGORIES = [
@@ -253,8 +254,10 @@ export function AdminUsersPage() {
     id: number;
     trader_code: string;
     business_name: string;
+    business_name_en?: string | null;
     market_registration_number: string | null;
     full_name: string;
+    full_name_en?: string | null;
     mobile: string;
     email: string | null;
     verification_status: string;
@@ -299,6 +302,11 @@ export function AdminUsersPage() {
   const [accessDialogTrader, setAccessDialogTrader] = useState<ManagedTrader | null>(null);
   const [accessReason, setAccessReason] = useState("");
   const [accessSaving, setAccessSaving] = useState(false);
+  const { lang } = useI18n();
+  const memberName = (trader: Pick<ManagedTrader, "full_name" | "full_name_en"> | null | undefined) =>
+    lang === "en" ? trader?.full_name_en || trader?.full_name || "" : trader?.full_name || trader?.full_name_en || "";
+  const businessName = (trader: Pick<ManagedTrader, "business_name" | "business_name_en"> | null | undefined) =>
+    lang === "en" ? trader?.business_name_en || trader?.business_name || "" : trader?.business_name || trader?.business_name_en || "";
 
   const loadTraders = async () => {
     setLoading(true);
@@ -359,8 +367,8 @@ export function AdminUsersPage() {
 
   const detailRows = selectedTrader ? [
     ["Member code", selectedTrader.trader_code],
-    ["Full name", selectedTrader.full_name],
-    ["Business name", selectedTrader.business_name],
+    ["Full name", memberName(selectedTrader)],
+    ["Business name", businessName(selectedTrader)],
     ["Mobile", selectedTrader.mobile],
     ["Email", selectedTrader.email || "-"],
     ["Gala", selectedTrader.gala_number || "-"],
@@ -465,7 +473,7 @@ export function AdminUsersPage() {
                 {visibleTraders.map((o) => (
                   <TableRow key={o.id}>
                     <TableCell className="font-mono text-xs">{o.trader_code}</TableCell>
-                    <TableCell><div className="font-medium">{o.full_name}</div><div className="text-xs text-muted-foreground">{o.business_name}</div></TableCell>
+                    <TableCell><div className="font-medium">{memberName(o)}</div><div className="text-xs text-muted-foreground">{businessName(o)}</div></TableCell>
                     <TableCell><div>{o.mobile}</div><div className="text-xs text-muted-foreground">{o.email}</div></TableCell>
                     <TableCell><Badge variant="outline">{o.gala_number || "-"}</Badge></TableCell>
                     <TableCell>{o.business_category || "-"}</TableCell>
@@ -487,8 +495,8 @@ export function AdminUsersPage() {
       <Dialog open={!!selectedTrader} onOpenChange={(open) => !open && setSelectedTrader(null)}>
         <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-primary-dark">{selectedTrader?.full_name || "Member details"}</DialogTitle>
-            <DialogDescription>{selectedTrader?.business_name || "Database Member profile"}</DialogDescription>
+            <DialogTitle className="font-display text-2xl text-primary-dark">{memberName(selectedTrader) || "Member details"}</DialogTitle>
+            <DialogDescription>{businessName(selectedTrader) || "Database Member profile"}</DialogDescription>
           </DialogHeader>
           {selectedTrader && (
             <div className="space-y-5">
@@ -561,8 +569,8 @@ export function AdminUsersPage() {
           {accessDialogTrader && (
             <div className="space-y-4">
               <div className="rounded-lg border bg-secondary/30 p-3 text-sm">
-                <div className="font-semibold text-primary-dark">{accessDialogTrader.full_name}</div>
-                <div className="text-muted-foreground">{accessDialogTrader.business_name} - {accessDialogTrader.trader_code}</div>
+                <div className="font-semibold text-primary-dark">{memberName(accessDialogTrader)}</div>
+                <div className="text-muted-foreground">{businessName(accessDialogTrader)} - {accessDialogTrader.trader_code}</div>
                 <div className="mt-2"><StatusBadge status={accessDialogTrader.verification_status} /></div>
               </div>
               {accessDialogTrader.verification_status === "approved" && (
@@ -601,8 +609,10 @@ export function AdminRegistrationsPage() {
     id: number;
     trader_code: string;
     business_name: string;
+    business_name_en?: string | null;
     gala_id: number | null;
     full_name: string;
+    full_name_en?: string | null;
     mobile: string;
     email: string | null;
     verification_status: string;
@@ -639,6 +649,7 @@ export function AdminRegistrationsPage() {
   type TraderGala = {
     id: number;
     business_name: string;
+    business_name_en?: string | null;
     market_section: string | null;
     market_registration_number: string | null;
     status: string;
@@ -658,6 +669,13 @@ export function AdminRegistrationsPage() {
   const [loading, setLoading] = useState(true);
   const [details, setDetails] = useState<ApplicationDetails | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const { lang } = useI18n();
+  const memberName = (trader: Pick<PendingTrader, "full_name" | "full_name_en"> | null | undefined) =>
+    lang === "en" ? trader?.full_name_en || trader?.full_name || "" : trader?.full_name || trader?.full_name_en || "";
+  const businessName = (trader: Pick<PendingTrader, "business_name" | "business_name_en"> | null | undefined) =>
+    lang === "en" ? trader?.business_name_en || trader?.business_name || "" : trader?.business_name || trader?.business_name_en || "";
+  const galaBusinessName = (gala: Pick<TraderGala, "business_name" | "business_name_en"> | null | undefined) =>
+    lang === "en" ? gala?.business_name_en || gala?.business_name || "" : gala?.business_name || gala?.business_name_en || "";
 
   const loadPending = async () => {
     setLoading(true);
@@ -780,14 +798,14 @@ export function AdminRegistrationsPage() {
           <Card key={o.id} className="border-border/60">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-secondary font-display font-bold text-primary">{o.full_name.split(" ").map((p) => p[0]).join("").slice(0, 2)}</div>
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-secondary font-display font-bold text-primary">{memberName(o).split(" ").map((p) => p[0]).join("").slice(0, 2)}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-display font-bold text-primary-dark">{o.full_name}</h3>
+                    <h3 className="font-display font-bold text-primary-dark">{memberName(o)}</h3>
                     <StatusBadge status={o.verification_status} />
                     {Number(o.pending_gala_count || 0) > 0 && <Badge className="bg-saffron text-primary-dark">{o.pending_gala_count} pending gala/shop</Badge>}
                   </div>
-                  <div className="mt-1 text-sm text-muted-foreground">{o.business_name} - {o.trader_code}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{businessName(o)} - {o.trader_code}</div>
                   <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
                     <div><span className="text-muted-foreground">Mobile:</span> {o.mobile}</div>
                     <div><span className="text-muted-foreground">Email:</span> {o.email || "-"}</div>
@@ -819,7 +837,7 @@ export function AdminRegistrationsPage() {
       <Dialog open={!!details} onOpenChange={(open) => !open && setDetails(null)}>
         <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-primary-dark">{details?.application.full_name || "Application review"}</DialogTitle>
+            <DialogTitle className="font-display text-2xl text-primary-dark">{memberName(details?.application) || "Application review"}</DialogTitle>
             <DialogDescription>{details?.application.trader_code} - registration details and status history</DialogDescription>
           </DialogHeader>
           {detailsLoading && <div className="rounded-lg border p-4 text-sm text-muted-foreground">Loading application details...</div>}
@@ -827,7 +845,7 @@ export function AdminRegistrationsPage() {
             <div className="space-y-5">
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {[
-                  ["Business", details.application.business_name],
+                  ["Business", businessName(details.application)],
                   ["Mobile", details.application.mobile],
                   ["Email", details.application.email || "-"],
                   ["Anu. kramank", details.application.association_sequence_number || "-"],
@@ -860,7 +878,7 @@ export function AdminRegistrationsPage() {
                             {gala.is_primary ? <div className="text-xs text-primary">Primary shop</div> : null}
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium">{gala.business_name}</div>
+                            <div className="font-medium">{galaBusinessName(gala)}</div>
                             {gala.market_registration_number && <div className="text-xs text-muted-foreground">{gala.market_registration_number}</div>}
                             {gala.admin_remarks && <div className="text-xs text-destructive">{gala.admin_remarks}</div>}
                           </TableCell>
@@ -2682,10 +2700,12 @@ const myComplaints = COMPLAINTS.filter((c) => c.ownerId === me.id);
 
 type TraderProfile = {
   full_name: string;
+  full_name_en?: string | null;
   username: string;
   mobile: string;
   email: string | null;
   business_name: string;
+  business_name_en?: string | null;
   business_category: string | null;
   gala_number: string | null;
   market_registration_number: string | null;
@@ -2718,6 +2738,7 @@ type TraderProfileDocument = {
 type TraderGalaRecord = {
   id: number;
   business_name: string;
+  business_name_en?: string | null;
   market_section: string | null;
   market_registration_number: string | null;
   licence_number: string | null;
@@ -2780,9 +2801,14 @@ function formatTraderAddress(profile: TraderProfile | null) {
   return [profile.address_line1, profile.address_line2, profile.village_city, profile.taluka, profile.district, profile.pincode].filter(Boolean).join(", ");
 }
 
+function localizedDashboardName(lang: string, marathiValue?: string | null, englishValue?: string | null) {
+  return lang === "en" ? englishValue || marathiValue || "" : marathiValue || englishValue || "";
+}
+
 function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records found." }: { galas: TraderGalaRecord[]; onUpdated?: () => Promise<void> | void; emptyLabel?: string }) {
   const [editingGala, setEditingGala] = useState<TraderGalaRecord | null>(null);
   const [savingGala, setSavingGala] = useState(false);
+  const { lang } = useI18n();
 
   const saveGala = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -2826,7 +2852,7 @@ function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records 
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-display font-semibold text-primary-dark">Gala {gala.gala_number}</div>
-                  <div className="mt-1 text-sm text-muted-foreground">{gala.business_name}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{localizedDashboardName(lang, gala.business_name, gala.business_name_en)}</div>
                 </div>
                 {gala.is_primary ? <Badge className="bg-primary text-white">Primary</Badge> : null}
               </div>
@@ -2957,10 +2983,13 @@ export function OwnerProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploadingType, setUploadingType] = useState<string | null>(null);
   const [bloodGroup, setBloodGroup] = useState("");
+  const { lang } = useI18n();
   useEffect(() => {
     setBloodGroup(profile?.blood_group || "");
   }, [profile?.blood_group]);
-  const initials = (profile?.full_name || "Member")
+  const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
+  const displayBusinessName = localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
+  const initials = (displayFullName || "Member")
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
@@ -3088,8 +3117,8 @@ export function OwnerProfilePage() {
               ) : (
                 <div className="mx-auto grid h-28 w-28 place-items-center rounded-full bg-secondary font-display text-3xl font-bold text-primary">{initials}</div>
               )}
-              <h2 className="mt-4 font-display text-xl font-bold text-primary-dark">{profile?.full_name || (loading ? "Loading..." : "Member")}</h2>
-              <p className="text-sm text-muted-foreground">{profile?.business_name || "-"}</p>
+              <h2 className="mt-4 font-display text-xl font-bold text-primary-dark">{displayFullName || (loading ? "Loading..." : "Member")}</h2>
+              <p className="text-sm text-muted-foreground">{displayBusinessName || "-"}</p>
               <div className="mt-3"><StatusBadge status={profile?.verification_status || "loading"} /></div>
               <div className="mt-5 grid gap-2">
                 <label className="inline-flex cursor-pointer items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90">
@@ -3159,11 +3188,11 @@ export function OwnerProfilePage() {
         <Card className="border-border/60">
           <CardContent className="p-6">
             <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveProfile}>
-              <Field label="Full name" value={profile?.full_name || ""} readOnly />
+              <Field label="Full name" value={displayFullName} readOnly />
               <Field label="Username" value={profile?.username || ""} readOnly />
               <Field label="Email" value={profile?.email || ""} readOnly />
               <Field label="Registered mobile" value={profile?.mobile || ""} readOnly />
-              <Field label="Firm name" value={profile?.business_name || ""} readOnly />
+              <Field label="Firm name" value={displayBusinessName} readOnly />
               <Field label="Gala number" value={profile?.gala_number || ""} readOnly />
               <div>
                 <Label>Aadhaar number *</Label>
@@ -4022,9 +4051,11 @@ export function AdminTraderKycPage() {
 
 export function OwnerGalaPage() {
   const { profile, galas, loading, reload } = useTraderProfile();
+  const { lang } = useI18n();
   const primaryGala = galas.find((gala) => gala.is_primary) || galas[0];
   const approvedCount = galas.filter((gala) => gala.status === "approved").length;
   const pendingCount = galas.filter((gala) => ["submitted", "under_review", "correction_required"].includes(gala.status)).length;
+  const primaryBusinessName = localizedDashboardName(lang, primaryGala?.business_name || profile?.business_name, primaryGala?.business_name_en || profile?.business_name_en);
 
   return (
     <DashLayout kind="owner">
@@ -4036,7 +4067,7 @@ export function OwnerGalaPage() {
       </div>
       <Card className="mt-4 border-border/60 sm:mt-6">
         <CardContent className="grid gap-4 p-4 sm:grid-cols-2 sm:p-6">
-          <Field label="Primary business name" value={primaryGala?.business_name || profile?.business_name || ""} readOnly />
+          <Field label="Primary business name" value={primaryBusinessName} readOnly />
           <Field label="Primary gala number" value={primaryGala?.gala_number || profile?.gala_number || ""} readOnly />
           <Field label="Business category" value={primaryGala?.business_category || profile?.business_category || ""} readOnly />
           <Field label="Market section" value={primaryGala?.market_section || (profile?.business_category ? `${profile.business_category} Section` : "")} readOnly />
@@ -4169,12 +4200,15 @@ export function OwnerPostPage() {
   const { profile } = useTraderProfile();
   const { logout } = useAuth();
   const router = useRouter();
+  const { lang } = useI18n();
   const [postCategory, setPostCategory] = useState("Market Rate Update");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [myPosts, setMyPosts] = useState<DashboardPost[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const section = profile?.business_category ? `${profile.business_category} Section` : "";
+  const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
+  const displayBusinessName = localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
   const loadMyPosts = async () => {
     try {
       const response = await fetch("/api/v1/trader/posts", { credentials: "include" });
@@ -4250,7 +4284,7 @@ export function OwnerPostPage() {
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   <div>
                     <Label>Gala owner name</Label>
-                    <Input value={profile?.full_name || ""} disabled />
+                    <Input value={displayFullName} disabled />
                   </div>
                   <div>
                     <Label>Gala number</Label>
@@ -4258,7 +4292,7 @@ export function OwnerPostPage() {
                   </div>
                   <div>
                     <Label>Business name</Label>
-                    <Input value={profile?.business_name || ""} disabled />
+                    <Input value={displayBusinessName} disabled />
                   </div>
                   <div>
                     <Label>Market section</Label>
@@ -4568,6 +4602,8 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
 
 export function MobileChangeApplicationForm({ compact = false }: { compact?: boolean }) {
   const { profile } = useTraderProfile();
+  const { lang } = useI18n();
+  const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
 
   return (
     <Card className="border-border/60">
@@ -4583,7 +4619,7 @@ export function MobileChangeApplicationForm({ compact = false }: { compact?: boo
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label>Gala owner name</Label>
-              <Input value={profile?.full_name || ""} disabled />
+              <Input value={displayFullName} disabled />
             </div>
             <div>
               <Label>Gala number</Label>
@@ -4658,7 +4694,10 @@ export function MobileChangeApplicationForm({ compact = false }: { compact?: boo
 
 export function OwnerMobileChangePage() {
   const { profile } = useTraderProfile();
+  const { lang } = useI18n();
   const section = profile?.business_category ? `${profile.business_category} Section` : "";
+  const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
+  const displayBusinessName = localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
   type TraderMobileRequest = {
     id: number;
     request_code: string;
@@ -4758,7 +4797,7 @@ export function OwnerMobileChangePage() {
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   <div>
                     <Label>Gala owner name</Label>
-                    <Input value={profile?.full_name || ""} disabled />
+                    <Input value={displayFullName} disabled />
                   </div>
                   <div>
                     <Label>Gala number</Label>
@@ -4766,7 +4805,7 @@ export function OwnerMobileChangePage() {
                   </div>
                   <div>
                     <Label>Business name</Label>
-                    <Input value={profile?.business_name || ""} disabled />
+                    <Input value={displayBusinessName} disabled />
                   </div>
                   <div>
                     <Label>Market section</Label>

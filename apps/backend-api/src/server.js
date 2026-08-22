@@ -676,7 +676,7 @@ function hashPassword(password) {
 }
 
 const traderRequestSelect = `
-  SELECT t.*, u.full_name, u.mobile, u.email, u.status AS user_status,
+  SELECT t.*, u.full_name, u.full_name_en, u.mobile, u.email, u.status AS user_status,
          mg.gala_number, bc.name_en AS business_category
     FROM traders t
     JOIN users u ON u.id = t.user_id
@@ -1211,6 +1211,10 @@ function scheduleRetentionCleanup() {
 }
 
 async function ensurePlatformExtensions() {
+  await addColumnIfMissing("users", "full_name_en", "full_name_en VARCHAR(180) NULL AFTER full_name");
+  await addColumnIfMissing("traders", "business_name_en", "business_name_en VARCHAR(220) NULL AFTER business_name");
+  await addColumnIfMissing("trader_galas", "business_name_en", "business_name_en VARCHAR(220) NULL AFTER business_name");
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS translation_cache (
       id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -3365,7 +3369,7 @@ app.put("/api/v1/admin/posts/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), asy
 app.get("/api/v1/admin/trader-kyc", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
   const status = String(req.query.status || "submitted");
   const [rows] = await pool.query(
-    `SELECT DISTINCT t.*, u.full_name, u.mobile, u.email, u.status AS user_status,
+    `SELECT DISTINCT t.*, u.full_name, u.full_name_en, u.mobile, u.email, u.status AS user_status,
             (SELECT COUNT(*)
                FROM trader_galas tg
               WHERE tg.trader_id = t.id
@@ -3427,7 +3431,8 @@ app.get("/api/v1/admin/trader-requests/:applicationNumber", requireRoles("MAIN_A
     `SELECT tg.id, tg.business_name, tg.market_section, tg.market_registration_number,
             tg.licence_number, tg.association_sequence_number, tg.association_registration_number,
             tg.status, tg.is_primary, tg.admin_remarks, tg.verified_at, tg.created_at,
-            mg.gala_number, bc.name_en AS business_category
+            mg.gala_number, bc.name_en AS business_category,
+            tg.business_name_en
        FROM trader_galas tg
        JOIN market_galas mg ON mg.id = tg.gala_id
        LEFT JOIN business_categories bc ON bc.id = tg.business_category_id
@@ -3915,7 +3920,8 @@ app.get("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => {
     `SELECT tg.id, tg.business_name, tg.market_section, tg.market_registration_number,
             tg.licence_number, tg.association_sequence_number, tg.association_registration_number,
             tg.status, tg.is_primary, tg.admin_remarks, tg.verified_at, tg.created_at,
-            mg.gala_number, bc.name_en AS business_category
+            mg.gala_number, bc.name_en AS business_category,
+            tg.business_name_en
        FROM trader_galas tg
        JOIN market_galas mg ON mg.id = tg.gala_id
        LEFT JOIN business_categories bc ON bc.id = tg.business_category_id
@@ -4294,7 +4300,8 @@ app.get("/api/v1/trader/dashboard", requireRoles("TRADER"), async (req, res) => 
     `SELECT tg.id, tg.business_name, tg.market_section, tg.market_registration_number,
             tg.licence_number, tg.association_sequence_number, tg.association_registration_number,
             tg.status, tg.is_primary, tg.admin_remarks, tg.verified_at, tg.created_at,
-            mg.gala_number, bc.name_en AS business_category
+            mg.gala_number, bc.name_en AS business_category,
+            tg.business_name_en
        FROM trader_galas tg
        JOIN market_galas mg ON mg.id = tg.gala_id
        LEFT JOIN business_categories bc ON bc.id = tg.business_category_id

@@ -8,6 +8,7 @@ import {
   ClipboardList, FileText, Newspaper, Phone, MessageSquare, Clock, ImagePlus, IdCard,
   Star, Store,
 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/owner")({
   head: () => ({ meta: [{ title: "Member Dashboard - Shri Chhatrapati Shivaji Market Yard Adte Association" }] }),
@@ -21,14 +22,17 @@ function OwnerDash() {
   type DashboardData = {
     profile?: {
       full_name: string;
+      full_name_en?: string | null;
       trader_code: string;
       business_name: string;
+      business_name_en?: string | null;
       gala_number: string | null;
       verification_status: string;
     };
     galas?: Array<{
       id: number;
       business_name: string;
+      business_name_en?: string | null;
       market_section: string | null;
       market_registration_number: string | null;
       status: string;
@@ -65,6 +69,7 @@ function OwnerDash() {
   };
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [sharedPosts, setSharedPosts] = useState<SharedPost[]>([]);
+  const { lang } = useI18n();
 
   useEffect(() => {
     fetch("/api/v1/trader/dashboard", { credentials: "include" })
@@ -86,6 +91,12 @@ function OwnerDash() {
   const [selectedGalaId, setSelectedGalaId] = useState<number | null>(null);
   const selectedGala = galas.find((gala) => gala.id === selectedGalaId) || galas[0] || null;
   const metrics = dashboard?.metrics;
+  const displayMemberName = lang === "en" ? profile?.full_name_en || profile?.full_name : profile?.full_name || profile?.full_name_en;
+  const displayBusinessName = lang === "en"
+    ? selectedGala?.business_name_en || profile?.business_name_en || selectedGala?.business_name || profile?.business_name
+    : selectedGala?.business_name || profile?.business_name || selectedGala?.business_name_en || profile?.business_name_en;
+  const galaBusinessName = (gala: { business_name: string; business_name_en?: string | null }) =>
+    lang === "en" ? gala.business_name_en || gala.business_name : gala.business_name || gala.business_name_en || "";
   const quickActions = [
     { to: "/member/new-complaint", icon: ClipboardList, label: "Raise Complaint" },
     { to: "/member/kyc", icon: IdCard, label: "Customer KYC" },
@@ -103,8 +114,8 @@ function OwnerDash() {
         <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
-              <h1 className="font-display text-xl font-bold leading-tight text-primary-dark sm:text-2xl">Welcome back, {profile?.full_name || "Member"}</h1>
-              <p className="mt-1 text-sm text-muted-foreground">{selectedGala?.business_name || profile?.business_name || "Your business dashboard will appear after approval."}</p>
+              <h1 className="font-display text-xl font-bold leading-tight text-primary-dark sm:text-2xl">Welcome back, {displayMemberName || "Member"}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{displayBusinessName || "Your business dashboard will appear after approval."}</p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2 md:justify-end">
               <Badge variant="outline" className="whitespace-nowrap">{profile?.trader_code || "Member"}</Badge>
@@ -154,7 +165,7 @@ function OwnerDash() {
                       <Store className="h-4 w-4 shrink-0 text-primary" />
                       <div className="font-display font-semibold text-primary-dark">Gala {gala.gala_number}</div>
                     </div>
-                    <div className="mt-1 text-sm text-muted-foreground">{gala.business_name}</div>
+                    <div className="mt-1 text-sm text-muted-foreground">{galaBusinessName(gala)}</div>
                   </div>
                   {gala.is_primary ? <Badge className="bg-primary text-white">Primary</Badge> : null}
                 </div>
@@ -177,7 +188,7 @@ function OwnerDash() {
         <CardContent className="p-4 sm:p-6">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-display font-bold text-primary-dark">Quick actions</h2>
-            <Badge className="w-fit max-w-full whitespace-normal bg-secondary text-primary-dark">{selectedGala?.business_name || profile?.business_name || "Fresh dashboard"}</Badge>
+            <Badge className="w-fit max-w-full whitespace-normal bg-secondary text-primary-dark">{displayBusinessName || "Fresh dashboard"}</Badge>
           </div>
           <div className="grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
             {quickActions.map((a) => (

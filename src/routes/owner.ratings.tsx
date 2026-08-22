@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Building2, CheckCircle2, Clock, RefreshCw, Star, Store, ThumbsDown, Upload, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/owner/ratings")({
   head: () => ({ meta: [{ title: "Portal Reviews - Member Portal" }] }),
@@ -20,7 +21,9 @@ type TraderProfile = {
   id: number;
   trader_code: string;
   business_name: string;
+  business_name_en?: string | null;
   full_name: string;
+  full_name_en?: string | null;
   gala_number: string | null;
   business_category: string | null;
 };
@@ -94,6 +97,7 @@ function StatusBadge({ status }: { status: MyRating["moderation_status"] }) {
 
 function TraderRatings() {
   const { logout } = useAuth();
+  const { lang } = useI18n();
   const router = useRouter();
   const [profile, setProfile] = useState<TraderProfile | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -145,6 +149,8 @@ function TraderRatings() {
   }, []);
 
   const selectedCustomer = customers.find((customer) => String(customer.id) === selectedCustomerId);
+  const displayBusinessName = lang === "en" ? profile?.business_name_en || profile?.business_name : profile?.business_name || profile?.business_name_en;
+  const displayMemberName = lang === "en" ? profile?.full_name_en || profile?.full_name : profile?.full_name || profile?.full_name_en;
 
   const submitRating = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -216,8 +222,8 @@ function TraderRatings() {
             <form className="mt-5 space-y-5" onSubmit={submitRating}>
               <div className="rounded-lg border bg-secondary/30 p-4">
                 <div className="text-xs font-semibold uppercase text-muted-foreground">Review submitted from</div>
-                <div className="mt-2 font-semibold text-primary-dark">{profile?.business_name || "Your business"}</div>
-                <div className="mt-1 text-sm text-muted-foreground">{profile?.full_name || "Member"} - {profile?.trader_code || "Member"}</div>
+                <div className="mt-2 font-semibold text-primary-dark">{displayBusinessName || "Your business"}</div>
+                <div className="mt-1 text-sm text-muted-foreground">{displayMemberName || "Member"} - {profile?.trader_code || "Member"}</div>
                 <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
                   <span className="inline-flex items-center gap-2"><Store className="h-4 w-4 text-primary" /> Gala {profile?.gala_number || "-"}</span>
                   <span className="inline-flex items-center gap-2"><Building2 className="h-4 w-4 text-primary" /> {profile?.business_category || "Market Member"}</span>
