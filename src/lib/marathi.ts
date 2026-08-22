@@ -120,6 +120,11 @@ const textTranslations: Record<string, string> = {
   "Already linked": "\u0906\u0927\u0940\u091a \u091c\u094b\u0921\u0932\u0947",
   "Give warning": "\u0907\u0936\u093e\u0930\u093e \u0926\u094d\u092f\u093e",
   "Red alert": "\u0932\u093e\u0932 \u0907\u0936\u093e\u0930\u093e",
+  "Payment Cleared": "\u092a\u0947\u092e\u0947\u0902\u091f \u092e\u093f\u091f\u0932\u0947",
+  "Payment received": "\u092a\u0947\u092e\u0947\u0902\u091f \u092e\u093f\u0933\u093e\u0932\u0947",
+  "Payment received / Clear risk": "\u092a\u0947\u092e\u0947\u0902\u091f \u092e\u093f\u0933\u093e\u0932\u0947 / \u091c\u094b\u0916\u0940\u092e \u0915\u093e\u0922\u093e",
+  "Clear": "\u0915\u093e\u0922\u093e",
+  "Clearing...": "\u0915\u093e\u0922\u0924 \u0906\u0939\u0947...",
   "Member-to-Member payment warning": "\u0935\u094d\u092f\u093e\u092a\u093e\u0930\u0940-\u0924\u0947-\u0935\u094d\u092f\u093e\u092a\u093e\u0930\u0940 \u092a\u0947\u092e\u0947\u0902\u091f \u0907\u0936\u093e\u0930\u093e",
   "Unpaid amount *": "\u0925\u0915\u0940\u0924 \u0930\u0915\u094d\u0915\u092e *",
   "Original due date *": "\u092e\u0942\u0933 \u0926\u0947\u092f \u0924\u093e\u0930\u0940\u0916 *",
@@ -524,6 +529,16 @@ export function translateToMarathi(value: string) {
 
   if (/^\d+\s+views$/i.test(normalized)) {
     return restoreWhitespace(value, normalized.replace(/views/i, "\u0926\u0943\u0936\u094d\u092f\u0947"));
+  }
+
+  const riskCleared = normalized.match(/^(.+?) has cleared the pending payment warning and is no longer marked high risk for that case\.$/i);
+  if (riskCleared) {
+    return restoreWhitespace(value, `${riskCleared[1]} \u092f\u093e\u0902\u0928\u0940 \u0925\u0915\u0940\u0924 \u092a\u0947\u092e\u0947\u0902\u091f \u0907\u0936\u093e\u0930\u093e \u092e\u093f\u091f\u0935\u0932\u093e \u0906\u0939\u0947. \u092f\u093e \u092a\u094d\u0930\u0915\u0930\u0923\u093e\u0938\u093e\u0920\u0940 \u0924\u0947 \u0906\u0924\u093e \u0909\u091a\u094d\u091a \u091c\u094b\u0916\u0940\u092e \u092e\u094d\u0939\u0923\u0942\u0928 \u0926\u0930\u094d\u0936\u0935\u0932\u0947 \u091c\u093e\u0923\u093e\u0930 \u0928\u093e\u0939\u0940\u0924.`);
+  }
+
+  const riskAlert = normalized.match(/^(.+?) has a new market-wide payment warning for Rs\. ([\d,]+(?:\.\d+)?)\.$/i);
+  if (riskAlert) {
+    return restoreWhitespace(value, `${riskAlert[1]} \u092f\u093e\u0902\u091a\u094d\u092f\u093e\u0935\u0930 \u0930\u0941. ${riskAlert[2]} \u0930\u0915\u092e\u0947\u0938\u093e\u0920\u0940 \u0928\u0935\u0940\u0928 \u092c\u093e\u091c\u093e\u0930-\u0935\u094d\u092f\u093e\u092a\u0940 \u092a\u0947\u092e\u0947\u0902\u091f \u0907\u0936\u093e\u0930\u093e \u0928\u094b\u0902\u0926\u0935\u0932\u093e \u0906\u0939\u0947.`);
   }
 
   if (normalized.startsWith("Welcome back, ")) {
