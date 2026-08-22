@@ -174,7 +174,7 @@ function StatusBadge({ status }: { status: string }) {
     expired: "bg-muted text-muted-foreground",
     replaced: "bg-muted text-muted-foreground",
   };
-  return <Badge className={`capitalize ${map[status] || "bg-muted text-muted-foreground"}`}>{status.replace(/_/g, " ")}</Badge>;
+  return <Badge className={`whitespace-nowrap capitalize ${map[status] || "bg-muted text-muted-foreground"}`}>{status.replace(/_/g, " ")}</Badge>;
 }
 
 const complaintStatusTriggerClasses: Record<string, string> = {
@@ -1006,7 +1006,7 @@ export function AdminComplaintsPage() {
   };
   const StatusControl = ({ complaint }: { complaint: AdminComplaint }) => (
     <Select value={complaint.status} onValueChange={(status) => updateComplaintStatus(complaint, status)}>
-      <SelectTrigger className={`h-9 w-full min-w-36 font-semibold ${complaintStatusTriggerClasses[complaint.status] || "border-muted bg-muted text-muted-foreground"}`}>
+      <SelectTrigger className={`h-9 w-full min-w-[150px] whitespace-nowrap font-semibold ${complaintStatusTriggerClasses[complaint.status] || "border-muted bg-muted text-muted-foreground"}`}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -1054,17 +1054,17 @@ export function AdminComplaintsPage() {
           </div>
 
           <div className="hidden overflow-x-auto lg:block">
-            <Table className="min-w-[1180px] table-fixed">
+            <Table className="min-w-[1320px] table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[90px] whitespace-nowrap">ID</TableHead>
-                  <TableHead className="w-[36%] min-w-[300px] whitespace-nowrap">Complaint</TableHead>
-                  <TableHead className="w-[150px] whitespace-nowrap">Owner</TableHead>
-                  <TableHead className="w-[110px] whitespace-nowrap">Priority</TableHead>
-                  <TableHead className="w-[130px] whitespace-nowrap">Status</TableHead>
-                  <TableHead className="w-[120px] whitespace-nowrap">Assigned Date</TableHead>
-                  <TableHead className="w-[120px] whitespace-nowrap">View</TableHead>
-                  <TableHead className="w-[150px] text-right whitespace-nowrap">Action</TableHead>
+                  <TableHead className="w-[100px] whitespace-nowrap">ID</TableHead>
+                  <TableHead className="w-[430px] whitespace-nowrap">Complaint</TableHead>
+                  <TableHead className="w-[170px] whitespace-nowrap">Owner</TableHead>
+                  <TableHead className="w-[125px] whitespace-nowrap">Priority</TableHead>
+                  <TableHead className="w-[145px] whitespace-nowrap">Status</TableHead>
+                  <TableHead className="w-[150px] whitespace-nowrap">Assigned Date</TableHead>
+                  <TableHead className="w-[100px] whitespace-nowrap">View</TableHead>
+                  <TableHead className="w-[170px] whitespace-nowrap text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
