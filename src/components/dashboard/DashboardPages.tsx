@@ -76,6 +76,12 @@ const COMPLAINT_CATEGORIES = [
   { en: "Emergency / Safety Issue", mr: "आपत्कालीन / सुरक्षा समस्या" },
   { en: "Other Complaint", mr: "इतर तक्रार" },
 ];
+const COMPLAINT_PRIORITIES = [
+  { value: "low", en: "Low", mr: "कमी" },
+  { value: "medium", en: "Medium", mr: "मध्यम" },
+  { value: "high", en: "High", mr: "उच्च" },
+  { value: "urgent", en: "Emergency", mr: "आपत्कालीन" },
+];
 const MOBILE_CHANGE_REASONS = [
   "Lost SIM or phone",
   "Old number is inactive",
@@ -4145,11 +4151,13 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
               </Select>
             </div>
             <div>
-              <Label>Priority *</Label>
+              <Label>Priority * / प्राधान्य *</Label>
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger><SelectValue placeholder="Select priority" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select Priority / प्राधान्य निवडा" /></SelectTrigger>
                 <SelectContent>
-                  {["low", "medium", "high", "emergency"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {COMPLAINT_PRIORITIES.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>{item.en} / {item.mr}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
