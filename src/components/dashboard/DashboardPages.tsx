@@ -3194,8 +3194,10 @@ export function OwnerKycPage() {
     risk_status?: string;
     active_market_warning_count?: number;
     verified_market_outstanding?: number;
+    latest_warning_id?: number | null;
     latest_warning_note?: string | null;
     latest_warning_trader?: string | null;
+    can_clear_latest_warning?: 0 | 1 | boolean;
     created_at: string;
   };
   type RiskSearchResult = {
@@ -3211,8 +3213,10 @@ export function OwnerKycPage() {
     active_market_warning_count: number;
     verified_market_outstanding: number;
     oldest_active_due_date: string | null;
+    latest_warning_id: number | null;
     latest_warning_note: string | null;
     latest_warning_trader: string | null;
+    can_clear_latest_warning: 0 | 1 | boolean;
     linked_to_me: 0 | 1 | boolean;
   };
   type TraderDashboardProfile = {
@@ -3229,6 +3233,7 @@ export function OwnerKycPage() {
   const [riskLoading, setRiskLoading] = useState(false);
   const [warningCustomer, setWarningCustomer] = useState<RiskSearchResult | null>(null);
   const [warningSaving, setWarningSaving] = useState(false);
+  const [clearingWarningId, setClearingWarningId] = useState<number | null>(null);
   const [recordFilter, setRecordFilter] = useState<"all" | "verified" | "risk">("all");
   const riskStatuses = ["warning_2", "high_risk", "blocked", "disputed"];
   const hasRiskWarning = (record: TraderKycRecord) =>
@@ -3400,6 +3405,30 @@ export function OwnerKycPage() {
     }
   };
 
+  const clearMarketWarning = async (warningId: number | null | undefined, customerName: string) => {
+    if (!warningId) return;
+    const confirmed = window.confirm(`Mark ${customerName} payment as received and remove this risk alert for all Members?`);
+    if (!confirmed) return;
+    setClearingWarningId(warningId);
+    try {
+      const response = await fetch(`/api/v1/trader/customer-warnings/${warningId}/resolve`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ remarks: "Payment received from customer. Risk warning cleared." }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not clear risk warning.");
+      toast.success(`${customerName} payment marked received. All Members notified.`);
+      await loadTraderKyc();
+      if (riskQuery.trim().length >= 2) await searchSharedCustomers(riskQuery.trim());
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not clear risk warning.");
+    } finally {
+      setClearingWarningId(null);
+    }
+  };
+
   return (
     <DashLayout kind="owner">
       <PageTitle title="Customer KYC" subtitle="Search shared customer KYC first, link existing customers, and flag market-wide payment risks." />
@@ -3450,6 +3479,17 @@ export function OwnerKycPage() {
                       <Button size="sm" variant="destructive" onClick={() => setWarningCustomer(customer)}>
                         Give warning
                       </Button>
+                      {isHighRisk && Boolean(customer.can_clear_latest_warning) && (
+                        <Button
+                          size="sm"
+                          className="bg-success text-white hover:bg-success/90"
+                          disabled={clearingWarningId === customer.latest_warning_id}
+                          onClick={() => clearMarketWarning(customer.latest_warning_id, customer.full_name)}
+                        >
+                          <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                          {clearingWarningId === customer.latest_warning_id ? "Clearing..." : "Payment received"}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -3548,6 +3588,17 @@ export function OwnerKycPage() {
                     {hasRiskWarning(record) ? <AlertTriangle className="mr-1 h-3.5 w-3.5" /> : <Eye className="mr-1 h-3.5 w-3.5" />}
                     {hasRiskWarning(record) ? "View Risk Alert" : "View KYC"}
                   </Button>
+                  {hasRiskWarning(record) && Boolean(record.can_clear_latest_warning) && (
+                    <Button
+                      size="sm"
+                      className="mt-2 w-full whitespace-nowrap bg-success text-white hover:bg-success/90"
+                      disabled={clearingWarningId === record.latest_warning_id}
+                      onClick={() => clearMarketWarning(record.latest_warning_id, record.full_name)}
+                    >
+                      <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                      {clearingWarningId === record.latest_warning_id ? "Clearing..." : "Payment received / Clear risk"}
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
@@ -3575,9 +3626,22 @@ export function OwnerKycPage() {
                       <TableCell className="whitespace-nowrap align-top">{new Date(record.created_at).toLocaleDateString("en-IN")}</TableCell>
                       <TableCell className="text-center align-top">
                         {hasRiskWarning(record) ? (
-                          <Button size="sm" variant="destructive" className="h-8 whitespace-nowrap" onClick={() => showRecordAction(record)}>
-                            <AlertTriangle className="mr-1 h-3.5 w-3.5" /> Risk
-                          </Button>
+                          <div className="flex justify-center gap-2">
+                            <Button size="sm" variant="destructive" className="h-8 whitespace-nowrap" onClick={() => showRecordAction(record)}>
+                              <AlertTriangle className="mr-1 h-3.5 w-3.5" /> Risk
+                            </Button>
+                            {Boolean(record.can_clear_latest_warning) && (
+                              <Button
+                                size="sm"
+                                className="h-8 whitespace-nowrap bg-success px-3 text-white hover:bg-success/90"
+                                disabled={clearingWarningId === record.latest_warning_id}
+                                onClick={() => clearMarketWarning(record.latest_warning_id, record.full_name)}
+                              >
+                                <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                                Clear
+                              </Button>
+                            )}
+                          </div>
                         ) : (
                           <Button size="sm" variant="ghost" onClick={() => showRecordAction(record)}><Eye className="h-4 w-4" /></Button>
                         )}

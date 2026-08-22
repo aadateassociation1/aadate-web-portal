@@ -883,6 +883,24 @@ async function sendRiskAlertPush({ warningId, customerName, amount }) {
   }
 }
 
+async function sendRiskClearedPush({ warningId, customerName }) {
+  try {
+    await sendPushToAllMembers({
+      title: "Payment Cleared",
+      body: `${customerName} has cleared the pending payment warning and is no longer marked high risk for that case.`,
+      url: "/member/kyc",
+      type: "risk_cleared",
+      entityId: warningId,
+      priority: "high",
+    });
+  } catch (error) {
+    console.error("Risk cleared push notification failed", {
+      warningId,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
 async function recordDownloadEvent({ sourceTable, sourceId, req }) {
   await pool.query(
     `INSERT INTO file_download_events (source_table, source_id, downloaded_by_user_id, downloaded_by_role, ip_address, user_agent)
@@ -3736,8 +3754,10 @@ app.get("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) => 
             MAX(tc.linked_at) AS linked_at,
             COUNT(CASE WHEN wc.status IN ('approved','active','partially_paid','disputed') AND wc.visibility = 'market_summary' THEN wc.id END) AS active_market_warning_count,
             COALESCE(SUM(CASE WHEN wc.status IN ('approved','active','partially_paid','disputed') AND wc.visibility = 'market_summary' THEN wc.current_outstanding_amount ELSE 0 END), 0) AS verified_market_outstanding,
+            latest_wc.id AS latest_warning_id,
             latest_wc.trader_statement AS latest_warning_note,
-            latest_trader.business_name AS latest_warning_trader
+            latest_trader.business_name AS latest_warning_trader,
+            latest_wc.trader_id = :traderId AS can_clear_latest_warning
        FROM trader_customers tc
        JOIN customers c ON c.id = tc.customer_id
        LEFT JOIN customer_identifiers aadhaar ON aadhaar.customer_id = c.id AND aadhaar.identifier_type = 'aadhaar'
@@ -3754,7 +3774,7 @@ app.get("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) => 
        LEFT JOIN traders latest_trader ON latest_trader.id = latest_wc.trader_id
       WHERE tc.trader_id = :traderId
       GROUP BY c.id, c.customer_code, c.full_name, c.mobile, c.kyc_status, c.risk_status, c.created_at,
-               aadhaar.masked_value, pan.masked_value, tc.relationship_status, latest_wc.trader_statement, latest_trader.business_name
+               aadhaar.masked_value, pan.masked_value, tc.relationship_status, latest_wc.id, latest_wc.trader_id, latest_wc.trader_statement, latest_trader.business_name
       ORDER BY linked_at DESC`,
     { traderId },
   );
@@ -5580,8 +5600,10 @@ app.get("/api/v1/trader/customer-risk-search", requireRoles("TRADER"), async (re
             COALESCE(SUM(CASE WHEN wc.status IN ('approved','active','partially_paid','disputed') AND wc.visibility = 'market_summary' THEN wc.current_outstanding_amount ELSE 0 END), 0) AS verified_market_outstanding,
             MIN(CASE WHEN wc.status IN ('approved','active','partially_paid','disputed') AND wc.visibility = 'market_summary' THEN wc.due_date END) AS oldest_active_due_date,
             MAX(CASE WHEN wc.status IN ('approved','active','partially_paid','disputed') AND wc.visibility = 'market_summary' THEN wc.updated_at END) AS risk_last_updated_at,
+            latest_wc.id AS latest_warning_id,
             latest_wc.trader_statement AS latest_warning_note,
             latest_trader.business_name AS latest_warning_trader,
+            latest_wc.trader_id = :traderId AS can_clear_latest_warning,
             linked.id IS NOT NULL AS linked_to_me
        FROM customers c
        LEFT JOIN warning_cases wc ON wc.customer_id = c.id
@@ -5599,7 +5621,7 @@ app.get("/api/v1/trader/customer-risk-search", requireRoles("TRADER"), async (re
       WHERE c.deleted_at IS NULL
         AND (c.customer_code = :q OR c.full_name LIKE :likeQuery OR c.mobile LIKE :likeQuery)
       GROUP BY c.id, c.customer_code, c.full_name, c.mobile, c.kyc_status, c.verified_at, c.risk_status,
-               c.address_line1, c.village_city, c.district, latest_wc.trader_statement, latest_trader.business_name, linked.id
+               c.address_line1, c.village_city, c.district, latest_wc.id, latest_wc.trader_id, latest_wc.trader_statement, latest_trader.business_name, linked.id
       ORDER BY active_market_warning_count DESC, c.full_name ASC
       LIMIT 20`,
     { q, likeQuery: `%${q}%`, traderId: req.user.trader_id || 0 },
@@ -5705,6 +5727,92 @@ app.post("/api/v1/trader/customer-warnings", requireRoles("TRADER"), async (req,
     });
     await writeAudit({ req, action: "warning.market_alert_submit", module: "warnings", entityType: "warning_cases", entityId: warningResult.insertId, newValues: { customerId, amount, caseNumber, notifiedMembers } });
     res.status(201).json({ ok: true, warningId: warningResult.insertId, caseNumber, notifiedMembers });
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+});
+
+app.post("/api/v1/trader/customer-warnings/:id/resolve", requireRoles("TRADER"), async (req, res) => {
+  const traderId = req.user.trader_id;
+  const warningId = Number(req.params.id);
+  const remarks = String(req.body?.remarks || "Payment received from customer. Risk warning cleared.").trim();
+  if (!traderId || !warningId) {
+    res.status(400).json({ ok: false, error: "Valid warning is required." });
+    return;
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [[warning]] = await connection.query(
+      `SELECT wc.id, wc.customer_id, wc.invoice_id, wc.status, wc.visibility, wc.current_outstanding_amount,
+              c.full_name AS customer_name
+         FROM warning_cases wc
+         JOIN customers c ON c.id = wc.customer_id
+        WHERE wc.id = :warningId
+          AND wc.trader_id = :traderId
+          AND wc.status IN ('approved','active','partially_paid','disputed')
+          AND wc.visibility = 'market_summary'
+        LIMIT 1
+        FOR UPDATE`,
+      { warningId, traderId },
+    );
+    if (!warning) {
+      await connection.rollback();
+      res.status(404).json({ ok: false, error: "Active warning not found for your member account." });
+      return;
+    }
+
+    await connection.query(
+      `UPDATE warning_cases
+          SET status = 'resolved',
+              visibility = 'private',
+              current_outstanding_amount = 0,
+              resolved_at = NOW(),
+              resolution_notes = :remarks
+        WHERE id = :warningId`,
+      { warningId, remarks },
+    );
+    await connection.query(
+      "UPDATE invoices SET paid_amount = total_amount, status = 'paid' WHERE id = :invoiceId",
+      { invoiceId: warning.invoice_id },
+    );
+    await connection.query(
+      `INSERT INTO warning_history (warning_case_id, old_status, new_status, old_visibility, new_visibility, remarks, changed_by_user_id)
+       VALUES (:warningId, :oldStatus, 'resolved', :oldVisibility, 'private', :remarks, :userId)`,
+      { warningId, oldStatus: warning.status, oldVisibility: warning.visibility, remarks, userId: req.user.id },
+    );
+
+    const [[remaining]] = await connection.query(
+      `SELECT COUNT(*) AS activeCount
+         FROM warning_cases
+        WHERE customer_id = :customerId
+          AND status IN ('approved','active','partially_paid','disputed')
+          AND visibility = 'market_summary'`,
+      { customerId: warning.customer_id },
+    );
+    if (Number(remaining.activeCount || 0) === 0) {
+      await connection.query("UPDATE customers SET risk_status = 'normal' WHERE id = :customerId", { customerId: warning.customer_id });
+    }
+
+    const notifiedMembers = await createMemberNotifications(connection, {
+      type: "risk_cleared",
+      title: "Payment Cleared",
+      message: `${warning.customer_name} has cleared the pending payment warning and is no longer marked high risk for that case.`,
+      relatedEntityType: "warning_cases",
+      relatedEntityId: warningId,
+      actionUrl: "/member/kyc",
+      priority: "high",
+    });
+    await connection.commit();
+    setImmediate(() => {
+      sendRiskClearedPush({ warningId, customerName: warning.customer_name });
+    });
+    await writeAudit({ req, action: "warning.market_alert_resolve", module: "warnings", entityType: "warning_cases", entityId: warningId, oldValues: { status: warning.status, visibility: warning.visibility, outstanding: warning.current_outstanding_amount }, newValues: { status: "resolved", visibility: "private", outstanding: 0, notifiedMembers } });
+    res.json({ ok: true, warningId, status: "resolved", notifiedMembers });
   } catch (error) {
     await connection.rollback();
     throw error;
