@@ -4232,6 +4232,29 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
 
   const aadhaarHash = hashIdentifier(cleanAadhaar);
   const panHash = hashIdentifier(cleanPan);
+  const normalizedFullName = String(fullName || "").trim().toLowerCase();
+  const [[sameMemberCustomer]] = await pool.query(
+    `SELECT c.id, c.customer_code, c.full_name
+       FROM customers c
+       JOIN trader_customers tc ON tc.customer_id = c.id
+      WHERE tc.trader_id = :traderId
+        AND c.deleted_at IS NULL
+        AND c.mobile = :mobile
+        AND LOWER(TRIM(c.full_name)) = :fullName
+      LIMIT 1`,
+    { traderId, mobile: cleanMobile, fullName: normalizedFullName },
+  );
+  if (sameMemberCustomer) {
+    res.status(409).json({
+      ok: false,
+      duplicateCustomer: true,
+      customerId: sameMemberCustomer.id,
+      customerCode: sameMemberCustomer.customer_code,
+      error: `${sameMemberCustomer.full_name} with this phone number already exists in your Customer KYC records.`,
+    });
+    return;
+  }
+
   const [[existingCustomer]] = await pool.query(
     `SELECT c.id, c.customer_code, c.full_name, c.kyc_status
        FROM customers c
@@ -4392,6 +4415,28 @@ app.post("/api/v1/admin/traders/:id/customers", requireRoles("MAIN_ADMIN", "USER
   );
   if (traderUser && (cleanMobile === String(traderUser.mobile || "") || String(fullName).trim().toLowerCase() === String(traderUser.full_name || "").trim().toLowerCase())) {
     res.status(400).json({ ok: false, error: "Member cannot be added as their own customer. Add only real customer details." });
+    return;
+  }
+
+  const [[sameMemberCustomer]] = await pool.query(
+    `SELECT c.id, c.customer_code, c.full_name
+       FROM customers c
+       JOIN trader_customers tc ON tc.customer_id = c.id
+      WHERE tc.trader_id = :traderId
+        AND c.deleted_at IS NULL
+        AND c.mobile = :mobile
+        AND LOWER(TRIM(c.full_name)) = :fullName
+      LIMIT 1`,
+    { traderId, mobile: cleanMobile, fullName: String(fullName || "").trim().toLowerCase() },
+  );
+  if (sameMemberCustomer) {
+    res.status(409).json({
+      ok: false,
+      duplicateCustomer: true,
+      customerId: sameMemberCustomer.id,
+      customerCode: sameMemberCustomer.customer_code,
+      error: `${sameMemberCustomer.full_name} with this phone number already exists in this member's Customer KYC records.`,
+    });
     return;
   }
 
