@@ -44,8 +44,7 @@ function Chairman() {
   }, []);
 
   const chairman = members.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
-  const lobbyChairman = members.find((member) => member.designation.toLowerCase().includes("lobby"));
-  const committeeMembers = members.filter((member) => member.id !== chairman?.id && member.id !== lobbyChairman?.id);
+  const committeeMembers = members.filter((member) => member.id !== chairman?.id);
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
   const chairmanCopy = lang === "mr"
     ? {

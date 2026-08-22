@@ -78,8 +78,7 @@ function Home() {
   const ticker = updates.slice(0, 6);
   const heroSubtitle = t("hero.sub");
   const chairman = committee.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
-  const lobbyChairman = committee.find((member) => member.designation.toLowerCase().includes("lobby"));
-  const committeeMembers = committee.filter((member) => member.id !== chairman?.id && member.id !== lobbyChairman?.id);
+  const committeeMembers = committee.filter((member) => member.id !== chairman?.id);
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
   const chairmanCopy = lang === "mr"
     ? {
