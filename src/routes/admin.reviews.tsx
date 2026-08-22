@@ -47,7 +47,7 @@ function StatusBadge({ status }: { status: string }) {
     : status === "rejected"
       ? "bg-destructive/15 text-destructive"
       : "bg-warning/15 text-warning";
-  return <Badge className={`capitalize ${classes}`}>{status}</Badge>;
+  return <Badge className={`inline-flex min-w-max whitespace-nowrap capitalize ${classes}`}>{status}</Badge>;
 }
 
 function AdminReviews() {

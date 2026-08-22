@@ -40,7 +40,7 @@ function StatusBadge({ status }: { status: string }) {
     waiting_info: "bg-saffron/20 text-saffron-foreground",
     assigned: "bg-info/15 text-info",
   };
-  return <Badge className={`capitalize ${map[status] || "bg-muted text-muted-foreground"}`}>{status.replace(/_/g, " ")}</Badge>;
+  return <Badge className={`inline-flex min-w-max whitespace-nowrap capitalize ${map[status] || "bg-muted text-muted-foreground"}`}>{status.replace(/_/g, " ")}</Badge>;
 }
 
 function AdminDash() {

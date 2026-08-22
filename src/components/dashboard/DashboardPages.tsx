@@ -228,7 +228,7 @@ function StatusBadge({ status }: { status: string }) {
     expired: "bg-muted text-muted-foreground",
     replaced: "bg-muted text-muted-foreground",
   };
-  return <Badge className={`whitespace-nowrap capitalize ${map[status] || "bg-muted text-muted-foreground"}`}>{status.replace(/_/g, " ")}</Badge>;
+  return <Badge className={`inline-flex min-w-max whitespace-nowrap capitalize ${map[status] || "bg-muted text-muted-foreground"}`}>{status.replace(/_/g, " ")}</Badge>;
 }
 
 const complaintStatusTriggerClasses: Record<string, string> = {
