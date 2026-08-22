@@ -39,6 +39,43 @@ import { useAuth } from "@/lib/auth";
 import { installNotificationSoundUnlock, playNotificationTone, unlockNotificationSound } from "@/lib/notification-sound";
 
 const CHART_COLORS = ["#86c127", "#e37814", "#86c127", "#D92D20", "#7C3AED", "#0284C7"];
+const COMPLAINT_CATEGORIES = [
+  { en: "Water Supply", mr: "पाणी पुरवठा" },
+  { en: "Electricity", mr: "वीज पुरवठा" },
+  { en: "Cleanliness", mr: "स्वच्छता" },
+  { en: "Garbage / Waste Management", mr: "कचरा व्यवस्थापन" },
+  { en: "Drainage", mr: "सांडपाणी / ड्रेनेज" },
+  { en: "Public Toilet", mr: "सार्वजनिक स्वच्छतागृह" },
+  { en: "Parking", mr: "वाहनतळ / पार्किंग" },
+  { en: "Security", mr: "सुरक्षा" },
+  { en: "CCTV / Surveillance", mr: "सीसीटीव्ही / निगराणी" },
+  { en: "Street Lights", mr: "रस्त्यावरील दिवे" },
+  { en: "Internal Roads", mr: "अंतर्गत रस्ते" },
+  { en: "Road Damage / Potholes", mr: "रस्ता खराब / खड्डे" },
+  { en: "Traffic Management", mr: "वाहतूक व्यवस्थापन" },
+  { en: "Market Facility", mr: "बाजार सुविधा" },
+  { en: "Shop / Gala Issue", mr: "दुकान / गाळा समस्या" },
+  { en: "Gala Number / Record Issue", mr: "गाळा क्रमांक / नोंद समस्या" },
+  { en: "Encroachment", mr: "अतिक्रमण" },
+  { en: "Unauthorized Vendors", mr: "अनधिकृत विक्रेते" },
+  { en: "Loading / Unloading Issue", mr: "माल चढवणे / उतरवणे समस्या" },
+  { en: "Weighing Scale Issue", mr: "वजनकाटा समस्या" },
+  { en: "Market Price Issue", mr: "बाजारभाव संबंधित समस्या" },
+  { en: "Drinking Water", mr: "पिण्याचे पाणी" },
+  { en: "Fire Safety", mr: "अग्निसुरक्षा" },
+  { en: "Stray Animals", mr: "भटकी जनावरे" },
+  { en: "Pest / Mosquito Problem", mr: "कीटक / डास समस्या" },
+  { en: "Building / Structure Repair", mr: "इमारत / बांधकाम दुरुस्ती" },
+  { en: "Shed / Roof Leakage", mr: "शेड / छत गळती" },
+  { en: "Association Office Service", mr: "असोसिएशन कार्यालय सेवा" },
+  { en: "Staff Behaviour", mr: "कर्मचारी वर्तणूक" },
+  { en: "Member Service Issue", mr: "सभासद सेवा समस्या" },
+  { en: "Mobile App / Portal Issue", mr: "मोबाईल ॲप / पोर्टल समस्या" },
+  { en: "Login / Password Issue", mr: "लॉगिन / पासवर्ड समस्या" },
+  { en: "Notification Issue", mr: "सूचना / नोटिफिकेशन समस्या" },
+  { en: "Emergency / Safety Issue", mr: "आपत्कालीन / सुरक्षा समस्या" },
+  { en: "Other Complaint", mr: "इतर तक्रार" },
+];
 const MOBILE_CHANGE_REASONS = [
   "Lost SIM or phone",
   "Old number is inactive",
@@ -4101,8 +4138,8 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger><SelectValue placeholder="Select complaint category" /></SelectTrigger>
                 <SelectContent>
-                  {["Water Supply", "Electricity", "Cleanliness", "Drainage", "Parking", "Security", "Market Facility", "Shop or Gala Issue"].map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  {COMPLAINT_CATEGORIES.map((item) => (
+                    <SelectItem key={item.en} value={item.en}>{item.en} / {item.mr}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
