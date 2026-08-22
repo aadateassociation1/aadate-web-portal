@@ -820,6 +820,7 @@ async function sendPushToUser({ userId, title, body, url, type, entityId = null,
       type: type || "notification",
       entityId,
       priority,
+      sound: "/sounds/notification-alert.mp3",
     },
   });
 }
@@ -846,6 +847,7 @@ async function sendPushToAllMembers({ title, body, url, type, entityId, priority
       type: type || "notification",
       entityId: entityId || null,
       priority,
+      sound: "/sounds/notification-alert.mp3",
     },
   });
 }

@@ -10,7 +10,7 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { canUseWebPush, enableWebPush, getPushStatus, sendTestWebPush } from "@/lib/push-notifications";
+import { canUseWebPush, enableWebPush, getPushStatus } from "@/lib/push-notifications";
 
 const OWNER_NAV = [
   { to: "/member", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -156,8 +156,20 @@ export function DashLayout({ kind, children }: Props) {
     if (kind !== "owner" || loading || !user || user.role !== "owner" || !canUseWebPush()) return;
     let active = true;
     getPushStatus()
-      .then((status) => {
-        if (active) setPushEnabled(status.permission === "granted" && Number(status.activeCount || 0) > 0);
+      .then(async (status) => {
+        if (!active) return;
+        const isGranted = status.permission === "granted";
+        const hasActiveSubscription = Number(status.activeCount || 0) > 0;
+        if (isGranted && !hasActiveSubscription && status.configured) {
+          try {
+            await enableWebPush();
+            if (active) setPushEnabled(true);
+            return;
+          } catch {
+            // Keep the enable action visible if the browser subscription could not be restored.
+          }
+        }
+        if (active) setPushEnabled(isGranted && hasActiveSubscription);
       })
       .catch(() => undefined);
     return () => {
@@ -190,22 +202,6 @@ export function DashLayout({ kind, children }: Props) {
       toast.success("Phone notifications enabled");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not enable notifications.");
-    } finally {
-      setPushChecking(false);
-    }
-  };
-  const handlePushAction = async () => {
-    if (!pushEnabled) {
-      await handleEnablePush();
-      return;
-    }
-
-    setPushChecking(true);
-    try {
-      await sendTestWebPush();
-      toast.success("Test notification sent to this phone");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not send test notification.");
     } finally {
       setPushChecking(false);
     }
@@ -318,19 +314,19 @@ export function DashLayout({ kind, children }: Props) {
           <Badge variant="secondary" className="hidden sm:inline-flex bg-secondary text-primary-dark">
             {user.role === "main_admin" ? "Main Admin" : user.role === "user_admin" ? "User Admin" : "Member"}
           </Badge>
-          {kind === "owner" && canUseWebPush() && (
+          {kind === "owner" && canUseWebPush() && !pushEnabled && (
             <Button
               type="button"
-              variant={pushEnabled ? "secondary" : "outline"}
+              variant="outline"
               size="sm"
               className="h-10 shrink-0 px-2 sm:px-3"
-              onClick={handlePushAction}
+              onClick={handleEnablePush}
               disabled={pushChecking}
               title="Get instant Market Yard notices and updates on your phone."
             >
               <Bell className="h-4 w-4 md:mr-1" />
-              <span className="hidden md:inline">{pushEnabled ? "Test Notification" : "Enable Notifications"}</span>
-              <span className="sr-only md:hidden">{pushEnabled ? "Test notifications" : "Enable notifications"}</span>
+              <span className="hidden md:inline">Enable Notifications</span>
+              <span className="sr-only md:hidden">Enable notifications</span>
             </Button>
           )}
           <Button asChild variant="outline" size="icon" className="h-10 w-10 shrink-0 sm:hidden" title="Open public site">

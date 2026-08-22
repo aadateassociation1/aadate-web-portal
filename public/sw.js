@@ -1,4 +1,4 @@
-const CACHE_NAME = "vpp-market-yard-v6";
+const CACHE_NAME = "vpp-market-yard-v7";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -61,6 +61,7 @@ self.addEventListener("push", (event) => {
     body: data.body || "A new update is available.",
     icon: "/icons/favicon.png",
     badge: "/icons/favicon.png",
+    sound: data.sound || "/sounds/notification-alert.mp3",
     tag: data.type && data.entityId ? `${data.type}-${data.entityId}` : "market-yard-notification",
     silent: false,
     renotify: true,
