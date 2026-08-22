@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import {
   ArrowRight, Bell, ClipboardList, Download, FileText, Newspaper, Phone,
   UserCog, MessageSquare, TrendingUp, Users, Clock, ShieldCheck,
-  CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee,
+  CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
 import sourabhKunjirImg from "@/assets/sourabh Kunjir.png";
@@ -551,7 +551,7 @@ function Home() {
                     <div className="mt-4 flex flex-wrap gap-2">
                       {review.attachments.map((file) => (
                         <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/public/rating-attachments/${file.id}/download`, "_blank", "noopener,noreferrer")}>
-                          <Download className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "Image" : "Video"}
+                          <Eye className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "View image" : "View video"}
                         </Button>
                       ))}
                     </div>

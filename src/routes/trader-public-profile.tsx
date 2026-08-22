@@ -3,7 +3,7 @@ import { SiteLayout } from "@/components/public/SiteLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Building2, Download, MapPin, Phone, Star, Store } from "lucide-react";
+import { Building2, Eye, MapPin, Phone, Star, Store } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -137,7 +137,7 @@ function PublicTraderProfile() {
                             <div className="mt-3 flex flex-wrap gap-2">
                               {review.attachments.map((file) => (
                                 <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/public/rating-attachments/${file.id}/download`, "_blank", "noopener,noreferrer")}>
-                                  <Download className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "Image" : "Video"}
+                                  <Eye className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "View image" : "View video"}
                                 </Button>
                               ))}
                             </div>
