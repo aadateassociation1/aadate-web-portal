@@ -3223,7 +3223,11 @@ app.get("/api/v1/admin/trader-kyc", requireRoles("MAIN_ADMIN", "USER_ADMIN"), as
   const status = String(req.query.status || "submitted");
   const [rows] = await pool.query(
     `SELECT DISTINCT t.*, u.full_name, u.mobile, u.email, u.status AS user_status,
-            (SELECT COUNT(*) FROM trader_galas tg WHERE tg.trader_id = t.id AND tg.status IN ('submitted','under_review','correction_required')) AS pending_gala_count
+            (SELECT COUNT(*)
+               FROM trader_galas tg
+              WHERE tg.trader_id = t.id
+                AND tg.status IN ('submitted','under_review','correction_required')
+                AND (t.verification_status <> 'approved' OR tg.is_primary = 0)) AS pending_gala_count
        FROM traders t
        JOIN users u ON u.id = t.user_id
       WHERE (:status = 'all'
@@ -3232,6 +3236,7 @@ app.get("/api/v1/admin/trader-kyc", requireRoles("MAIN_ADMIN", "USER_ADMIN"), as
                   SELECT 1 FROM trader_galas tg
                    WHERE tg.trader_id = t.id
                      AND tg.status IN ('submitted','under_review','correction_required')
+                     AND (t.verification_status <> 'approved' OR tg.is_primary = 0)
              )))
       ORDER BY t.created_at DESC
       LIMIT 100`,
@@ -3434,6 +3439,19 @@ app.patch("/api/v1/admin/trader-kyc/:id/decision", requireRoles("MAIN_ADMIN", "U
       WHERE t.id = :traderId`,
     { nextStatus, traderId },
   );
+  if (nextStatus === "approved") {
+    await pool.query(
+      `UPDATE trader_galas
+          SET status = 'approved',
+              verified_by = :userId,
+              verified_at = COALESCE(verified_at, NOW()),
+              admin_remarks = NULL
+        WHERE trader_id = :traderId
+          AND is_primary = 1
+          AND status IN ('submitted','under_review','correction_required')`,
+      { userId: req.user.id, traderId },
+    );
+  }
   await pool.query(
     `INSERT INTO trader_verification_history (trader_id, old_status, new_status, remarks, changed_by)
      VALUES (:traderId, :oldStatus, :nextStatus, :remarks, :userId)`,
@@ -3521,6 +3539,17 @@ app.patch("/api/v1/admin/trader-requests/:id/approve", requireRoles("MAIN_ADMIN"
   await pool.query("UPDATE traders SET verification_status = 'approved', verified_by = :userId, verified_at = NOW(), rejection_reason = NULL WHERE id = :traderId", { userId: req.user.id, traderId });
   await pool.query("UPDATE users u JOIN traders t ON t.user_id = u.id SET u.status = 'active' WHERE t.id = :traderId", { traderId });
   await pool.query(
+    `UPDATE trader_galas
+        SET status = 'approved',
+            verified_by = :userId,
+            verified_at = COALESCE(verified_at, NOW()),
+            admin_remarks = NULL
+      WHERE trader_id = :traderId
+        AND is_primary = 1
+        AND status IN ('submitted','under_review','correction_required')`,
+    { userId: req.user.id, traderId },
+  );
+  await pool.query(
     `INSERT INTO trader_verification_history (trader_id, old_status, new_status, remarks, changed_by)
      VALUES (:traderId, :oldStatus, 'approved', 'Approved by admin', :userId)`,
     { traderId, oldStatus: before.verification_status, userId: req.user.id },
@@ -3546,6 +3575,17 @@ app.patch("/api/v1/admin/trader-kyc/bulk-approve", requireRoles("MAIN_ADMIN", "U
         SET u.status = 'active'
       WHERE t.id IN (:ids)`,
     { ids },
+  );
+  await pool.query(
+    `UPDATE trader_galas
+        SET status = 'approved',
+            verified_by = :userId,
+            verified_at = COALESCE(verified_at, NOW()),
+            admin_remarks = NULL
+      WHERE trader_id IN (:ids)
+        AND is_primary = 1
+        AND status IN ('submitted','under_review','correction_required')`,
+    { userId: req.user.id, ids },
   );
   await writeAudit({ req, action: "trader_kyc.bulk_approve", module: "traders", entityType: "traders", newValues: { traderIds: ids } });
   res.json({ ok: true, approvedIds: ids });
