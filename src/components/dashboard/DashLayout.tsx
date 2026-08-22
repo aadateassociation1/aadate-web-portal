@@ -333,6 +333,11 @@ export function DashLayout({ kind, children }: Props) {
               <span className="sr-only md:hidden">{pushEnabled ? "Test notifications" : "Enable notifications"}</span>
             </Button>
           )}
+          <Button asChild variant="outline" size="icon" className="h-10 w-10 shrink-0 sm:hidden" title="Open public site">
+            <Link to="/" aria-label="Open public site">
+              <Home className="h-4 w-4" />
+            </Link>
+          </Button>
           <HeaderLangSwitcher />
           <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex shrink-0">
             <Link to="/"><Home className="h-4 w-4 mr-1" /><span className="hidden md:inline">Public Site</span><span className="md:hidden">Site</span></Link>
