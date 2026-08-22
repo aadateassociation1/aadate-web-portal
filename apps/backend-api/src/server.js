@@ -375,6 +375,32 @@ function isPathInside(childPath, parentPath) {
   return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }
 
+async function sendStoredFile(res, {
+  storageKey,
+  storage_key: storageKeyFromDb,
+  originalFilename,
+  original_filename: originalFilenameFromDb,
+  mimeType,
+  mime_type: mimeTypeFromDb,
+  disposition = "inline",
+  missingMessage = "File is missing on the server.",
+}) {
+  const filePath = await resolveExistingStoredFilePath(storageKey || storageKeyFromDb);
+  const allowedRoots = [PERSISTENT_UPLOAD_ROOT, path.resolve(process.cwd(), "uploads")];
+  if (!allowedRoots.some((root) => isPathInside(filePath, root))) {
+    res.status(403).json({ ok: false, error: "File path is not allowed." });
+    return;
+  }
+  res.setHeader("Content-Type", mimeType || mimeTypeFromDb || "application/octet-stream");
+  res.setHeader("Content-Disposition", `${disposition}; filename="${String(originalFilename || originalFilenameFromDb || "download").replace(/"/g, "")}"`);
+  res.sendFile(filePath, (error) => {
+    if (!error) return;
+    if (!res.headersSent) {
+      res.status(error.code === "ENOENT" ? 404 : 500).json({ ok: false, error: missingMessage });
+    }
+  });
+}
+
 async function saveTraderDocumentBuffer({ traderId, documentType, originalFilename, mimeType, buffer }) {
   const safeMimeType = mimeType || "application/octet-stream";
   if (!Buffer.isBuffer(buffer)) throw new Error("Invalid document upload payload.");
@@ -2592,12 +2618,9 @@ app.get("/api/v1/public/content-attachments/:id/download", async (req, res) => {
     res.status(404).json({ ok: false, error: "Attachment not found." });
     return;
   }
-  const filePath = path.resolve(process.cwd(), attachment.storage_key);
   const disposition = String(req.query.download || "") === "1" ? "attachment" : "inline";
   await recordDownloadEvent({ sourceTable: "content_attachments", sourceId: attachmentId, req });
-  res.setHeader("Content-Type", attachment.mime_type);
-  res.setHeader("Content-Disposition", `${disposition}; filename="${attachment.original_filename.replace(/"/g, "")}"`);
-  res.sendFile(filePath);
+  await sendStoredFile(res, { ...attachment, disposition, missingMessage: "Attachment file is missing on the server." });
 });
 
 function normalizeMarketDate(value) {
@@ -4847,12 +4870,9 @@ app.get("/api/v1/admin/mobile-change-documents/:id/download", requireRoles("MAIN
     res.status(404).json({ ok: false, error: "Document not found." });
     return;
   }
-  const filePath = path.resolve(process.cwd(), document.storage_key);
   const disposition = String(req.query.download || "") === "1" ? "attachment" : "inline";
   await recordDownloadEvent({ sourceTable: "mobile_change_documents", sourceId: documentId, req });
-  res.setHeader("Content-Type", document.mime_type);
-  res.setHeader("Content-Disposition", `${disposition}; filename="${document.original_filename.replace(/"/g, "")}"`);
-  res.sendFile(filePath);
+  await sendStoredFile(res, { ...document, disposition, missingMessage: "Document file is missing on the server." });
 });
 
 app.patch("/api/v1/admin/mobile-change-requests/:id/decision", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
@@ -4998,12 +5018,9 @@ app.get("/api/v1/admin/post-attachments/:id/download", requireRoles("MAIN_ADMIN"
     res.status(404).json({ ok: false, error: "Post attachment not found." });
     return;
   }
-  const filePath = path.resolve(process.cwd(), attachment.storage_key);
   const disposition = String(req.query.download || "") === "1" ? "attachment" : "inline";
   await recordDownloadEvent({ sourceTable: "post_attachments", sourceId: attachmentId, req });
-  res.setHeader("Content-Type", attachment.mime_type);
-  res.setHeader("Content-Disposition", `${disposition}; filename="${attachment.original_filename.replace(/"/g, "")}"`);
-  res.sendFile(filePath);
+  await sendStoredFile(res, { ...attachment, disposition, missingMessage: "Post attachment file is missing on the server." });
 });
 
 app.get("/api/v1/trader/post-attachments/:id/download", requireRoles("TRADER"), async (req, res) => {
@@ -5038,12 +5055,9 @@ app.get("/api/v1/trader/post-attachments/:id/download", requireRoles("TRADER"), 
     res.status(404).json({ ok: false, error: "Post attachment not found." });
     return;
   }
-  const filePath = path.resolve(process.cwd(), attachment.storage_key);
   const disposition = String(req.query.download || "") === "1" ? "attachment" : "inline";
   await recordDownloadEvent({ sourceTable: "post_attachments", sourceId: attachmentId, req });
-  res.setHeader("Content-Type", attachment.mime_type);
-  res.setHeader("Content-Disposition", `${disposition}; filename="${attachment.original_filename.replace(/"/g, "")}"`);
-  res.sendFile(filePath);
+  await sendStoredFile(res, { ...attachment, disposition, missingMessage: "Post attachment file is missing on the server." });
 });
 
 app.patch("/api/v1/admin/posts/:id/decision", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
