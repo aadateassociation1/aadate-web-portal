@@ -3482,9 +3482,9 @@ export function OwnerKycPage() {
         </Card>
       )}
 
-      <div className="grid gap-6 2xl:grid-cols-[minmax(340px,420px)_minmax(760px,1fr)]">
-        <Card className="border-border/60">
-          <CardContent className="p-6">
+      <div className="grid min-w-0 gap-6 2xl:grid-cols-[minmax(340px,420px)_minmax(760px,1fr)]">
+        <Card className="min-w-0 border-border/60">
+          <CardContent className="p-4 sm:p-6">
             <h2 className="font-display text-lg font-bold text-primary-dark">Add Customer KYC</h2>
             <form className="mt-5 grid gap-4" onSubmit={addKycRecord}>
               <div>
@@ -3522,13 +3522,36 @@ export function OwnerKycPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
-          <CardContent className="p-6">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <Card className="min-w-0 border-border/60">
+          <CardContent className="p-4 sm:p-6">
+            <div className="mb-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(220px,320px)] md:items-center">
               <h2 className="font-display text-lg font-bold text-primary-dark">My Customer KYC Records</h2>
-              <SearchBar placeholder="Search customer KYC..." />
+              <div className="min-w-0"><SearchBar placeholder="Search customer KYC..." /></div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="grid gap-3 md:hidden">
+              {visibleRecords.map((record) => (
+                <div key={record.id} className={`rounded-lg border p-4 ${hasRiskWarning(record) ? "border-destructive/40 bg-destructive/5" : "bg-background"}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="whitespace-normal break-words font-semibold text-primary-dark">{record.full_name}</div>
+                      <div className="mt-1 font-mono text-xs text-muted-foreground">{record.customer_code}</div>
+                    </div>
+                    <span className="shrink-0"><StatusBadge status={record.kyc_status} /></span>
+                  </div>
+                  <div className="mt-3 grid gap-2 text-sm">
+                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">Phone</span><span className="font-mono">{record.mobile}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">Aadhaar</span><span className="font-mono">{record.aadhaar_masked || "-"}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">PAN</span><span className="font-mono">{record.pan_masked || "-"}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">Date</span><span>{new Date(record.created_at).toLocaleDateString("en-IN")}</span></div>
+                  </div>
+                  <Button size="sm" variant={hasRiskWarning(record) ? "destructive" : "outline"} className="mt-4 w-full whitespace-nowrap" onClick={() => showRecordAction(record)}>
+                    {hasRiskWarning(record) ? <AlertTriangle className="mr-1 h-3.5 w-3.5" /> : <Eye className="mr-1 h-3.5 w-3.5" />}
+                    {hasRiskWarning(record) ? "View Risk Alert" : "View KYC"}
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
               <Table className="min-w-[840px] table-fixed">
                 <TableHeader>
                   <TableRow>
@@ -3563,9 +3586,9 @@ export function OwnerKycPage() {
                   ))}
                 </TableBody>
               </Table>
-              {!loading && visibleRecords.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">{recordFilter === "all" ? "No customer KYC records yet." : `No ${recordFilter === "risk" ? "risk alert" : recordFilter} records found.`}</div>}
-              {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading customer KYC records...</div>}
             </div>
+            {!loading && visibleRecords.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">{recordFilter === "all" ? "No customer KYC records yet." : `No ${recordFilter === "risk" ? "risk alert" : recordFilter} records found.`}</div>}
+            {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading customer KYC records...</div>}
           </CardContent>
         </Card>
       </div>
