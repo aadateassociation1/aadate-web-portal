@@ -99,11 +99,11 @@ function OwnerDash() {
 
   return (
     <DashLayout kind="owner">
-      <Card className="mb-6 border-border/60">
-        <CardContent className="p-6">
+      <Card className="mb-4 border-border/60 sm:mb-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
-              <h1 className="font-display text-2xl font-bold leading-tight text-primary-dark">Welcome back, {profile?.full_name || "Member"}</h1>
+              <h1 className="font-display text-xl font-bold leading-tight text-primary-dark sm:text-2xl">Welcome back, {profile?.full_name || "Member"}</h1>
               <p className="mt-1 text-sm text-muted-foreground">{selectedGala?.business_name || profile?.business_name || "Your business dashboard will appear after approval."}</p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2 md:justify-end">
@@ -114,31 +114,31 @@ function OwnerDash() {
         </CardContent>
       </Card>
       {/* Overview cards */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
         {[
           { icon: ClipboardList, label: "Selected Gala / Shop", value: selectedGala?.gala_number || profile?.gala_number || "-", color: "bg-primary text-white" },
           { icon: MessageSquare, label: "Linked Customers", value: metrics?.totalCustomers ?? 0, color: "bg-warning text-white" },
         ].map((s) => (
           <Card key={s.label} className="border-border/60">
-            <CardContent className="flex min-h-[92px] items-center gap-4 p-5">
-              <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${s.color}`}><s.icon className="h-5 w-5" /></div>
+            <CardContent className="flex min-h-[82px] items-center gap-3 p-4 sm:min-h-[92px] sm:gap-4 sm:p-5">
+              <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl sm:h-12 sm:w-12 ${s.color}`}><s.icon className="h-5 w-5" /></div>
               <div className="min-w-0">
                 <div className="text-xs text-muted-foreground">{s.label}</div>
-                <div className="truncate font-display text-2xl font-bold leading-tight text-primary-dark">{s.value}</div>
+                <div className="truncate font-display text-xl font-bold leading-tight text-primary-dark sm:text-2xl">{s.value}</div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card className="mt-6 border-border/60">
-        <CardContent className="p-6">
+      <Card className="mt-4 border-border/60 sm:mt-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-display font-bold text-primary-dark">Your Galas / Shops</h2>
               <p className="mt-1 text-sm text-muted-foreground">One login can manage multiple shops linked to your mobile number.</p>
             </div>
-            <Button asChild size="sm" variant="outline"><Link to="/register">Add Another Gala / Shop</Link></Button>
+            <Button asChild size="sm" variant="outline" className="w-full sm:w-auto"><Link to="/register">Add Another Gala / Shop</Link></Button>
           </div>
           <div className="grid gap-3 lg:grid-cols-3">
             {galas.map((gala) => (
@@ -173,15 +173,15 @@ function OwnerDash() {
       </Card>
 
       {/* Quick actions */}
-      <Card className="mt-6 border-border/60">
-        <CardContent className="p-6">
+      <Card className="mt-4 border-border/60 sm:mt-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-display font-bold text-primary-dark">Quick actions</h2>
             <Badge className="w-fit max-w-full whitespace-normal bg-secondary text-primary-dark">{selectedGala?.business_name || profile?.business_name || "Fresh dashboard"}</Badge>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
+          <div className="grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
             {quickActions.map((a) => (
-              <Button key={a.to} asChild variant="outline" className="h-16 min-w-0 justify-start px-4 py-3">
+              <Button key={a.to} asChild variant="outline" className="h-14 min-w-0 justify-start px-4 py-3 sm:h-16">
                 <Link to={a.to} className="min-w-0">
                   <a.icon className="mr-2 h-5 w-5 shrink-0 text-primary" />
                   <span className="min-w-0 whitespace-normal text-left leading-snug">{a.label}</span>
@@ -192,8 +192,8 @@ function OwnerDash() {
         </CardContent>
       </Card>
 
-      <Card className="mt-6 border-border/60">
-        <CardContent className="p-6">
+      <Card className="mt-4 border-border/60 sm:mt-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="font-display font-bold text-primary-dark">Latest shared posts</h2>
@@ -221,9 +221,9 @@ function OwnerDash() {
       </Card>
 
       {/* Two column: complaints + updates */}
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-2">
         <Card className="border-border/60">
-          <CardContent className="min-h-[210px] p-6">
+          <CardContent className="min-h-[180px] p-4 sm:min-h-[210px] sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display font-bold text-primary-dark">My recent complaints</h2>
               <Button asChild size="sm" variant="ghost"><Link to="/member/complaints">View all</Link></Button>
@@ -235,7 +235,7 @@ function OwnerDash() {
         </Card>
 
         <Card className="border-border/60">
-          <CardContent className="min-h-[210px] p-6">
+          <CardContent className="min-h-[180px] p-4 sm:min-h-[210px] sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display font-bold text-primary-dark">Latest market updates</h2>
               <Button asChild size="sm" variant="ghost"><Link to="/member/updates">View all</Link></Button>
@@ -248,8 +248,8 @@ function OwnerDash() {
       </div>
 
       {/* Notices */}
-      <Card className="mt-6 border-border/60">
-        <CardContent className="p-6">
+      <Card className="mt-4 border-border/60 sm:mt-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-display font-bold text-primary-dark">Recent notices</h2>
             <Button asChild size="sm" variant="ghost"><Link to="/member/notices">View all</Link></Button>

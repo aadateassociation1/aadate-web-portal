@@ -186,6 +186,12 @@ export function DashLayout({ kind, children }: Props) {
   }
 
   const nav = kind === "owner" ? OWNER_NAV : ADMIN_NAV;
+  const mobileOwnerNav = [
+    OWNER_NAV[0],
+    OWNER_NAV[3],
+    OWNER_NAV[8],
+    OWNER_NAV[13],
+  ];
   const title = kind === "owner" ? "Member Portal" : user.role === "main_admin" ? "Main Admin Portal" : "User Admin Portal";
   const helpLink = kind === "owner" ? "/member/help" : "/admin/help";
   const passwordLink = kind === "owner" ? "/member/change-password" : "/admin/change-password";
@@ -314,17 +320,17 @@ export function DashLayout({ kind, children }: Props) {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-24 items-center gap-2 border-b border-border bg-background px-3 sm:gap-3 sm:px-6">
+        <header className="sticky top-0 z-20 flex min-h-16 items-center gap-2 border-b border-border bg-background/95 px-3 py-2 backdrop-blur sm:min-h-20 sm:gap-3 sm:px-6">
           <button
             onClick={() => setOpen(!open)}
-            className="lg:hidden grid h-10 w-10 place-items-center rounded-md border border-border"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-border lg:hidden"
             aria-label="Toggle sidebar"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <div className="min-w-0 flex-1">
-            <div className="text-sm text-muted-foreground">{title}</div>
-            <div className="truncate font-display text-base font-semibold text-foreground">
+            <div className="text-xs text-muted-foreground sm:text-sm">{title}</div>
+            <div className="truncate font-display text-sm font-semibold text-foreground sm:text-base">
               Welcome back, {user.name}
             </div>
           </div>
@@ -336,14 +342,14 @@ export function DashLayout({ kind, children }: Props) {
               type="button"
               variant={pushEnabled ? "secondary" : "outline"}
               size="sm"
-              className="shrink-0"
+              className="h-10 shrink-0 px-2 sm:px-3"
               onClick={handlePushAction}
               disabled={pushChecking}
               title="Get instant Market Yard notices and updates on your phone."
             >
-              <Bell className="mr-1 h-4 w-4" />
+              <Bell className="h-4 w-4 md:mr-1" />
               <span className="hidden md:inline">{pushEnabled ? "Test Notification" : "Enable Notifications"}</span>
-              <span className="md:hidden">{pushEnabled ? "Test" : "Enable"}</span>
+              <span className="sr-only md:hidden">{pushEnabled ? "Test notifications" : "Enable notifications"}</span>
             </Button>
           )}
           <HeaderLangSwitcher />
@@ -351,7 +357,42 @@ export function DashLayout({ kind, children }: Props) {
             <Link to="/"><Home className="h-4 w-4 mr-1" /><span className="hidden md:inline">Public Site</span><span className="md:hidden">Site</span></Link>
           </Button>
         </header>
-        <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className={`min-w-0 flex-1 p-3 sm:p-6 lg:p-8 ${kind === "owner" ? "pb-24 lg:pb-8" : ""}`}>{children}</main>
+        {kind === "owner" && (
+          <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden" aria-label="Member quick navigation">
+            <div className="grid grid-cols-5 gap-1">
+              {mobileOwnerNav.map((item) => {
+                const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
+                const count = item.to === "/member/notifications" ? memberUnreadCount : 0;
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={`relative flex min-h-14 flex-col items-center justify-center rounded-xl px-1 text-[11px] font-semibold transition ${
+                      active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-primary-dark"
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span className="mt-1 max-w-full truncate">{item.label.replace("Market ", "").replace("Customer ", "")}</span>
+                    {count > 0 && (
+                      <span className="absolute right-2 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-saffron px-1 text-[10px] font-bold text-primary-dark">
+                        {count > 9 ? "9+" : count}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                className="flex min-h-14 flex-col items-center justify-center rounded-xl px-1 text-[11px] font-semibold text-muted-foreground transition hover:bg-secondary hover:text-primary-dark"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="mt-1">More</span>
+              </button>
+            </div>
+          </nav>
+        )}
       </div>
     </div>
   );

@@ -94,10 +94,10 @@ const MOBILE_CHANGE_REASONS = [
 
 function PageTitle({ title, subtitle, action }: { title: string; subtitle: string; action?: React.ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6">
       <div className="min-w-0">
-        <h1 className="font-display text-2xl font-bold text-primary-dark">{title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+        <h1 className="font-display text-xl font-bold leading-tight text-primary-dark sm:text-2xl">{title}</h1>
+        <p className="mt-1 text-sm leading-5 text-muted-foreground">{subtitle}</p>
       </div>
       {action && <div className="w-full sm:w-auto [&>*]:w-full sm:[&>*]:w-auto">{action}</div>}
     </div>
@@ -127,13 +127,13 @@ function StatCard({
     saffron: "bg-saffron text-primary-dark",
   };
   const content = (
-    <CardContent className="flex items-center gap-4 p-5">
-      <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${tones[tone]}`}>
+    <CardContent className="flex items-center gap-3 p-4 sm:gap-4 sm:p-5">
+      <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl sm:h-12 sm:w-12 ${tones[tone]}`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
         <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="font-display text-2xl font-bold text-primary-dark">{value}</div>
+        <div className="font-display text-xl font-bold text-primary-dark sm:text-2xl">{value}</div>
       </div>
     </CardContent>
   );
@@ -189,7 +189,7 @@ const complaintStatusTriggerClasses: Record<string, string> = {
 
 function SearchBar({ placeholder = "Search..." }: { placeholder?: string }) {
   return (
-    <div className="relative min-w-0 flex-1 sm:min-w-[220px]">
+    <div className="relative min-w-0 flex-1 basis-full sm:min-w-[220px]">
       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <Input className="pl-9" placeholder={placeholder} />
     </div>
@@ -3920,13 +3920,13 @@ export function OwnerGalaPage() {
   return (
     <DashLayout kind="owner">
       <PageTitle title="My Gala Details" subtitle="All verified and submitted gala/shop records linked to your member login." action={<Button asChild variant="outline"><Link to="/register"><Plus className="mr-1 h-4 w-4" /> Add Gala / Shop</Link></Button>} />
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
         <StatCard icon={Store} label="Total Galas / Shops" value={loading ? "..." : galas.length} />
         <StatCard icon={CheckCircle2} label="Approved Shops" value={loading ? "..." : approvedCount} tone="success" />
         <StatCard icon={ClipboardList} label="Pending Review" value={loading ? "..." : pendingCount} tone="saffron" />
       </div>
-      <Card className="mt-6 border-border/60">
-        <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
+      <Card className="mt-4 border-border/60 sm:mt-6">
+        <CardContent className="grid gap-4 p-4 sm:grid-cols-2 sm:p-6">
           <Field label="Primary business name" value={primaryGala?.business_name || profile?.business_name || ""} readOnly />
           <Field label="Primary gala number" value={primaryGala?.gala_number || profile?.gala_number || ""} readOnly />
           <Field label="Business category" value={primaryGala?.business_category || profile?.business_category || ""} readOnly />
@@ -3934,8 +3934,8 @@ export function OwnerGalaPage() {
           <Field label="Registered address" value={formatTraderAddress(profile)} wide readOnly />
         </CardContent>
       </Card>
-      <Card className="mt-6 border-border/60">
-        <CardContent className="p-6">
+      <Card className="mt-4 border-border/60 sm:mt-6">
+        <CardContent className="p-4 sm:p-6">
           <h2 className="mb-4 font-display font-semibold text-primary-dark">All Linked Galas / Shops</h2>
           <TraderGalaCards galas={galas} onUpdated={reload} />
         </CardContent>
@@ -3964,9 +3964,9 @@ function OwnerDbContentPage({ title, subtitle, icon: Icon, items }: { title: str
   return (
     <DashLayout kind="owner">
       <PageTitle title={title} subtitle={subtitle} />
-      <Card className="border-border/60"><CardContent className="p-6"><div className="mb-4 flex flex-wrap gap-3"><SearchBar /><Button variant="outline">Filter</Button></div><div className="grid gap-3 md:grid-cols-2">{items.map((item) => {
+      <Card className="border-border/60"><CardContent className="p-4 sm:p-6"><div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><SearchBar /><Button variant="outline" className="w-full sm:w-auto">Filter</Button></div><div className="grid gap-3 md:grid-cols-2">{items.map((item) => {
         const image = (item.attachments || []).find((file) => file.attachment_type === "image");
-        return <div key={item.id} className="overflow-hidden rounded-lg border">{image && <img src={`/api/v1/public/content-attachments/${image.id}/download`} className="h-44 w-full object-contain bg-secondary/30" />}<div className="p-4"><div className="flex items-start gap-3"><div className="grid h-10 w-10 place-items-center rounded-lg bg-secondary text-primary"><Icon className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{item.parsed?.category || "General"} - {new Date(item.published_at || item.created_at).toLocaleDateString("en-IN")}</div><h3 className="mt-1 font-display font-semibold text-primary-dark">{item.title_en}</h3><p className="mt-1 text-sm text-muted-foreground">{item.parsed?.details || ""}</p></div></div><div className="mt-4 flex flex-wrap gap-2">{(item.attachments || []).map((file) => <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/public/content-attachments/${file.id}/download?download=1`, "_blank")}><Download className="mr-1 h-4 w-4" /> {file.original_filename}</Button>)}</div></div></div>;
+        return <div key={item.id} className="overflow-hidden rounded-lg border bg-background">{image && <img src={`/api/v1/public/content-attachments/${image.id}/download`} className="h-40 w-full bg-secondary/30 object-contain sm:h-44" />}<div className="p-4"><div className="flex items-start gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><Icon className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{item.parsed?.category || "General"} - {new Date(item.published_at || item.created_at).toLocaleDateString("en-IN")}</div><h3 className="mt-1 whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{item.title_en}</h3><p className="mt-1 whitespace-normal break-words text-sm leading-5 text-muted-foreground">{item.parsed?.details || ""}</p></div></div><div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">{(item.attachments || []).map((file) => <Button key={file.id} size="sm" variant="outline" className="w-full justify-start sm:w-auto" onClick={() => window.open(`/api/v1/public/content-attachments/${file.id}/download?download=1`, "_blank")}><Download className="mr-1 h-4 w-4 shrink-0" /> <span className="truncate">{file.original_filename}</span></Button>)}</div></div></div>;
       })}</div>{items.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No published content yet.</div>}</CardContent></Card>
     </DashLayout>
   );
@@ -3976,7 +3976,7 @@ function OwnerListPage({ title, subtitle, icon: Icon, items }: { title: string; 
   return (
     <DashLayout kind="owner">
       <PageTitle title={title} subtitle={subtitle} />
-      <Card className="border-border/60"><CardContent className="p-6"><div className="mb-4 flex flex-wrap gap-3"><SearchBar /><Button variant="outline">Filter</Button></div><div className="grid gap-3 md:grid-cols-2">{items.map((item) => <div key={item.id} className="rounded-lg border p-4"><div className="flex items-start gap-3"><div className="grid h-10 w-10 place-items-center rounded-lg bg-secondary text-primary"><Icon className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{item.meta}</div><h3 className="mt-1 font-display font-semibold text-primary-dark">{item.title}</h3><p className="mt-1 text-sm text-muted-foreground">{item.body}</p></div>{item.alert && <Badge className="bg-destructive text-white">Alert</Badge>}</div>{item.file && <Button className="mt-4" size="sm" variant="outline"><Download className="mr-1 h-4 w-4" /> {item.file}</Button>}</div>)}</div></CardContent></Card>
+      <Card className="border-border/60"><CardContent className="p-4 sm:p-6"><div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><SearchBar /><Button variant="outline" className="w-full sm:w-auto">Filter</Button></div><div className="grid gap-3 md:grid-cols-2">{items.map((item) => <div key={item.id} className="rounded-lg border bg-background p-4"><div className="flex items-start gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><Icon className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{item.meta}</div><h3 className="mt-1 whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{item.title}</h3><p className="mt-1 whitespace-normal break-words text-sm leading-5 text-muted-foreground">{item.body}</p></div>{item.alert && <Badge className="shrink-0 bg-destructive text-white">Alert</Badge>}</div>{item.file && <Button className="mt-4 w-full justify-start sm:w-auto" size="sm" variant="outline"><Download className="mr-1 h-4 w-4 shrink-0" /> <span className="truncate">{item.file}</span></Button>}</div>)}</div></CardContent></Card>
     </DashLayout>
   );
 }
@@ -4019,14 +4019,14 @@ export function OwnerComplaintsPage() {
       <div className="grid gap-4">
         {complaints.map((c) => (
           <Card key={c.id} className="border-border/60">
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="font-mono text-xs text-muted-foreground">{c.ticket_number} - {c.parsed?.category || "General"}</div>
-                  <h2 className="font-display font-semibold text-primary-dark">{c.subject}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{c.parsed?.description || ""}</p>
+                  <h2 className="whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{c.subject}</h2>
+                  <p className="mt-1 whitespace-normal break-words text-sm leading-5 text-muted-foreground">{c.parsed?.description || ""}</p>
                 </div>
-                <StatusBadge status={c.status} />
+                <span className="shrink-0"><StatusBadge status={c.status} /></span>
               </div>
               <div className="mt-4 grid gap-2">
                 {c.history.slice(0, 4).map((item) => (
@@ -4338,11 +4338,11 @@ export function OwnerSharedPostsPage() {
         <StatCard icon={Camera} label="Images available" value={imageCount} tone="saffron" />
         <StatCard icon={Video} label="Videos available" value={videoCount} tone="success" />
       </div>
-      <Card className="mb-6 border-border/60">
-        <CardContent className="flex flex-wrap gap-3 p-4">
+      <Card className="mb-4 border-border/60 sm:mb-6">
+        <CardContent className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
           <SearchBar placeholder="Search shared posts..." />
-          <Button variant="outline">All sections</Button>
-          <Button variant="outline">Latest first</Button>
+          <Button variant="outline" className="w-full sm:w-auto">All sections</Button>
+          <Button variant="outline" className="w-full sm:w-auto">Latest first</Button>
         </CardContent>
       </Card>
       <div className="columns-1 gap-4 xl:columns-2">
@@ -4407,7 +4407,7 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
 
   return (
     <Card className="border-border/60">
-      <CardContent className={compact ? "p-5" : "p-6"}>
+      <CardContent className={compact ? "p-4 sm:p-5" : "p-4 sm:p-6"}>
         <form
           className="grid gap-4"
           onSubmit={submitComplaint}
@@ -4458,9 +4458,9 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
               <input type="file" accept="video/mp4,video/quicktime,video/webm" className="hidden" multiple onChange={(event) => setVideoFiles(Array.from(event.target.files || []))} />
             </label>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="grid gap-3 sm:flex sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">Your complaint will be sent to the admin team for review and assignment.</p>
-            <Button className="bg-primary" disabled={submitting}><Upload className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Complaint"}</Button>
+            <Button className="w-full bg-primary sm:w-auto" disabled={submitting}><Upload className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Complaint"}</Button>
           </div>
         </form>
       </CardContent>
