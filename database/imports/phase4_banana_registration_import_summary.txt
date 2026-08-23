@@ -1,0 +1,11 @@
+Banana registration preview prepared from bilingual PDF.
+Source PDF: C:\Users\Vaishanvi\Downloads\Market_Yard_Banana_Members_Complete_Bilingual_List.pdf
+Total source rows parsed: 65
+Rows with phone included in import: 48
+Rows missing phone excluded: 17
+Unique login/mobile accounts in source rows with phone: 48
+Trader gala records to create/link: 48
+Preview CSV: database/previews/bulk_member_registration_preview_banana.csv
+Login XLS: database/previews/login_credentials_banana.xls
+Missing-phone XLS: database/previews/bulk_member_registration_missing_phone_banana.xls
+Admin approval status in SQL: users active, traders approved, trader_galas approved.
