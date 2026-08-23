@@ -481,7 +481,7 @@ export function AdminUsersPage() {
           </div>
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Member</TableHead><TableHead>Contact</TableHead><TableHead>Gala</TableHead><TableHead>Category</TableHead><TableHead>Status</TableHead><TableHead>Approved</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Member</TableHead><TableHead>Contact</TableHead><TableHead>Gala</TableHead><TableHead>Category</TableHead><TableHead className="whitespace-nowrap">Status</TableHead><TableHead className="whitespace-nowrap">Approved</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
               <TableBody>
                 {visibleTraders.map((o) => (
                   <TableRow key={o.id}>
@@ -490,8 +490,8 @@ export function AdminUsersPage() {
                     <TableCell><div>{o.mobile}</div><div className="text-xs text-muted-foreground">{o.email}</div></TableCell>
                     <TableCell><Badge variant="outline">{o.gala_number || "-"}</Badge></TableCell>
                     <TableCell>{o.business_category || "-"}</TableCell>
-                    <TableCell><StatusBadge status={o.verification_status} /></TableCell>
-                    <TableCell>{o.verified_at ? new Date(o.verified_at).toLocaleDateString("en-IN") : "-"}</TableCell>
+                    <TableCell className="min-w-24 whitespace-nowrap"><StatusBadge status={o.verification_status} /></TableCell>
+                    <TableCell className="min-w-24 whitespace-nowrap">{o.verified_at ? new Date(o.verified_at).toLocaleDateString("en-IN") : "-"}</TableCell>
                     <TableCell className="text-right">
                       <Button size="sm" variant="ghost" onClick={() => openTraderDetails(o)}><Eye className="h-4 w-4" /></Button>
                       <Button size="sm" variant="ghost" onClick={() => { setAccessDialogTrader(o); setAccessReason(""); }}><ShieldAlert className="h-4 w-4 text-destructive" /></Button>
