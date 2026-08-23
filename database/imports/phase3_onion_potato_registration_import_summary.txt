@@ -1,0 +1,7 @@
+Phase 3 Onion-Potato registration import SQL prepared only. Not executed locally or on VPS.
+Source preview: database/previews/bulk_member_registration_preview_onion_potato.csv
+Rows with phone included: 161
+Unique login/mobile accounts in source rows with phone: 156
+Trader gala records to create/link: 195
+Excluded: rows missing phone number from database/previews/bulk_member_registration_missing_phone_onion_potato.csv
+Admin approval status: new users pending, new traders submitted, trader_galas submitted.
