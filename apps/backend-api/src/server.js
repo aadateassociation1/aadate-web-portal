@@ -3769,7 +3769,7 @@ app.get("/api/v1/admin/traders", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async
           OR t.market_registration_number = :search
         )
       ORDER BY t.verified_at DESC, t.created_at DESC
-      LIMIT 200`,
+      LIMIT 1000`,
     { status, search, likeSearch: `%${search}%` },
   );
   const [statusCounts] = await pool.query(
