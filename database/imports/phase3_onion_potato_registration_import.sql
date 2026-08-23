@@ -62,21 +62,21 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('48', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('49', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9922752117', NULL, '9922752117', 'caf21bfe06afb0aeb4e4db27b5bcb641e344ba3174a1193d8624b0002015dcee', 'श्री.हेमतं द ा य शेटे', 'Shri. Hematan Da A Ya Shete', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9922752117', NULL, '9922752117', 'caf21bfe06afb0aeb4e4db27b5bcb641e344ba3174a1193d8624b0002015dcee', 'श्री.हेमतं द ा य शेटे', 'Shri. Hemant Dattatray Shete', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9922752117' OR username = '9922752117');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9922752117' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '48' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0004', 'मे.हेमतं ट्रेडर्स', 'M/s. Hematan Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '4', '48', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0004', 'मे.हेमतं ट्रेडर्स', 'M/s. Hemant Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '4', '48', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '48' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.हेमतं ट्रेडर्स', 'M/s. Hematan Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '4', '48', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.हेमतं ट्रेडर्स', 'M/s. Hemant Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '4', '48', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '49' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.हेमतं ट्रेडर्स', 'M/s. Hematan Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '4', '48', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.हेमतं ट्रेडर्स', 'M/s. Hemant Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '4', '48', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 5 | Mobile 9011037688 | श्री.सुरज सितश संचेती
@@ -114,33 +114,33 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 7 | Mobile 9822197724 | श्री. प्रशांत द ा य दुधाळे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('52', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822197724', NULL, '9822197724', 'b653005790d14098f834e4d0302b8fa0e297cb62588511409ed7a096bf90ab08', 'श्री. प्रशांत द ा य दुधाळे', 'Shri. Prashaant Da A Ya Dudhaale', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822197724', NULL, '9822197724', 'b653005790d14098f834e4d0302b8fa0e297cb62588511409ed7a096bf90ab08', 'श्री. प्रशांत द ा य दुधाळे', 'Shri. Prashant Dattatray Dudhale', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822197724' OR username = '9822197724');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822197724' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '52' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0007', 'मे.दुधाळे ट्रेडिंग कंपनी', 'M/s. Dudhaale Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '7', '52', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0007', 'मे.दुधाळे ट्रेडिंग कंपनी', 'M/s. Dudhale Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '7', '52', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '52' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.दुधाळे ट्रेडिंग कंपनी', 'M/s. Dudhaale Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '7', '52', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.दुधाळे ट्रेडिंग कंपनी', 'M/s. Dudhale Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '7', '52', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 8 | Mobile 9850155531 | श्री.निलेश शंकरराव राजगीरे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('53', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850155531', NULL, '9850155531', 'be3b28e5a710f0aaa2d88a74b853836697570890d5e1ab4e816368b7acad6aa9', 'श्री.निलेश शंकरराव राजगीरे', 'Shri. Naliesh Shankararaav Raajageere', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850155531', NULL, '9850155531', 'be3b28e5a710f0aaa2d88a74b853836697570890d5e1ab4e816368b7acad6aa9', 'श्री.निलेश शंकरराव राजगीरे', 'Shri. Nilesh Shankarrao Rajgire', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850155531' OR username = '9850155531');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850155531' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '53' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0008', 'मे.जयिवषय ट्रेडर्स', 'M/s. Jayavishay Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '8', '53', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0008', 'मे.जयिवषय ट्रेडर्स', 'M/s. Jayvijay Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '8', '53', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '53' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.जयिवषय ट्रेडर्स', 'M/s. Jayavishay Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '8', '53', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.जयिवषय ट्रेडर्स', 'M/s. Jayvijay Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '8', '53', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 9 | Mobile 8087232322 | श्री. प्रतिक रंगनाथ टेमकर
@@ -162,33 +162,33 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 10 | Mobile 8698920227 | श्री.द ा य किसन कोलते
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('55', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '8698920227', NULL, '8698920227', '475a336cc57e8447be056354987aa3f0bc2fcd509b2070dc47f3026915f3bc47', 'श्री.द ा य किसन कोलते', 'Shri. Da A Ya Kasin Kolate', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '8698920227', NULL, '8698920227', '475a336cc57e8447be056354987aa3f0bc2fcd509b2070dc47f3026915f3bc47', 'श्री.द ा य किसन कोलते', 'Shri. Dattatray Kisan Kolate', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '8698920227' OR username = '8698920227');
 SET @user_id := (SELECT id FROM users WHERE mobile = '8698920227' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '55' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0010', 'मे.द ा य किसन कोलते', 'M/s. Da A Ya Kasin Kolate', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '10', '55', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0010', 'मे.द ा य किसन कोलते', 'M/s. Dattatray Kisan Kolate', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '10', '55', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '55' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.द ा य किसन कोलते', 'M/s. Da A Ya Kasin Kolate', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '10', '55', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.द ा य किसन कोलते', 'M/s. Dattatray Kisan Kolate', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '10', '55', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 11 | Mobile 9503760511 | श्री.निलेश शंकर पोळ
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('57', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9503760511', NULL, '9503760511', '4c51cae3c8dcd907e0d5cb095bda0f512ff0ff2300d7445798517e1740cef030', 'श्री.निलेश शंकर पोळ', 'Shri. Naliesh Shankar Pola', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9503760511', NULL, '9503760511', '4c51cae3c8dcd907e0d5cb095bda0f512ff0ff2300d7445798517e1740cef030', 'श्री.निलेश शंकर पोळ', 'Shri. Nilesh Shankar Pol', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9503760511' OR username = '9503760511');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9503760511' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '57' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0011', 'मे.पुना ट्रेडिंग कंपनी', 'M/s. Puna Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '11', '57', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0011', 'मे.पुना ट्रेडिंग कंपनी', 'M/s. Pune Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '11', '57', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '57' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.पुना ट्रेडिंग कंपनी', 'M/s. Puna Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '11', '57', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.पुना ट्रेडिंग कंपनी', 'M/s. Pune Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '11', '57', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 12 | Mobile 9822061939 | श्री.उत्तम संभाजी गाडगे
@@ -219,33 +219,33 @@ INSERT INTO market_galas (gala_number, section_name, status) VALUES ('155', 'क
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('156', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('444', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822022007', NULL, '9822022007', '904f5193446b0589857b8166a748ed6fbb1756832b84ca298cd087278fa1663b', 'श्री.किशोर वसंत कुजीर', 'Shri. Kashior Vasant Kujeer', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822022007', NULL, '9822022007', '904f5193446b0589857b8166a748ed6fbb1756832b84ca298cd087278fa1663b', 'श्री.किशोर वसंत कुजीर', 'Shri. Kishor Vasant Kunjir', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822022007' OR username = '9822022007');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822022007' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '60' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0013', 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kashior Kunjeer & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '13', '60', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0013', 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kishor Kunjir & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '13', '60', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '60' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kashior Kunjeer & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '13', '60', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kishor Kunjir & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '13', '60', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '61' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kashior Kunjeer & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '13', '60', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kishor Kunjir & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '13', '60', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '155' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kashior Kunjeer & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '13', '60', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kishor Kunjir & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '13', '60', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '156' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kashior Kunjeer & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '13', '60', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kishor Kunjir & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '13', '60', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '444' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kashior Kunjeer & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '13', '60', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.किशोर कुंजीर आणि कंपनी', 'M/s. Kishor Kunjir & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '13', '60', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 14 | Mobile 9822558477 | श्री.मनोहर तुकाराम थोरात
@@ -426,17 +426,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 24 | Mobile 9822171999 | श्री.दिपक महादेव कुंभारकर
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('144', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822171999', NULL, '9822171999', 'fcd1a0aae8e1468007cc61a794d0271a9f6ac9dbd77ac37698fdd082fedb3359', 'श्री.दिपक महादेव कुंभारकर', 'Shri. Dapik Mahaadev Kunbhaarakar', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822171999', NULL, '9822171999', 'fcd1a0aae8e1468007cc61a794d0271a9f6ac9dbd77ac37698fdd082fedb3359', 'श्री.दिपक महादेव कुंभारकर', 'Shri. Dipak Mahadev Kumbharkar', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822171999' OR username = '9822171999');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822171999' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '144' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0024', 'मे.महादेव भगवान कुंभारकर अँड सन्स', 'M/s. Mahaadev Bhagavaan Kunbhaarakar & Sons', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '24', '144', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0024', 'मे.महादेव भगवान कुंभारकर अँड सन्स', 'M/s. Mahadev Bhagwan Kumbharkar & Sons', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '24', '144', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '144' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.महादेव भगवान कुंभारकर अँड सन्स', 'M/s. Mahaadev Bhagavaan Kunbhaarakar & Sons', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '24', '144', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.महादेव भगवान कुंभारकर अँड सन्स', 'M/s. Mahadev Bhagwan Kumbharkar & Sons', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '24', '144', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 25 | Mobile 9850099300 | श्री.शरद महादेव कुंभारकर
@@ -522,49 +522,49 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 31 | Mobile 9860489321 | श्री.आनदं रमेशलाल गांधी
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('151', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9860489321', NULL, '9860489321', 'ec37ee7e654bb1f0dbc9f23338d81fb2d9f85b2a12e1bbae675e0c6051030d06', 'श्री.आनदं रमेशलाल गांधी', 'Shri. Aanadan Ra M/s. Shalaal Gaandhee', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9860489321', NULL, '9860489321', 'ec37ee7e654bb1f0dbc9f23338d81fb2d9f85b2a12e1bbae675e0c6051030d06', 'श्री.आनदं रमेशलाल गांधी', 'Shri. Anand Rameshlal Gandhi', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9860489321' OR username = '9860489321');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9860489321' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '151' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0031', 'मे.गांधी आणि कंपनी', 'M/s. Gaandhee & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '31', '151', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0031', 'मे.गांधी आणि कंपनी', 'M/s. Gandhi & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '31', '151', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '151' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.गांधी आणि कंपनी', 'M/s. Gaandhee & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '31', '151', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.गांधी आणि कंपनी', 'M/s. Gandhi & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '31', '151', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 32 | Mobile 9850489321 | श्री.महावीर रमेशलाल गांधी
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('152', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850489321', NULL, '9850489321', '5d7d15031ed3deaf59b6eec1d155d28f632feedc8eb4a753d260285e583211d0', 'श्री.महावीर रमेशलाल गांधी', 'Shri. Mahaaveer Ra M/s. Shalaal Gaandhee', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850489321', NULL, '9850489321', '5d7d15031ed3deaf59b6eec1d155d28f632feedc8eb4a753d260285e583211d0', 'श्री.महावीर रमेशलाल गांधी', 'Shri. Mahavir Rameshlal Gandhi', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850489321' OR username = '9850489321');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850489321' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '152' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0032', 'मे.रमेशलाल भगवानदास गांधी', 'M/s. Ra M/s. Shalaal Bhagavaanadaas Gaandhee', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '32', '152', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0032', 'मे.रमेशलाल भगवानदास गांधी', 'M/s. Rameshlal Bhagwandas Gandhi', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '32', '152', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '152' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.रमेशलाल भगवानदास गांधी', 'M/s. Ra M/s. Shalaal Bhagavaanadaas Gaandhee', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '32', '152', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.रमेशलाल भगवानदास गांधी', 'M/s. Rameshlal Bhagwandas Gandhi', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '32', '152', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 33 | Mobile 9850950995 | श्री.चेतन चं कांत घोगरे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('153', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850950995', NULL, '9850950995', '20e11f5a02aa9fe2d736e27855ee4c7cc501d4aad4c6d3809569a187f737cf24', 'श्री.चेतन चं कांत घोगरे', 'Shri. Chetan Chan Kaant Ghogare', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850950995', NULL, '9850950995', '20e11f5a02aa9fe2d736e27855ee4c7cc501d4aad4c6d3809569a187f737cf24', 'श्री.चेतन चं कांत घोगरे', 'Shri. Chetan Chandrakant Ghogare', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850950995' OR username = '9850950995');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850950995' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '153' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0033', 'मे.चं कातं गगं ाराम घोगरे', 'M/s. Chan Kaatan Gagan Aaraam Ghogare', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '33', '153', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0033', 'मे.चं कातं गगं ाराम घोगरे', 'M/s. Chandrakant Gangaram Ghogare', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '33', '153', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '153' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.चं कातं गगं ाराम घोगरे', 'M/s. Chan Kaatan Gagan Aaraam Ghogare', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '33', '153', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.चं कातं गगं ाराम घोगरे', 'M/s. Chandrakant Gangaram Ghogare', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '33', '153', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 34 | Mobile 9822207426 | श्री.िनतीन सदािशव काळणे
@@ -586,33 +586,33 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 35 | Mobile 9822061949 | श्री.द ा य िव ल थोरात
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('158', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822061949', NULL, '9822061949', '1e6111ec6db998ea2c3e283b18c0b3fd101f07909c02edc3a760eae2b1ed5468', 'श्री.द ा य िव ल थोरात', 'Shri. Da A Ya Vi La Thoraat', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822061949', NULL, '9822061949', '1e6111ec6db998ea2c3e283b18c0b3fd101f07909c02edc3a760eae2b1ed5468', 'श्री.द ा य िव ल थोरात', 'Shri. Dattatray Vitthal Thorat', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822061949' OR username = '9822061949');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822061949' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '158' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0035', 'मे.द ा य थोरात आणि कंपनी', 'M/s. Da A Ya Thoraat & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '35', '158', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0035', 'मे.द ा य थोरात आणि कंपनी', 'M/s. Dattatray Thorat & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '35', '158', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '158' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.द ा य थोरात आणि कंपनी', 'M/s. Da A Ya Thoraat & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '35', '158', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.द ा य थोरात आणि कंपनी', 'M/s. Dattatray Thorat & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '35', '158', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 36 | Mobile 9850100049 | श्री.तेजस द ा य थोरात
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('159', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850100049', NULL, '9850100049', 'b2a3f174c08fd564f84e33f686d8ebc8e597f38eceb434d30b774b7b67fef4de', 'श्री.तेजस द ा य थोरात', 'Shri. Tejas Da A Ya Thoraat', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850100049', NULL, '9850100049', 'b2a3f174c08fd564f84e33f686d8ebc8e597f38eceb434d30b774b7b67fef4de', 'श्री.तेजस द ा य थोरात', 'Shri. Tejas Dattatray Thorat', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850100049' OR username = '9850100049');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850100049' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '159' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0036', 'मे.थोरात आणि कंपनी', 'M/s. Thoraat & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '36', '159', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0036', 'मे.थोरात आणि कंपनी', 'M/s. Thorat & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '36', '159', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '159' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.थोरात आणि कंपनी', 'M/s. Thoraat & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '36', '159', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.थोरात आणि कंपनी', 'M/s. Thorat & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '36', '159', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 37 | Mobile 9822608760 | सौ.सनु दं ा सयु कातं माढं रे
@@ -634,17 +634,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 38 | Mobile 9850957492 | श्री.मुकुंद तुकाराम खैरे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('161', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850957492', NULL, '9850957492', '3ad36323efa5577cbd74ea4ee8122dd7644682b45f439e6dae335a88049e4e34', 'श्री.मुकुंद तुकाराम खैरे', 'Shra Shri. Mukund Tukaaraam Khaire', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850957492', NULL, '9850957492', '3ad36323efa5577cbd74ea4ee8122dd7644682b45f439e6dae335a88049e4e34', 'श्री.मुकुंद तुकाराम खैरे', 'Shri. Mukund Tukaram Khaire', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850957492' OR username = '9850957492');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850957492' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '161' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0038', 'मे.सौरभ मुकुंद खैरे', 'M/s. Mrs. Rabh Mukund Khaire', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '38', '161', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0038', 'मे.सौरभ मुकुंद खैरे', 'M/s. Saurabh Mukund Khaire', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '38', '161', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '161' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.सौरभ मुकुंद खैरे', 'M/s. Mrs. Rabh Mukund Khaire', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '38', '161', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.सौरभ मुकुंद खैरे', 'M/s. Saurabh Mukund Khaire', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '38', '161', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 39 | Mobile 9822061909 | श्री.समीर वसंत मोरडे
@@ -793,23 +793,23 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 50 | Mobile 9822940668 | श्री.द ा य किसन च हाण
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('267', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822940668', NULL, '9822940668', 'f730779f4bc0874666fa15118030f0bd71d8c260363232724e2f201048141728', 'श्री.द ा य किसन च हाण', 'Shri. Da A Ya Kasin Cha Haan', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822940668', NULL, '9822940668', 'f730779f4bc0874666fa15118030f0bd71d8c260363232724e2f201048141728', 'श्री.द ा य किसन च हाण', 'Shri. Dattatray Kisan Chavan', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822940668' OR username = '9822940668');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822940668' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '267' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0050', 'मे.किसन बापजु ी च हाण', 'M/s. Kasin Baapaju Ee Cha Haan', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '50', '267', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0050', 'मे.किसन बापजु ी च हाण', 'M/s. Kisan Bapuji Chavan', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '50', '267', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '267' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.किसन बापजु ी च हाण', 'M/s. Kasin Baapaju Ee Cha Haan', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '50', '267', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.किसन बापजु ी च हाण', 'M/s. Kisan Bapuji Chavan', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '50', '267', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 51 | Mobile 9850747373 | श्री.अतुल निवृत्ती मोरडे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('268', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850747373', NULL, '9850747373', 'e4886f39544894a342f26d1a7d84581568315c13694beab196ef3d2089760566', 'श्री.अतुल निवृत्ती मोरडे', 'Shra Shri. Atul Navirittee Morade', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850747373', NULL, '9850747373', 'e4886f39544894a342f26d1a7d84581568315c13694beab196ef3d2089760566', 'श्री.अतुल निवृत्ती मोरडे', 'Shri. Atul Nivrutti Morade', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850747373' OR username = '9850747373');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850747373' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '268' LIMIT 1);
@@ -858,21 +858,21 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('272', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('424', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822849496', NULL, '9822849496', 'd63a4ceff8edcc40728ff297bc0506cbf5a897d58201c55eb362fedf084c8009', 'श्री.तषु ार सयु कांत थोरात', 'Shri. Tashu Aara Sayu Kaant Thoraat', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822849496', NULL, '9822849496', 'd63a4ceff8edcc40728ff297bc0506cbf5a897d58201c55eb362fedf084c8009', 'श्री.तषु ार सयु कांत थोरात', 'Shri. Tushar Suyakant Thorat', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822849496' OR username = '9822849496');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822849496' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '272' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0054', 'मे.सयु कांत िव ल थोरात', 'M/s. Sayu Kaant Vi La Thoraat', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '54', '272', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0054', 'मे.सयु कांत िव ल थोरात', 'M/s. Suyakant Vitthal Thorat', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '54', '272', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '272' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.सयु कांत िव ल थोरात', 'M/s. Sayu Kaant Vi La Thoraat', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '54', '272', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.सयु कांत िव ल थोरात', 'M/s. Suyakant Vitthal Thorat', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '54', '272', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '424' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.सयु कांत िव ल थोरात', 'M/s. Sayu Kaant Vi La Thoraat', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '54', '272', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.सयु कांत िव ल थोरात', 'M/s. Suyakant Vitthal Thorat', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '54', '272', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 55 | Mobile 9822502596 | श्री.शंकर अनसु भालेराव
@@ -911,21 +911,21 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('275', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('277', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850508986', NULL, '9850508986', '6c0a06bfdfeb952f97ee824828e98a167ab7f34c3bc3f3ce6a2f708a97960b6a', 'ीमती उ वला अशोक संचेती', 'Eematee U Vala Ashok Sanchetee', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850508986', NULL, '9850508986', '6c0a06bfdfeb952f97ee824828e98a167ab7f34c3bc3f3ce6a2f708a97960b6a', 'ीमती उ वला अशोक संचेती', 'Smt. Ujwala Ashok Sancheti', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850508986' OR username = '9850508986');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850508986' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '275' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0057', 'मे.संचेती एजन्सी', 'M/s. Sanchetee Agency', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '57', '275', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0057', 'मे.संचेती एजन्सी', 'M/s. Sancheti Agency', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '57', '275', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '275' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.संचेती एजन्सी', 'M/s. Sanchetee Agency', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '57', '275', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.संचेती एजन्सी', 'M/s. Sancheti Agency', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '57', '275', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '277' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.संचेती एजन्सी', 'M/s. Sanchetee Agency', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '57', '275', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.संचेती एजन्सी', 'M/s. Sancheti Agency', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '57', '275', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 58 | Mobile 9657854150 | श्री.मि छं वाळूंज
@@ -1057,17 +1057,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 65 | Mobile 9822883038 | श्री.निलेश मा ती शिंदे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('295', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822883038', NULL, '9822883038', '695c6e4990b02a87ed81e215838bb89d3d769b1902844faf53caf1d5437c72c2', 'श्री.निलेश मा ती शिंदे', 'Shri. Naliesh Ma Tee Shinde', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822883038', NULL, '9822883038', '695c6e4990b02a87ed81e215838bb89d3d769b1902844faf53caf1d5437c72c2', 'श्री.निलेश मा ती शिंदे', 'Shri. Nilesh Maruti Shinde', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822883038' OR username = '9822883038');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822883038' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '295' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0065', 'मे.वै णवी ट्रेडिंग कंपनी', 'M/s. Vai Navee Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '65', '295', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0065', 'मे.वै णवी ट्रेडिंग कंपनी', 'M/s. Vaishnavi Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '65', '295', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '295' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.वै णवी ट्रेडिंग कंपनी', 'M/s. Vai Navee Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '65', '295', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.वै णवी ट्रेडिंग कंपनी', 'M/s. Vaishnavi Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '65', '295', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 66 | Mobile 9422003335 | श्री.अ ण तक ु ाराम घोडके
@@ -1201,33 +1201,33 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 76 | Mobile 9850634721 | श्री.सखाराम ल मण रामाणे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('422', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850634721', NULL, '9850634721', '3373bf3641b54c57c76ca17037c529bb998bfd433ebd1b1610ff209de1183e70', 'श्री.सखाराम ल मण रामाणे', 'Shri. Sakhaaraam La Mana Raamaane', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850634721', NULL, '9850634721', '3373bf3641b54c57c76ca17037c529bb998bfd433ebd1b1610ff209de1183e70', 'श्री.सखाराम ल मण रामाणे', 'Shri. Sakharam Laxman Ramane', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850634721' OR username = '9850634721');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850634721' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '422' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0076', 'मे.रामाणे अँड दस', 'M/s. Raamaane & Dasa', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '76', '422', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0076', 'मे.रामाणे अँड दस', 'M/s. Ramane & Das', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '76', '422', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '422' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.रामाणे अँड दस', 'M/s. Raamaane & Dasa', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '76', '422', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.रामाणे अँड दस', 'M/s. Ramane & Das', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '76', '422', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 77 | Mobile 9822343207 | श्री.सिु नल कृ णा देवकर
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('423', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822343207', NULL, '9822343207', '12bb580bdc1eb8ff7c1e46920471281272896d17fc8514c69f021ad49e6865bd', 'श्री.सिु नल कृ णा देवकर', 'Shri. Siu Nala Kri Na Devakar', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822343207', NULL, '9822343207', '12bb580bdc1eb8ff7c1e46920471281272896d17fc8514c69f021ad49e6865bd', 'श्री.सिु नल कृ णा देवकर', 'Shri. Sunil Krishna Devkar', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822343207' OR username = '9822343207');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822343207' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '423' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0077', 'मे.कृ णा शंकर देवकर', 'M/s. Kri Na Shankar Devakar', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '77', '423', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0077', 'मे.कृ णा शंकर देवकर', 'M/s. Krishna Shankar Devkar', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '77', '423', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '423' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.कृ णा शंकर देवकर', 'M/s. Kri Na Shankar Devakar', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '77', '423', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.कृ णा शंकर देवकर', 'M/s. Krishna Shankar Devkar', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '77', '423', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 78 | Mobile 9923005885 | श्री.िशवादास ानोबा खेडेकर
@@ -1381,17 +1381,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 87 | Mobile 9766264126 | श्री.स्वप्नील गेनभाऊ थोरात
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('448', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9766264126', NULL, '9766264126', 'daeb39d0aaa349b7d071c6a38d0a98edf53462470b7a597251a4c59cc8cfaf11', 'श्री.स्वप्नील गेनभाऊ थोरात', 'Shra Shri. Svapneel Genabhaaoo Thoraat', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9766264126', NULL, '9766264126', 'daeb39d0aaa349b7d071c6a38d0a98edf53462470b7a597251a4c59cc8cfaf11', 'श्री.स्वप्नील गेनभाऊ थोरात', 'Shri. Swapnil Genbhau Thorat', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9766264126' OR username = '9766264126');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9766264126' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '448' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0087', 'मे.भिमाशंकर ट्रेडिंग कंपनी', 'M/s. Bhamiaashankar Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '87', '448', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0087', 'मे.भिमाशंकर ट्रेडिंग कंपनी', 'M/s. Bhimashankar Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '87', '448', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '448' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.भिमाशंकर ट्रेडिंग कंपनी', 'M/s. Bhamiaashankar Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '87', '448', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.भिमाशंकर ट्रेडिंग कंपनी', 'M/s. Bhimashankar Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '87', '448', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 88 | Mobile 9822297730 | श्री.उदय रामदास गाडगे
@@ -1445,38 +1445,38 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 91 | Mobile 9922614579 | श्री.महेश सभु ाष भ डवे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('642', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9922614579', NULL, '9922614579', 'faf75bb5eeb78a44f7e7d330f2b770a38a1fd7467ec4a0a701838595cac2042b', 'श्री.महेश सभु ाष भ डवे', 'Shri. Mahesh Sabhu Aash Bha Dave', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9922614579', NULL, '9922614579', 'faf75bb5eeb78a44f7e7d330f2b770a38a1fd7467ec4a0a701838595cac2042b', 'श्री.महेश सभु ाष भ डवे', 'Shri. Mahesh Subhash Bhadve', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9922614579' OR username = '9922614579');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9922614579' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '642' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0091', 'मे.गौरी ट्रेडिंग कंपनी', 'M/s. Gauree Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '91', '642', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0091', 'मे.गौरी ट्रेडिंग कंपनी', 'M/s. Gauri Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '91', '642', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '642' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.गौरी ट्रेडिंग कंपनी', 'M/s. Gauree Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '91', '642', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.गौरी ट्रेडिंग कंपनी', 'M/s. Gauri Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '91', '642', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 92 | Mobile 9822064979 | श्री.सिु नल िव णू खटु वड
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('643', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('644', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822064979', NULL, '9822064979', '6f2d5e00d8616d0026aa01b8be9ef6b27f113e11de7d31c94a822672a168161f', 'श्री.सिु नल िव णू खटु वड', 'Shri. Siu Nala Vi Noo Khatu Vada', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822064979', NULL, '9822064979', '6f2d5e00d8616d0026aa01b8be9ef6b27f113e11de7d31c94a822672a168161f', 'श्री.सिु नल िव णू खटु वड', 'Shri. Sunil Vishnu Khutwad', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822064979' OR username = '9822064979');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822064979' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '643' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0092', 'मे.िव णू दगडू खटु वड', 'M/s. Vi Noo Dagadoo Khatu Vada', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '92', '643', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0092', 'मे.िव णू दगडू खटु वड', 'M/s. Vishnu Dagdu Khutwad', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '92', '643', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '643' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.िव णू दगडू खटु वड', 'M/s. Vi Noo Dagadoo Khatu Vada', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '92', '643', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.िव णू दगडू खटु वड', 'M/s. Vishnu Dagdu Khutwad', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '92', '643', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '644' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.िव णू दगडू खटु वड', 'M/s. Vi Noo Dagadoo Khatu Vada', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '92', '643', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.िव णू दगडू खटु वड', 'M/s. Vishnu Dagdu Khutwad', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '92', '643', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 93 | Mobile 9860090391 | श्री.शांताराम रघुनाथ करंडे
@@ -1647,33 +1647,33 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 107 | Mobile 9850917407 | श्री.राहल महादेव शिंदे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('715', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850917407', NULL, '9850917407', '94b7d727365e0b69132036373db12ccb200ece690eccecc60823c7ac48bca275', 'श्री.राहल महादेव शिंदे', 'Shri. Raahal Mahaadev Shinde', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850917407', NULL, '9850917407', '94b7d727365e0b69132036373db12ccb200ece690eccecc60823c7ac48bca275', 'श्री.राहल महादेव शिंदे', 'Shri. Rahul Mahadev Shinde', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850917407' OR username = '9850917407');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850917407' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '715' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0107', 'मे.सादािशव ल मण शिंदे आणि कंपनी', 'M/s. Saadaashiv La Mana Shinde & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '107', '715', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0107', 'मे.सादािशव ल मण शिंदे आणि कंपनी', 'M/s. Sadashiv Laxman Shinde & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '107', '715', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '715' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.सादािशव ल मण शिंदे आणि कंपनी', 'M/s. Saadaashiv La Mana Shinde & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '107', '715', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.सादािशव ल मण शिंदे आणि कंपनी', 'M/s. Sadashiv Laxman Shinde & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '107', '715', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 108 | Mobile 9822216518 | श्री.तुळशीराम महादेव पांढरे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('716', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822216518', NULL, '9822216518', '8974f991e02e16dbd0e7691fb1e5a836b33bf77ad29c478996276902bbb2cae2', 'श्री.तुळशीराम महादेव पांढरे', 'Shra Shri. Tulasheeraam Mahaadev Paandhare', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822216518', NULL, '9822216518', '8974f991e02e16dbd0e7691fb1e5a836b33bf77ad29c478996276902bbb2cae2', 'श्री.तुळशीराम महादेव पांढरे', 'Shri. Tulshiram Mahadev Pandhare', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822216518' OR username = '9822216518');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822216518' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '716' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0108', 'मे.आंचलेश्वर ट्रेडर्स', 'M/s. Aanchaleshvar Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '108', '716', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0108', 'मे.आंचलेश्वर ट्रेडर्स', 'M/s. Anchaleshwar Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '108', '716', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '716' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.आंचलेश्वर ट्रेडर्स', 'M/s. Aanchaleshvar Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '108', '716', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.आंचलेश्वर ट्रेडर्स', 'M/s. Anchaleshwar Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '108', '716', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 109 | Mobile 9657662575 | श्री.अथव विलास कटके
@@ -1812,17 +1812,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 117 | Mobile 8087613091 | श्री.आशिष अरुण घोडके
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('731', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '8087613091', NULL, '8087613091', '87d8af36a2dfc68510e68e8c66f6c518bc4745dbeb1dbef4f7a7cacb3275c048', 'श्री.आशिष अरुण घोडके', 'Shra Shri. Aashashi Arun Ghodake', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '8087613091', NULL, '8087613091', '87d8af36a2dfc68510e68e8c66f6c518bc4745dbeb1dbef4f7a7cacb3275c048', 'श्री.आशिष अरुण घोडके', 'Shri. Ashish Arun Ghodake', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '8087613091' OR username = '8087613091');
 SET @user_id := (SELECT id FROM users WHERE mobile = '8087613091' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '731' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0117', 'मे.अरुण तुकाराम घोडके', 'M/s. Arun Tukaaraam Ghodake', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '117', '731', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0117', 'मे.अरुण तुकाराम घोडके', 'M/s. Arun Tukaram Ghodake', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '117', '731', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '731' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.अरुण तुकाराम घोडके', 'M/s. Arun Tukaaraam Ghodake', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '117', '731', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.अरुण तुकाराम घोडके', 'M/s. Arun Tukaram Ghodake', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '117', '731', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 118 | Mobile 9822620657 | श्री.संभाजी ध डीबा खेडेकर
@@ -1876,17 +1876,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 121 | Mobile 9970404141 | श्री.निलेश नामदेव थोरात
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('735', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9970404141', NULL, '9970404141', '929546f14bafda43e341a118c8faffd401993865d6b59ec05d15c0216892966a', 'श्री.निलेश नामदेव थोरात', 'Shri. Naliesh Naamadev Thoraat', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9970404141', NULL, '9970404141', '929546f14bafda43e341a118c8faffd401993865d6b59ec05d15c0216892966a', 'श्री.निलेश नामदेव थोरात', 'Shri. Nilesh Namdev Thorat', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9970404141' OR username = '9970404141');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9970404141' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '735' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0121', 'मे.सोमे र ट्रेडर्स', 'M/s. So M/s. Ra Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '121', '735', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0121', 'मे.सोमे र ट्रेडर्स', 'M/s. Someshwar Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '121', '735', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '735' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.सोमे र ट्रेडर्स', 'M/s. So M/s. Ra Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '121', '735', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.सोमे र ट्रेडर्स', 'M/s. Someshwar Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '121', '735', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 122 | Mobile 9422031687 | श्री.अिमत रोिहदास भ डवे
@@ -1924,17 +1924,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 124 | Mobile 9921115252 | सौ.सरु े खा िवण गांधी
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('738', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9921115252', NULL, '9921115252', 'e06959d9e4043d83891fc37f01acb8dd91992c3e3e509bdc9f507e2380c09f94', 'सौ.सरु े खा िवण गांधी', 'Mrs. Saru E Kha Vina Gaandhee', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9921115252', NULL, '9921115252', 'e06959d9e4043d83891fc37f01acb8dd91992c3e3e509bdc9f507e2380c09f94', 'सौ.सरु े खा िवण गांधी', 'Mrs. Surekha Vinay Gandhi', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9921115252' OR username = '9921115252');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9921115252' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '738' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0124', 'मे.साईबाबा ट्रेडिंग कंपनी', 'M/s. Saaeebaab Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '124', '738', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0124', 'मे.साईबाबा ट्रेडिंग कंपनी', 'M/s. Saibaba Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '124', '738', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '738' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.साईबाबा ट्रेडिंग कंपनी', 'M/s. Saaeebaab Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '124', '738', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.साईबाबा ट्रेडिंग कंपनी', 'M/s. Saibaba Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '124', '738', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 125 | Mobile 9822434607 | श्री.राहल लालासो जगताप
@@ -1957,28 +1957,28 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('742', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('743', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822098816', NULL, '9822098816', '5a314f5febb3c0a9352ed0f65fecee43e6fff1400df7e08286667a72c5b83471', 'श्री.दिलीप तुकाराम काऱ्हाळे', 'Shra Shri. Dalieep Tukaaraam Kaahaale', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822098816', NULL, '9822098816', '5a314f5febb3c0a9352ed0f65fecee43e6fff1400df7e08286667a72c5b83471', 'श्री.दिलीप तुकाराम काऱ्हाळे', 'Shri. Dilip Tukaram Karhale', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822098816' OR username = '9822098816');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822098816' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '742' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0126', 'मे.दिलीप तुकाराम काऱ्हाळे', 'M/s. Dalieep Tukaaraam Kaahaale', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '126', '742', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0126', 'मे.दिलीप तुकाराम काऱ्हाळे', 'M/s. Dilip Tukaram Karhale', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '126', '742', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '742' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.दिलीप तुकाराम काऱ्हाळे', 'M/s. Dalieep Tukaaraam Kaahaale', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '126', '742', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.दिलीप तुकाराम काऱ्हाळे', 'M/s. Dilip Tukaram Karhale', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '126', '742', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '743' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.दिलीप तुकाराम काऱ्हाळे', 'M/s. Dalieep Tukaaraam Kaahaale', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '126', '742', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.दिलीप तुकाराम काऱ्हाळे', 'M/s. Dilip Tukaram Karhale', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '126', '742', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 127 | Mobile 9049597337 | श्री.गौरव गणेश घुले
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('744', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('744', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9049597337', NULL, '9049597337', 'e220acbc87df146f493c31e103bd22c10a80af18a16e47ec9ab8ddd72b4b782d', 'श्री.गौरव गणेश घुले', 'Shra Shri. Gaurav Ganesh Ghule', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9049597337', NULL, '9049597337', 'e220acbc87df146f493c31e103bd22c10a80af18a16e47ec9ab8ddd72b4b782d', 'श्री.गौरव गणेश घुले', 'Shri. Gaurav Ganesh Ghule', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9049597337' OR username = '9049597337');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9049597337' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '744' LIMIT 1);
@@ -2062,17 +2062,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 132 | Mobile 9860489455 | श्री.िव ल मरु लीधर झुरंगे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('750', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9860489455', NULL, '9860489455', '127194d7dbec1fce461559752f3e264eaefb22158e4bd40c69a26511d6c132f1', 'श्री.िव ल मरु लीधर झुरंगे', 'Shri. Vi La Maru Leedhar Jhurange', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9860489455', NULL, '9860489455', '127194d7dbec1fce461559752f3e264eaefb22158e4bd40c69a26511d6c132f1', 'श्री.िव ल मरु लीधर झुरंगे', 'Shri. Vitthal Murlidhar Zhurange', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9860489455' OR username = '9860489455');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9860489455' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '750' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0132', 'मे.ीनाथ आणि कंपनी', 'M/s. Eenaath & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '132', '750', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0132', 'मे.ीनाथ आणि कंपनी', 'M/s. Shrinath & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '132', '750', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '750' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.ीनाथ आणि कंपनी', 'M/s. Eenaath & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '132', '750', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.ीनाथ आणि कंपनी', 'M/s. Shrinath & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '132', '750', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 133 | Mobile 9423520509 | श्री. िदप भानदु ास कदम
@@ -2126,17 +2126,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 136 | Mobile 9921184213 | श्री.शिवराज गगं ाराम नगरे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('755', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9921184213', NULL, '9921184213', 'a3cdf5ea2c55f5408705529efcaa38e9fbc007c314cf9c5ae44beb1da7c91611', 'श्री.शिवराज गगं ाराम नगरे', 'Shri. Shaviraaj Gagan Aaraam Nagare', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9921184213', NULL, '9921184213', 'a3cdf5ea2c55f5408705529efcaa38e9fbc007c314cf9c5ae44beb1da7c91611', 'श्री.शिवराज गगं ाराम नगरे', 'Shri. Shivraj Gangaram Nagare', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9921184213' OR username = '9921184213');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9921184213' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '755' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0136', 'मे.गगं ाराम सागरमल नगरे', 'M/s. Gagan Aaraam Saagaramal Nagare', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '136', '755', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0136', 'मे.गगं ाराम सागरमल नगरे', 'M/s. Gangaram Sagarmal Nagare', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '136', '755', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '755' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.गगं ाराम सागरमल नगरे', 'M/s. Gagan Aaraam Saagaramal Nagare', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '136', '755', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.गगं ाराम सागरमल नगरे', 'M/s. Gangaram Sagarmal Nagare', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '136', '755', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 137 | Mobile 9970404141 | श्री.नामदेव थोरात
@@ -2174,17 +2174,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 139 | Mobile 9822617112 | श्री.शिवाजी मि छं नाथ तळे कर
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('758', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822617112', NULL, '9822617112', 'c336eb2662253969cfd6f619bdc67fbce293b1ddbc6e5e4e6da8d8b094e61c90', 'श्री.शिवाजी मि छं नाथ तळे कर', 'Shri. Shaviaajee Mi Chhan Naath Tale Kara', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822617112', NULL, '9822617112', 'c336eb2662253969cfd6f619bdc67fbce293b1ddbc6e5e4e6da8d8b094e61c90', 'श्री.शिवाजी मि छं नाथ तळे कर', 'Shri. Shivaji Machhindranath Talekar', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822617112' OR username = '9822617112');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822617112' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '758' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0139', 'मे.ि मतु ट्रेडर्स', 'M/s. I Matu Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '139', '758', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0139', 'मे.ि मतु ट्रेडर्स', 'M/s. Trimurti Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '139', '758', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '758' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.ि मतु ट्रेडर्स', 'M/s. I Matu Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '139', '758', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.ि मतु ट्रेडर्स', 'M/s. Trimurti Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '139', '758', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 140 | Mobile 9822661511 | श्री.शिवराज तुकाराम घोडके
@@ -2243,17 +2243,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 143 | Mobile 9850765933 | श्री.सिु नल द ा य पाबळे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('764', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850765933', NULL, '9850765933', '7a05d6f35f7e6264b707f0c836af14e895003442b4c4a307c1756422bca470a0', 'श्री.सिु नल द ा य पाबळे', 'Shri. Siu Nala Da A Ya Paabale', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850765933', NULL, '9850765933', '7a05d6f35f7e6264b707f0c836af14e895003442b4c4a307c1756422bca470a0', 'श्री.सिु नल द ा य पाबळे', 'Shri. Sunil Dattatray Pabale', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850765933' OR username = '9850765933');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850765933' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '764' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0143', 'मे.िव णूकृपा ट्रेडिंग कंपनी', 'M/s. Vi Nookrip Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '143', '764', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0143', 'मे.िव णूकृपा ट्रेडिंग कंपनी', 'M/s. Vishnukrupa Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '143', '764', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '764' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.िव णूकृपा ट्रेडिंग कंपनी', 'M/s. Vi Nookrip Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '143', '764', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.िव णूकृपा ट्रेडिंग कंपनी', 'M/s. Vishnukrupa Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '143', '764', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 144 | Mobile 7744040726 | श्री.शभु म िवण िहगं े
@@ -2291,49 +2291,49 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 146 | Mobile 7709090424 | श्री.अ य िव ल पवार
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('768', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '7709090424', NULL, '7709090424', '3231033fb5cfd8eba802937f0dc4a4376c30f8f630a3f23abd3334402bceddce', 'श्री.अ य िव ल पवार', 'Shri. A Ya Vi La Pavaar', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '7709090424', NULL, '7709090424', '3231033fb5cfd8eba802937f0dc4a4376c30f8f630a3f23abd3334402bceddce', 'श्री.अ य िव ल पवार', 'Shri. Akshay Vitthal Pawar', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '7709090424' OR username = '7709090424');
 SET @user_id := (SELECT id FROM users WHERE mobile = '7709090424' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '768' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0146', 'मे.सदग् ु ट्रेडर्स', 'M/s. Sadag U Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '146', '768', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0146', 'मे.सदग् ु ट्रेडर्स', 'M/s. Sadguru Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '146', '768', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '768' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.सदग् ु ट्रेडर्स', 'M/s. Sadag U Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '146', '768', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.सदग् ु ट्रेडर्स', 'M/s. Sadguru Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '146', '768', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 147 | Mobile 9850804713 | श्री.दयानदं ानोबा देवकर
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('769', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850804713', NULL, '9850804713', '942174a0d430bae389d6d9e92ae979b7c3184b81ca4502812348d25a55f1eb5d', 'श्री.दयानदं ानोबा देवकर', 'Shri. Dayaanadan Aanob Devakar', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850804713', NULL, '9850804713', '942174a0d430bae389d6d9e92ae979b7c3184b81ca4502812348d25a55f1eb5d', 'श्री.दयानदं ानोबा देवकर', 'Shri. Dayanand Danoba Devkar', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850804713' OR username = '9850804713');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850804713' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '769' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0147', 'मे.स ाट ट्रेडिंग कंपनी', 'M/s. Sa Aata Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '147', '769', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0147', 'मे.स ाट ट्रेडिंग कंपनी', 'M/s. Samrat Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '147', '769', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '769' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.स ाट ट्रेडिंग कंपनी', 'M/s. Sa Aata Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '147', '769', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.स ाट ट्रेडिंग कंपनी', 'M/s. Samrat Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '147', '769', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 148 | Mobile 9822646412 | श्री.मेहबूब गुलाब शेख
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('770', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822646412', NULL, '9822646412', '8b9d0619a856eebccd3ac4dc11291e4989b97fdea23b6e8ef15eca3f7bd233e4', 'श्री.मेहबूब गुलाब शेख', 'Shra Shri. M/s. Haboob Gulaab Shekh', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822646412', NULL, '9822646412', '8b9d0619a856eebccd3ac4dc11291e4989b97fdea23b6e8ef15eca3f7bd233e4', 'श्री.मेहबूब गुलाब शेख', 'Shri. Mehboob Gulab Sheikh', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822646412' OR username = '9822646412');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822646412' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '770' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0148', 'मे.लकी ट्रेडिंग कंपनी', 'M/s. Lakee Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '148', '770', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0148', 'मे.लकी ट्रेडिंग कंपनी', 'M/s. Lucky Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '148', '770', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '770' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.लकी ट्रेडिंग कंपनी', 'M/s. Lakee Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '148', '770', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.लकी ट्रेडिंग कंपनी', 'M/s. Lucky Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '148', '770', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 149 | Mobile 9762729191 | श्री.महेश बाळकृ ण सोनावणे
@@ -2403,17 +2403,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 153 | Mobile 9970437680 | श्री.अंकुश महादेव झेंडे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('776', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9970437680', NULL, '9970437680', 'b51d3cf3ef17843db591b634e5bd5f60d0de4d4af473fc72490328c212d20307', 'श्री.अंकुश महादेव झेंडे', 'Shra Shri. Ankush Mahaadev Jhende', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9970437680', NULL, '9970437680', 'b51d3cf3ef17843db591b634e5bd5f60d0de4d4af473fc72490328c212d20307', 'श्री.अंकुश महादेव झेंडे', 'Shri. Ankush Mahadev Jhende', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9970437680' OR username = '9970437680');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9970437680' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '776' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0153', 'मे.अंकुश महादेव झेंडे', 'M/s. Ankush Mahaadev Jhende', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '153', '776', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0153', 'मे.अंकुश महादेव झेंडे', 'M/s. Ankush Mahadev Jhende', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '153', '776', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '776' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.अंकुश महादेव झेंडे', 'M/s. Ankush Mahaadev Jhende', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '153', '776', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.अंकुश महादेव झेंडे', 'M/s. Ankush Mahadev Jhende', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '153', '776', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 154 | Mobile 9922857007 | श्री.एकनाथ बाजीराव यादव
@@ -2436,21 +2436,21 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('778', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('779', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9860273737', NULL, '9860273737', '32ccd0cd739c505370f979d3ccaece00d453a53a6186be524e90dbbc28c147d7', 'श्री.निलेश पंिडत पवार', 'Shri. Naliesh Pandit Pavaar', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9860273737', NULL, '9860273737', '32ccd0cd739c505370f979d3ccaece00d453a53a6186be524e90dbbc28c147d7', 'श्री.निलेश पंिडत पवार', 'Shri. Nilesh Pandit Pawar', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9860273737' OR username = '9860273737');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9860273737' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '778' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0155', 'मे.रोकडोबा ट्रेडिंग कंपनी', 'M/s. Rokadob Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '155', '778', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0155', 'मे.रोकडोबा ट्रेडिंग कंपनी', 'M/s. Rokdoba Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '155', '778', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '778' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.रोकडोबा ट्रेडिंग कंपनी', 'M/s. Rokadob Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '155', '778', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.रोकडोबा ट्रेडिंग कंपनी', 'M/s. Rokdoba Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '155', '778', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '779' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.रोकडोबा ट्रेडिंग कंपनी', 'M/s. Rokadob Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '155', '778', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.रोकडोबा ट्रेडिंग कंपनी', 'M/s. Rokdoba Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '155', '778', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 156 | Mobile 9764708285 | श्री.अरिवंद बाळू भोकसे
@@ -2488,17 +2488,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 158 | Mobile 9850663959 | श्री.सरु े श ध डीराम तळे कर
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('782', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850663959', NULL, '9850663959', '40ca8fc11ff4e7dbad22150409916b7b1817fb32bcfab465ce61a7a176840f0a', 'श्री.सरु े श ध डीराम तळे कर', 'Shri. Saru E Sha Dha Deeraam Tale Kara', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850663959', NULL, '9850663959', '40ca8fc11ff4e7dbad22150409916b7b1817fb32bcfab465ce61a7a176840f0a', 'श्री.सरु े श ध डीराम तळे कर', 'Shri. Suresh Dhandiram Talekar', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850663959' OR username = '9850663959');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850663959' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '782' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0158', 'मे.सगं म ट्रेडर्स', 'M/s. Sagan Ma Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '158', '782', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0158', 'मे.सगं म ट्रेडर्स', 'M/s. Sangam Traders', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '158', '782', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '782' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.सगं म ट्रेडर्स', 'M/s. Sagan Ma Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '158', '782', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.सगं म ट्रेडर्स', 'M/s. Sangam Traders', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '158', '782', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 159 | Mobile 9372704447 | श्री.राजशेखर िभमाशंकर त डमरु
@@ -2589,33 +2589,33 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 164 | Mobile 9850007447 | श्री.बाळासाहेब ल मण कोलते
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('789', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850007447', NULL, '9850007447', '81c2901a38698f609cb6048ab096d32037a6e8f318b1d65642b0d2eb3d407074', 'श्री.बाळासाहेब ल मण कोलते', 'Shri. Baalaasaaheb La Mana Kolate', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850007447', NULL, '9850007447', '81c2901a38698f609cb6048ab096d32037a6e8f318b1d65642b0d2eb3d407074', 'श्री.बाळासाहेब ल मण कोलते', 'Shri. Balasaheb Laxman Kolate', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850007447' OR username = '9850007447');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850007447' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '789' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0164', 'मे.बाळासाहेब ल मण कोलते', 'M/s. Baalaasaaheb La Mana Kolate', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '164', '789', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0164', 'मे.बाळासाहेब ल मण कोलते', 'M/s. Balasaheb Laxman Kolate', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '164', '789', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '789' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.बाळासाहेब ल मण कोलते', 'M/s. Baalaasaaheb La Mana Kolate', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '164', '789', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.बाळासाहेब ल मण कोलते', 'M/s. Balasaheb Laxman Kolate', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '164', '789', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 165 | Mobile 9850120992 | श्री.मा ती पांडुरंग कामठे
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('790', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850120992', NULL, '9850120992', 'fa86e3b140d5192bd7bc8175df0ad7044123f56b085342d1678df5fff06278f5', 'श्री.मा ती पांडुरंग कामठे', 'Shri. Ma Tee Paandurang Kaamathe', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850120992', NULL, '9850120992', 'fa86e3b140d5192bd7bc8175df0ad7044123f56b085342d1678df5fff06278f5', 'श्री.मा ती पांडुरंग कामठे', 'Shri. Maruti Pandurang Kamathe', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850120992' OR username = '9850120992');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850120992' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '790' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0165', 'मे.सिु नल ट्रेडिंग कंपनी', 'M/s. Siu Nala Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '165', '790', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0165', 'मे.सिु नल ट्रेडिंग कंपनी', 'M/s. Sunil Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '165', '790', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '790' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.सिु नल ट्रेडिंग कंपनी', 'M/s. Siu Nala Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '165', '790', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.सिु नल ट्रेडिंग कंपनी', 'M/s. Sunil Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '165', '790', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 166 | Mobile 8423016347 | श्री.बाळासाहेब आनदं राव रा े
@@ -2637,17 +2637,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 170 | Mobile 9881872796 | श्री.महेंद्र आनंद जाधव
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('796', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9881872796', NULL, '9881872796', 'b264f8a055e7d1fda33833fe06f2d75c56338248f85026ea80559b23c460c5a2', 'श्री.महेंद्र आनंद जाधव', 'Shra Shri. Mahendr Aanand Jaadhav', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9881872796', NULL, '9881872796', 'b264f8a055e7d1fda33833fe06f2d75c56338248f85026ea80559b23c460c5a2', 'श्री.महेंद्र आनंद जाधव', 'Shri. Mahendra Anand Jadhav', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9881872796' OR username = '9881872796');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9881872796' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '796' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0170', 'मे.आनंद तुकाराम जाधव आणि सन्स', 'M/s. Aanand Tukaaraam Jaadhav & Sons', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '170', '796', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0170', 'मे.आनंद तुकाराम जाधव आणि सन्स', 'M/s. Anand Tukaram Jadhav & Sons', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '170', '796', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '796' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.आनंद तुकाराम जाधव आणि सन्स', 'M/s. Aanand Tukaaraam Jaadhav & Sons', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '170', '796', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.आनंद तुकाराम जाधव आणि सन्स', 'M/s. Anand Tukaram Jadhav & Sons', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '170', '796', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 171 | Mobile 9850143735 | सौ.शभु ांगी सुरेश होले
@@ -2655,25 +2655,25 @@ INSERT INTO market_galas (gala_number, section_name, status) VALUES ('797', 'क
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('798', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('649', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9850143735', NULL, '9850143735', '7742ae7b519ee87a2550e846cdd5cbf8e983f6927da607e6f1dcd1b8f522cbee', 'सौ.शभु ांगी सुरेश होले', 'Mrs. Shabhu Aangee Suresh Hole', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9850143735', NULL, '9850143735', '7742ae7b519ee87a2550e846cdd5cbf8e983f6927da607e6f1dcd1b8f522cbee', 'सौ.शभु ांगी सुरेश होले', 'Mrs. Shubhangi Suresh Hole', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9850143735' OR username = '9850143735');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9850143735' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '797' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0171', 'मे.सरु े श होले आणि कंपनी', 'M/s. Saru E Sha Hole & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '171', '797', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0171', 'मे.सरु े श होले आणि कंपनी', 'M/s. Suresh Hole & Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '171', '797', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '797' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.सरु े श होले आणि कंपनी', 'M/s. Saru E Sha Hole & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '171', '797', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.सरु े श होले आणि कंपनी', 'M/s. Suresh Hole & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '171', '797', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '798' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.सरु े श होले आणि कंपनी', 'M/s. Saru E Sha Hole & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '171', '797', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.सरु े श होले आणि कंपनी', 'M/s. Suresh Hole & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '171', '797', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '649' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.सरु े श होले आणि कंपनी', 'M/s. Saru E Sha Hole & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '171', '797', 'submitted', 0, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.सरु े श होले आणि कंपनी', 'M/s. Suresh Hole & Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '171', '797', 'submitted', 0, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 172 | Mobile 7276210684 | श्री.गणपत एकनाथ मळ ु ूक
@@ -2695,17 +2695,17 @@ WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 F
 -- Row 173 | Mobile 9822025457 | श्री.राहल िव ल बोरकर
 INSERT INTO market_galas (gala_number, section_name, status) VALUES ('800', 'कांदा-बटाटा', 'occupied') ON DUPLICATE KEY UPDATE section_name = VALUES(section_name), status = 'occupied';
 INSERT INTO users (role_id, username, email, mobile, password_hash, full_name, full_name_en, preferred_language, status, mobile_verified_at, created_at, updated_at)
-SELECT @trader_role_id, '9822025457', NULL, '9822025457', '5e67ea20406679f9e4941cd5d5832f168c1c8229544f6df38e6e9e780749e297', 'श्री.राहल िव ल बोरकर', 'Shri. Raahal Vi La Borakar', 'mr', 'pending', NOW(), NOW(), NOW()
+SELECT @trader_role_id, '9822025457', NULL, '9822025457', '5e67ea20406679f9e4941cd5d5832f168c1c8229544f6df38e6e9e780749e297', 'श्री.राहल िव ल बोरकर', 'Shri. Rahul Vitthal Borkar', 'mr', 'pending', NOW(), NOW(), NOW()
 WHERE @trader_role_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users WHERE mobile = '9822025457' OR username = '9822025457');
 SET @user_id := (SELECT id FROM users WHERE mobile = '9822025457' LIMIT 1);
 SET @primary_gala_id := (SELECT id FROM market_galas WHERE gala_number = '800' LIMIT 1);
 INSERT INTO traders (user_id, trader_code, business_name, business_name_en, market_registration_number, gala_id, business_category_id, address_line1, village_city, district, state, association_sequence_number, association_registration_number, verification_status, created_at, updated_at)
-SELECT @user_id, 'ONP-0173', 'मे.एस.आर. ट्रेडिंग कंपनी', 'M/s. Esa.aara. Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '173', '800', 'submitted', NOW(), NOW()
+SELECT @user_id, 'ONP-0173', 'मे.एस.आर. ट्रेडिंग कंपनी', 'M/s. S.R. Trading Company', NULL, @primary_gala_id, @onion_potato_category_id, 'Market Yard, Saswad', 'Saswad', 'Pune', 'Maharashtra', '173', '800', 'submitted', NOW(), NOW()
 WHERE @user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM traders WHERE user_id = @user_id);
 SET @trader_id := (SELECT id FROM traders WHERE user_id = @user_id LIMIT 1);
 SET @gala_id := (SELECT id FROM market_galas WHERE gala_number = '800' LIMIT 1);
 INSERT INTO trader_galas (trader_id, gala_id, business_name, business_name_en, market_section, business_category_id, market_registration_number, licence_number, association_sequence_number, association_registration_number, status, is_primary, created_at, updated_at)
-SELECT @trader_id, @gala_id, 'मे.एस.आर. ट्रेडिंग कंपनी', 'M/s. Esa.aara. Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '173', '800', 'submitted', 1, NOW(), NOW()
+SELECT @trader_id, @gala_id, 'मे.एस.आर. ट्रेडिंग कंपनी', 'M/s. S.R. Trading Company', 'कांदा-बटाटा', @onion_potato_category_id, NULL, NULL, '173', '800', 'submitted', 1, NOW(), NOW()
 WHERE @trader_id IS NOT NULL AND @gala_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trader_galas WHERE trader_id = @trader_id AND gala_id = @gala_id);
 
 -- Row 174 | Mobile 9970958550 | श्री.संतोष रामदास ितखोळे
