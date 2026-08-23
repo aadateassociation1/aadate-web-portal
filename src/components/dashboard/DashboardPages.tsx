@@ -292,7 +292,9 @@ export function AdminUsersPage() {
     verified_at: string | null;
     created_at: string;
   };
+  type TraderStatusCount = { verification_status: string; count: number | string };
   const [traders, setTraders] = useState<ManagedTrader[]>([]);
+  const [traderStats, setTraderStats] = useState<TraderStatusCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -322,6 +324,7 @@ export function AdminUsersPage() {
       }
       if (!response.ok || !result.ok) throw new Error(result.error || "Could not load Members");
       setTraders(result.traders);
+      setTraderStats(result.stats || []);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not load Members");
     } finally {
@@ -333,7 +336,17 @@ export function AdminUsersPage() {
     loadTraders();
   }, []);
 
-  const stats = {
+  const statusCount = (statuses: string[]) =>
+    traderStats
+      .filter((item) => statuses.includes(item.verification_status))
+      .reduce((total, item) => total + Number(item.count || 0), 0);
+  const stats = traderStats.length > 0 ? {
+    total: traderStats.reduce((total, item) => total + Number(item.count || 0), 0),
+    approved: statusCount(["approved"]),
+    pending: statusCount(["submitted", "under_review", "correction_required"]),
+    rejected: statusCount(["rejected"]),
+    suspended: statusCount(["suspended", "deactivated"]),
+  } : {
     total: traders.length,
     approved: traders.filter((item) => item.verification_status === "approved").length,
     pending: traders.filter((item) => ["submitted", "under_review", "correction_required"].includes(item.verification_status)).length,

@@ -3742,6 +3742,18 @@ app.patch("/api/v1/admin/trader-kyc/bulk-approve", requireRoles("MAIN_ADMIN", "U
 app.get("/api/v1/admin/traders", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
   const status = String(req.query.status || "approved");
   const search = String(req.query.search || "").trim();
+  const statusCountsWhere = search
+    ? `WHERE (
+          t.trader_code = :search
+          OR u.full_name LIKE :likeSearch
+          OR u.full_name_en LIKE :likeSearch
+          OR u.mobile = :search
+          OR t.business_name LIKE :likeSearch
+          OR t.business_name_en LIKE :likeSearch
+          OR mg.gala_number = :search
+          OR t.market_registration_number = :search
+        )`
+    : "";
   const [rows] = await pool.query(
     `${traderRequestSelect}
       WHERE (:status = 'all' OR t.verification_status = :status)
@@ -3749,8 +3761,10 @@ app.get("/api/v1/admin/traders", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async
           :search = ''
           OR t.trader_code = :search
           OR u.full_name LIKE :likeSearch
+          OR u.full_name_en LIKE :likeSearch
           OR u.mobile = :search
           OR t.business_name LIKE :likeSearch
+          OR t.business_name_en LIKE :likeSearch
           OR mg.gala_number = :search
           OR t.market_registration_number = :search
         )
@@ -3758,7 +3772,16 @@ app.get("/api/v1/admin/traders", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async
       LIMIT 200`,
     { status, search, likeSearch: `%${search}%` },
   );
-  res.json({ ok: true, traders: rows });
+  const [statusCounts] = await pool.query(
+    `SELECT t.verification_status, COUNT(DISTINCT t.id) AS count
+       FROM traders t
+       JOIN users u ON u.id = t.user_id
+       LEFT JOIN market_galas mg ON mg.id = t.gala_id
+       ${statusCountsWhere}
+      GROUP BY t.verification_status`,
+    { search, likeSearch: `%${search}%` },
+  );
+  res.json({ ok: true, traders: rows, stats: statusCounts });
 });
 
 app.get("/api/v1/admin/traders/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
@@ -5662,6 +5685,8 @@ app.get("/api/v1/admin/reports/analytics", requireRoles("MAIN_ADMIN", "USER_ADMI
       (SELECT COUNT(*) FROM traders) AS total_traders,
       (SELECT COUNT(*) FROM traders WHERE verification_status = 'approved') AS approved_traders,
       (SELECT COUNT(*) FROM traders WHERE verification_status IN ('submitted','under_review','correction_required')) AS pending_traders,
+      (SELECT COUNT(*) FROM traders WHERE verification_status = 'rejected') AS rejected_traders,
+      (SELECT COUNT(*) FROM traders WHERE verification_status IN ('suspended','deactivated')) AS suspended_traders,
       (SELECT COUNT(*) FROM posts WHERE status = 'published') AS published_content
   `);
 

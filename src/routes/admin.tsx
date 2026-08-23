@@ -106,6 +106,8 @@ function AdminDash() {
     total_traders?: number;
     approved_traders?: number;
     pending_traders?: number;
+    rejected_traders?: number;
+    suspended_traders?: number;
     published_content?: number;
     pwa_installs_total?: number;
     pwa_installs_today?: number;
@@ -203,11 +205,11 @@ function AdminDash() {
   ).toLowerCase().includes(q.toLowerCase()));
 
   const dashboardStats = {
-    total: traders.length,
-    approved: traders.filter((item) => item.verification_status === "approved").length,
-    pending: traders.filter((item) => ["submitted", "under_review", "correction_required"].includes(item.verification_status)).length,
-    rejected: traders.filter((item) => item.verification_status === "rejected").length,
-    suspended: traders.filter((item) => ["suspended", "deactivated"].includes(item.verification_status)).length,
+    total: Number(analyticsSummary?.total_traders ?? traders.length),
+    approved: Number(analyticsSummary?.approved_traders ?? traders.filter((item) => item.verification_status === "approved").length),
+    pending: Number(analyticsSummary?.pending_traders ?? traders.filter((item) => ["submitted", "under_review", "correction_required"].includes(item.verification_status)).length),
+    rejected: Number(analyticsSummary?.rejected_traders ?? traders.filter((item) => item.verification_status === "rejected").length),
+    suspended: Number(analyticsSummary?.suspended_traders ?? traders.filter((item) => ["suspended", "deactivated"].includes(item.verification_status)).length),
   };
 
   return (
