@@ -2387,6 +2387,7 @@ type CommitteeMemberRecord = {
   full_name: string;
   name_mr: string | null;
   designation: string;
+  designation_mr: string | null;
   gala_number: string | null;
   term_label: string | null;
   message: string | null;
@@ -2400,6 +2401,7 @@ const emptyCommitteeForm = {
   fullName: "",
   nameMr: "",
   designation: "",
+  designationMr: "",
   galaNumber: "",
   termLabel: "",
   message: "",
@@ -2446,6 +2448,7 @@ export function AdminCommitteePage() {
       fullName: member.full_name,
       nameMr: member.name_mr || "",
       designation: member.designation,
+      designationMr: member.designation_mr || "",
       galaNumber: member.gala_number || "",
       termLabel: member.term_label || "",
       message: member.message || "",
@@ -2495,6 +2498,9 @@ export function AdminCommitteePage() {
   };
 
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
+  const { lang } = useI18n();
+  const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
+  const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
 
   return (
     <DashLayout kind="admin">
@@ -2506,8 +2512,10 @@ export function AdminCommitteePage() {
               <div className="mx-auto grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-secondary font-display text-lg font-bold text-primary">
                 {m.photo_url ? <img src={m.photo_url} alt={m.full_name} className="h-full w-full object-cover" /> : initials(m.full_name)}
               </div>
-              <h3 className="mt-3 font-display font-semibold text-primary-dark">{m.full_name}</h3>
-              <div className="text-sm text-primary">{m.designation}</div>
+              <h3 className="mt-3 font-display font-semibold text-primary-dark">{displayCommitteeName(m)}</h3>
+              {lang === "en" && m.name_mr && <div className="mt-0.5 text-xs text-muted-foreground">{m.name_mr}</div>}
+              <div className="mt-1 text-sm text-primary">{displayCommitteeDesignation(m)}</div>
+              {lang === "en" && m.designation_mr && <div className="text-xs text-muted-foreground">{m.designation_mr}</div>}
               {m.gala_number && <div className="mt-1 text-xs text-muted-foreground">Gala {m.gala_number}</div>}
               {m.term_label && <div className="mt-1 text-xs text-muted-foreground">Term {m.term_label}</div>}
               <Badge className={`mt-3 ${m.status === "active" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{m.status}</Badge>
@@ -2570,6 +2578,10 @@ export function AdminCommitteePage() {
               <div className="space-y-2">
                 <Label>Designation *</Label>
                 <Input value={form.designation} onChange={(event) => setForm({ ...form, designation: event.target.value })} required placeholder="Chairman, Secretary..." />
+              </div>
+              <div className="space-y-2">
+                <Label>Designation in Marathi</Label>
+                <Input value={form.designationMr} onChange={(event) => setForm({ ...form, designationMr: event.target.value })} placeholder="अध्यक्ष, सचिव..." />
               </div>
               <div className="space-y-2">
                 <Label>Gala number</Label>

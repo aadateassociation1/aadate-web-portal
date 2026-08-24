@@ -1601,6 +1601,7 @@ async function ensurePlatformExtensions() {
       full_name VARCHAR(160) NOT NULL,
       name_mr VARCHAR(160) NULL,
       designation VARCHAR(100) NOT NULL,
+      designation_mr VARCHAR(100) NULL,
       gala_number VARCHAR(40) NULL,
       term_label VARCHAR(80) NULL,
       message TEXT NULL,
@@ -1625,6 +1626,7 @@ async function ensurePlatformExtensions() {
     );
   }
   for (const column of [
+    ["designation_mr", "VARCHAR(100) NULL"],
     ["photo_storage_key", "VARCHAR(500) NULL"],
     ["photo_original_filename", "VARCHAR(255) NULL"],
     ["photo_mime_type", "VARCHAR(100) NULL"],
@@ -2650,7 +2652,7 @@ app.get("/api/v1/public/gallery", async (_req, res) => {
 
 app.get("/api/v1/public/committee", async (_req, res) => {
   const [members] = await pool.query(
-    `SELECT id, full_name, name_mr, designation, gala_number, term_label, message,
+    `SELECT id, full_name, name_mr, designation, designation_mr, gala_number, term_label, message,
             photo_original_filename, photo_mime_type, photo_file_size_bytes,
             CASE WHEN photo_storage_key IS NULL THEN NULL ELSE CONCAT('/api/v1/public/committee/', id, '/photo') END AS photo_url,
             display_order, status, updated_at
@@ -3179,7 +3181,7 @@ app.get("/api/v1/admin/dashboard-summary", async (_req, res) => {
 
 app.get("/api/v1/admin/committee", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (_req, res) => {
   const [members] = await pool.query(
-    `SELECT id, full_name, name_mr, designation, gala_number, term_label, message,
+    `SELECT id, full_name, name_mr, designation, designation_mr, gala_number, term_label, message,
             photo_original_filename, photo_mime_type, photo_file_size_bytes,
             CASE WHEN photo_storage_key IS NULL THEN NULL ELSE CONCAT('/api/v1/public/committee/', id, '/photo') END AS photo_url,
             display_order, status, updated_at
@@ -3198,6 +3200,7 @@ function normalizeCommitteePayload(body) {
     fullName,
     nameMr: String(body?.nameMr || body?.name_mr || "").trim() || null,
     designation,
+    designationMr: String(body?.designationMr || body?.designation_mr || "").trim() || null,
     galaNumber: String(body?.galaNumber || body?.gala_number || "").trim() || null,
     termLabel: String(body?.termLabel || body?.term_label || "").trim() || null,
     message: String(body?.message || "").trim() || null,
@@ -3210,8 +3213,8 @@ app.post("/api/v1/admin/committee", requireRoles("MAIN_ADMIN", "USER_ADMIN"), as
   try {
     const payload = normalizeCommitteePayload(req.body);
     const [result] = await pool.query(
-      `INSERT INTO committee_members (full_name, name_mr, designation, gala_number, term_label, message, display_order, status)
-       VALUES (:fullName, :nameMr, :designation, :galaNumber, :termLabel, :message, :displayOrder, :status)`,
+      `INSERT INTO committee_members (full_name, name_mr, designation, designation_mr, gala_number, term_label, message, display_order, status)
+       VALUES (:fullName, :nameMr, :designation, :designationMr, :galaNumber, :termLabel, :message, :displayOrder, :status)`,
       payload,
     );
     if (req.body?.photo?.dataUrl) {
@@ -3266,6 +3269,7 @@ app.patch("/api/v1/admin/committee/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"
           SET full_name = :fullName,
               name_mr = :nameMr,
               designation = :designation,
+              designation_mr = :designationMr,
               gala_number = :galaNumber,
               term_label = :termLabel,
               message = :message,

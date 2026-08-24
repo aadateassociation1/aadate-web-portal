@@ -57,7 +57,7 @@ const GALLERY_TILES = [
 function Home() {
   const { t, lang } = useI18n();
   type PublicContent = { id: number; title_en: string; content_en?: string; published_at: string | null; created_at: string; parsed?: { category?: string; details?: string }; attachments?: Array<{ id: number; attachment_type: string; original_filename: string }> };
-  type CommitteeMemberRecord = { id: number; full_name: string; name_mr: string | null; designation: string; gala_number: string | null; term_label: string | null; message: string | null; photo_url: string | null };
+  type CommitteeMemberRecord = { id: number; full_name: string; name_mr: string | null; designation: string; designation_mr: string | null; gala_number: string | null; term_label: string | null; message: string | null; photo_url: string | null };
   type PublicReview = { id: number; rating_value: number; review_text: string | null; reviewer_type: "trader" | "customer"; reviewer_name: string; business_name: string; trader_code: string; trader_name: string; gala_number: string | null; customer_code: string | null; created_at: string; attachments?: Array<{ id: number; attachment_type: "image" | "video"; original_filename: string; mime_type: string; file_size_bytes: number }> };
   type PublicPrice = { item_id: number; category: string; name_en: string; name_mr: string; min_price: number; max_price: number; modal_price: number; unit: string; change_amount: number | null; change_direction: string; published_at: string | null };
   const [updates, setUpdates] = useState<PublicContent[]>([]);
@@ -80,6 +80,8 @@ function Home() {
   const chairman = committee.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
   const committeeMembers = committee.filter((member) => member.id !== chairman?.id);
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
+  const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
+  const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
   const chairmanCopy = lang === "mr"
     ? {
         current: "सध्याचे अध्यक्ष",
@@ -329,8 +331,9 @@ function Home() {
                     <div className="mx-auto grid h-40 w-40 place-items-center overflow-hidden rounded-full border-4 border-white bg-secondary font-display text-2xl font-bold text-primary shadow-md ring-1 ring-border">
                       <CommitteeAvatar member={m} />
                     </div>
-                    <h4 className="mt-2 font-display font-semibold leading-snug text-primary-dark">{m.full_name}</h4>
-                    <div className="mt-1.5 inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">{m.designation}</div>
+                    <h4 className="mt-2 font-display font-semibold leading-snug text-primary-dark">{displayCommitteeName(m)}</h4>
+                    {lang === "en" && m.name_mr && <div className="mt-0.5 text-xs text-muted-foreground">{m.name_mr}</div>}
+                    <div className="mt-1.5 inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">{displayCommitteeDesignation(m)}</div>
                     {m.gala_number && <div className="mt-1.5 text-xs font-medium text-muted-foreground">Gala {m.gala_number}</div>}
                   </CardContent>
                 </Card>

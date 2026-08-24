@@ -24,6 +24,7 @@ type CommitteeMemberRecord = {
   full_name: string;
   name_mr: string | null;
   designation: string;
+  designation_mr: string | null;
   gala_number: string | null;
   term_label: string | null;
   message: string | null;
@@ -46,6 +47,8 @@ function Chairman() {
   const chairman = members.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
   const committeeMembers = members.filter((member) => member.id !== chairman?.id);
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
+  const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
+  const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
   const chairmanCopy = lang === "mr"
     ? {
         current: "सध्याचे अध्यक्ष",
@@ -145,8 +148,9 @@ function Chairman() {
                   <div className="mx-auto grid h-44 w-44 place-items-center overflow-hidden rounded-full border-4 border-white bg-secondary font-display text-2xl font-bold text-primary shadow-md ring-1 ring-border">
                     <CommitteeAvatar member={m} />
                   </div>
-                  <h3 className="mt-2 font-display text-lg font-semibold leading-snug text-primary-dark">{m.full_name}</h3>
-                  <div className="mt-1.5 inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">{m.designation}</div>
+                  <h3 className="mt-2 font-display text-lg font-semibold leading-snug text-primary-dark">{displayCommitteeName(m)}</h3>
+                  {lang === "en" && m.name_mr && <div className="mt-0.5 text-xs text-muted-foreground">{m.name_mr}</div>}
+                  <div className="mt-1.5 inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">{displayCommitteeDesignation(m)}</div>
                   {m.gala_number && <div className="mt-1.5 text-xs font-medium text-muted-foreground">Gala {m.gala_number}</div>}
                 </CardContent>
               </Card>
