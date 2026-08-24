@@ -215,7 +215,7 @@ export function DashLayout({ kind, children }: Props) {
     .toUpperCase();
 
   return (
-    <div className="flex min-h-screen w-full overflow-x-hidden bg-muted/40">
+    <div className="flex h-screen w-full overflow-hidden bg-muted/40">
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-40 flex w-[min(18rem,86vw)] shrink-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground transition-transform lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex min-h-24 shrink-0 items-center border-b border-sidebar-border px-4 py-4">
@@ -296,8 +296,8 @@ export function DashLayout({ kind, children }: Props) {
       {open && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setOpen(false)} />}
 
       {/* Main */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex min-h-16 items-center gap-2 border-b border-border bg-background/95 px-3 py-2 backdrop-blur sm:min-h-20 sm:gap-3 sm:px-6">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="z-20 flex min-h-16 shrink-0 items-center gap-2 border-b border-border bg-background/95 px-3 py-2 backdrop-blur sm:min-h-20 sm:gap-3 sm:px-6">
           <button
             onClick={() => setOpen(!open)}
             className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-border lg:hidden"
@@ -339,7 +339,7 @@ export function DashLayout({ kind, children }: Props) {
             <Link to="/"><Home className="h-4 w-4 mr-1" /><span className="hidden md:inline">Public Site</span><span className="md:hidden">Site</span></Link>
           </Button>
         </header>
-        <main className={`min-w-0 flex-1 p-3 sm:p-6 lg:p-8 ${kind === "owner" ? "pb-24 lg:pb-8" : ""}`}>{children}</main>
+        <main className={`min-w-0 flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 ${kind === "owner" ? "pb-24 lg:pb-8" : ""}`}>{children}</main>
         {kind === "owner" && (
           <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden" aria-label="Member quick navigation">
             <div className="grid grid-cols-5 gap-1">
