@@ -1319,7 +1319,7 @@ export function AdminUpdatesPage() {
   const [updates, setUpdates] = useState<DashboardPost[]>([]);
   const [editing, setEditing] = useState<DashboardPost | null>(null);
   const loadUpdates = async () => {
-    const response = await fetch("/api/v1/public/posts");
+    const response = await fetch("/api/v1/admin/content-posts?kind=updates", { credentials: "include" });
     const result = await response.json();
     if (result.ok) setUpdates(result.posts || []);
   };
@@ -1334,11 +1334,11 @@ export function AdminUpdatesPage() {
               {updates.map((u) => (
                 <div key={u.id} className="flex items-start gap-3 rounded-lg border p-3">
                   {(u.attachments || []).find((file) => file.attachment_type === "image") ? (
-                    <img src={`/api/v1/public/content-attachments/${(u.attachments || []).find((file) => file.attachment_type === "image")?.id}/download`} className="h-16 w-20 shrink-0 rounded-md object-cover" />
+                    <img src={`/api/v1/admin/content-attachments/${(u.attachments || []).find((file) => file.attachment_type === "image")?.id}/download`} className="h-16 w-20 shrink-0 rounded-md object-cover" />
                   ) : (
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><Newspaper className="h-4 w-4" /></div>
                   )}
-                  <div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{u.parsed?.category || "General"} - {new Date(u.published_at || u.created_at).toLocaleDateString("en-IN")}</div><div className="font-medium text-primary-dark">{u.title_en}</div><p className="mt-1 text-sm text-muted-foreground">{u.parsed?.details || ""}</p></div>
+                  <div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{u.parsed?.category || "General"} - {new Date(u.published_at || u.created_at).toLocaleDateString("en-IN")}</div><div className="font-medium text-primary-dark">{u.title_en}</div><p className="mt-1 text-sm text-muted-foreground">{u.parsed?.details || ""}</p><div className="mt-1 text-xs font-semibold text-primary">Visible to {u.share_audience === "category" ? u.share_category_name || "selected category" : "All Members"}</div></div>
                   <div className="flex shrink-0 flex-col gap-2">
                     <Badge className="bg-success/15 text-success">Published</Badge>
                     <Button size="sm" variant="outline" onClick={() => setEditing(u)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
@@ -1361,9 +1361,9 @@ export function AdminNoticesPage() {
   const [notices, setNotices] = useState<DashboardPost[]>([]);
   const [editing, setEditing] = useState<DashboardPost | null>(null);
   const loadNotices = async () => {
-    const response = await fetch("/api/v1/public/notices");
+    const response = await fetch("/api/v1/admin/content-posts?kind=notices", { credentials: "include" });
     const result = await response.json();
-    if (result.ok) setNotices(result.notices || []);
+    if (result.ok) setNotices(result.posts || []);
   };
   useEffect(() => { loadNotices(); }, []);
   return (
@@ -1377,9 +1377,10 @@ export function AdminNoticesPage() {
                 <div className="flex items-center justify-between gap-2"><Badge variant="outline">{n.parsed?.category || "Notice"}</Badge><span className="text-xs text-muted-foreground">#{n.id}</span></div>
                 <h3 className="mt-3 font-display font-semibold text-primary-dark">{n.title_en}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{n.parsed?.details || ""}</p>
+                <div className="mt-2 text-xs font-semibold text-primary">Visible to {n.share_audience === "category" ? n.share_category_name || "selected category" : "All Members"}</div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {(n.attachments || []).map((file) => (
-                    <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/public/content-attachments/${file.id}/download?download=1`, "_blank")}><Download className="mr-1 h-4 w-4" /> {file.original_filename}</Button>
+                    <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/admin/content-attachments/${file.id}/download?download=1`, "_blank")}><Download className="mr-1 h-4 w-4" /> {file.original_filename}</Button>
                   ))}
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -1481,6 +1482,56 @@ function publicPostType(kind: PublicPostKind) {
   return "gallery";
 }
 
+function PostAudienceFields({
+  audience,
+  setAudience,
+  categoryId,
+  setCategoryId,
+  categories,
+}: {
+  audience: "all" | "category";
+  setAudience: (value: "all" | "category") => void;
+  categoryId: string;
+  setCategoryId: (value: string) => void;
+  categories: BusinessCategoryOption[];
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div>
+        <Label>Visible to</Label>
+        <Select
+          value={audience}
+          onValueChange={(value) => {
+            setAudience(value as "all" | "category");
+            if (value === "all") setCategoryId("");
+          }}
+        >
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Members</SelectItem>
+            <SelectItem value="category">Selected category</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      {audience === "category" && (
+        <div>
+          <Label>Member category</Label>
+          <Select value={categoryId} onValueChange={setCategoryId}>
+            <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+            <SelectContent>
+              {categories.map((item) => (
+                <SelectItem key={item.id} value={String(item.id)}>
+                  {item.name_en}{item.name_mr ? ` / ${item.name_mr}` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PublicPostEditDialog({
   post,
   kind,
@@ -1495,6 +1546,9 @@ function PublicPostEditDialog({
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("General");
   const [details, setDetails] = useState("");
+  const [audience, setAudience] = useState<"all" | "category">("all");
+  const [categoryId, setCategoryId] = useState("");
+  const [categories, setCategories] = useState<BusinessCategoryOption[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -1502,11 +1556,26 @@ function PublicPostEditDialog({
     setTitle(post.title_en || "");
     setCategory(post.parsed?.category || (kind === "gallery" ? "Images" : "General"));
     setDetails(post.parsed?.details || post.content_en || "");
+    setAudience(post.share_audience === "category" ? "category" : "all");
+    setCategoryId(post.share_category_id ? String(post.share_category_id) : "");
   }, [post, kind]);
+
+  useEffect(() => {
+    fetch("/api/v1/admin/business-categories", { credentials: "include" })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.ok) setCategories(result.categories || []);
+      })
+      .catch(() => undefined);
+  }, []);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!post) return;
+    if (audience === "category" && !categoryId) {
+      toast.error("Select Member category.");
+      return;
+    }
     setSaving(true);
     try {
       const response = await fetch(`/api/v1/admin/posts/${post.id}`, {
@@ -1519,6 +1588,8 @@ function PublicPostEditDialog({
           category,
           contentEn: details,
           status: "published",
+          shareAudience: audience,
+          shareCategoryId: audience === "category" ? Number(categoryId) : null,
         }),
       });
       const result = await response.json();
@@ -1544,6 +1615,9 @@ function PublicPostEditDialog({
           <div><Label>Title</Label><Input value={title} onChange={(event) => setTitle(event.target.value)} required /></div>
           <div><Label>{kind === "gallery" ? "Section / media type" : "Category"}</Label><Input value={category} onChange={(event) => setCategory(event.target.value)} required /></div>
           <div><Label>{kind === "gallery" ? "Section / event details" : "Description"}</Label><Textarea value={details} onChange={(event) => setDetails(event.target.value)} rows={5} required /></div>
+          {kind !== "gallery" && (
+            <PostAudienceFields audience={audience} setAudience={setAudience} categoryId={categoryId} setCategoryId={setCategoryId} categories={categories} />
+          )}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit" className="bg-primary" disabled={saving}>{saving ? "Saving..." : "Update"}</Button>
@@ -2065,6 +2139,17 @@ export function AdminOwnerPostsPage() {
 function PublishCard({ kind, onPublished }: { kind: "update" | "notice"; onPublished?: () => void }) {
   const [files, setFiles] = useState<File[]>([]);
   const [category, setCategory] = useState("General");
+  const [audience, setAudience] = useState<"all" | "category">("all");
+  const [categoryId, setCategoryId] = useState("");
+  const [categories, setCategories] = useState<BusinessCategoryOption[]>([]);
+  useEffect(() => {
+    fetch("/api/v1/admin/business-categories", { credentials: "include" })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.ok) setCategories(result.categories || []);
+      })
+      .catch(() => undefined);
+  }, []);
   const describeFile = (file: File) => {
     if (file.type.startsWith("image/")) return { label: "Image", icon: Camera };
     if (file.type.startsWith("video/")) return { label: "Video", icon: Video };
@@ -2076,6 +2161,10 @@ function PublishCard({ kind, onPublished }: { kind: "update" | "notice"; onPubli
     const data = new FormData(form);
     const titleEn = String(data.get("titleEn") || "").trim();
     const contentEn = String(data.get("contentEn") || "").trim();
+    if (audience === "category" && !categoryId) {
+      toast.error("Select Member category.");
+      return;
+    }
 
     try {
       const attachments = await Promise.all(files.slice(0, 8).map(fileToUploadPayload));
@@ -2090,6 +2179,8 @@ function PublishCard({ kind, onPublished }: { kind: "update" | "notice"; onPubli
           category,
           attachments,
           status: "published",
+          shareAudience: audience,
+          shareCategoryId: audience === "category" ? Number(categoryId) : null,
         }),
       });
       const result = await response.json();
@@ -2098,6 +2189,8 @@ function PublishCard({ kind, onPublished }: { kind: "update" | "notice"; onPubli
       form.reset();
       setFiles([]);
       setCategory("General");
+      setAudience("all");
+      setCategoryId("");
       onPublished?.();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Publish failed");
@@ -2111,6 +2204,7 @@ function PublishCard({ kind, onPublished }: { kind: "update" | "notice"; onPubli
         <form className="mt-4 space-y-3" onSubmit={submit}>
           <div><Label>Title</Label><Input name="titleEn" required placeholder={kind === "update" ? "Onion price update" : "Meeting notice"} /></div>
           <div><Label>Category</Label><Select value={category} onValueChange={setCategory}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{["General", "Emergency", "Meeting", "Payment", "Water Supply", "Electricity", "Market Holiday", "Rates", "Arrival"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
+          <PostAudienceFields audience={audience} setAudience={setAudience} categoryId={categoryId} setCategoryId={setCategoryId} categories={categories} />
           <div><Label>Description</Label><Textarea name="contentEn" required rows={4} /></div>
           <label className={`flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm hover:border-primary ${files.length ? "border-success bg-success/10" : "bg-background"}`}>
             <Upload className="h-6 w-6 text-primary" />
@@ -4191,26 +4285,26 @@ export function OwnerGalaPage() {
 export function OwnerUpdatesPage() {
   const [items, setItems] = useState<DashboardPost[]>([]);
   useEffect(() => {
-    fetch("/api/v1/public/posts").then((response) => response.json()).then((result) => { if (result.ok) setItems(result.posts || []); }).catch(() => undefined);
+    fetch("/api/v1/trader/market-updates", { credentials: "include" }).then((response) => response.json()).then((result) => { if (result.ok) setItems(result.posts || []); }).catch(() => undefined);
   }, []);
-  return <OwnerDbContentPage title="Market Updates" subtitle="Daily market prices, arrivals, weather alerts, and public announcements." icon={Newspaper} items={items} />;
+  return <OwnerDbContentPage title="Market Updates" subtitle="Daily market prices, arrivals, weather alerts, and updates visible to your Member category." icon={Newspaper} items={items} attachmentBase="/api/v1/trader/content-attachments" />;
 }
 
 export function OwnerNoticesPage() {
   const [items, setItems] = useState<DashboardPost[]>([]);
   useEffect(() => {
-    fetch("/api/v1/public/notices").then((response) => response.json()).then((result) => { if (result.ok) setItems(result.notices || []); }).catch(() => undefined);
+    fetch("/api/v1/trader/notices", { credentials: "include" }).then((response) => response.json()).then((result) => { if (result.ok) setItems(result.notices || []); }).catch(() => undefined);
   }, []);
-  return <OwnerDbContentPage title="Notices & Documents" subtitle="Official documents, circulars, meeting notices, and downloadable files." icon={FileText} items={items} />;
+  return <OwnerDbContentPage title="Notices & Documents" subtitle="Official documents, circulars, meeting notices, and files visible to your Member category." icon={FileText} items={items} attachmentBase="/api/v1/trader/content-attachments" />;
 }
 
-function OwnerDbContentPage({ title, subtitle, icon: Icon, items }: { title: string; subtitle: string; icon: React.ElementType; items: DashboardPost[] }) {
+function OwnerDbContentPage({ title, subtitle, icon: Icon, items, attachmentBase = "/api/v1/public/content-attachments" }: { title: string; subtitle: string; icon: React.ElementType; items: DashboardPost[]; attachmentBase?: string }) {
   return (
     <DashLayout kind="owner">
       <PageTitle title={title} subtitle={subtitle} />
       <Card className="border-border/60"><CardContent className="p-4 sm:p-6"><div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><SearchBar /><Button variant="outline" className="w-full sm:w-auto">Filter</Button></div><div className="grid gap-3 md:grid-cols-2">{items.map((item) => {
         const image = (item.attachments || []).find((file) => file.attachment_type === "image");
-        return <div key={item.id} className="overflow-hidden rounded-lg border bg-background">{image && <img src={`/api/v1/public/content-attachments/${image.id}/download`} className="h-40 w-full bg-secondary/30 object-contain sm:h-44" />}<div className="p-4"><div className="flex items-start gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><Icon className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{item.parsed?.category || "General"} - {new Date(item.published_at || item.created_at).toLocaleDateString("en-IN")}</div><h3 className="mt-1 whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{item.title_en}</h3><p className="mt-1 whitespace-normal break-words text-sm leading-5 text-muted-foreground">{item.parsed?.details || ""}</p></div></div><div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">{(item.attachments || []).map((file) => <Button key={file.id} size="sm" variant="outline" className="w-full justify-start sm:w-auto" onClick={() => window.open(`/api/v1/public/content-attachments/${file.id}/download?download=1`, "_blank")}><Download className="mr-1 h-4 w-4 shrink-0" /> <span className="truncate">{file.original_filename}</span></Button>)}</div></div></div>;
+        return <div key={item.id} className="overflow-hidden rounded-lg border bg-background">{image && <img src={`${attachmentBase}/${image.id}/download`} className="h-40 w-full bg-secondary/30 object-contain sm:h-44" />}<div className="p-4"><div className="flex items-start gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><Icon className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{item.parsed?.category || "General"} - {new Date(item.published_at || item.created_at).toLocaleDateString("en-IN")}</div><h3 className="mt-1 whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{item.title_en}</h3><p className="mt-1 whitespace-normal break-words text-sm leading-5 text-muted-foreground">{item.parsed?.details || ""}</p>{item.share_audience === "category" && <div className="mt-2 text-xs font-semibold text-primary">Visible to {item.share_category_name || "your category"}</div>}</div></div><div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">{(item.attachments || []).map((file) => <Button key={file.id} size="sm" variant="outline" className="w-full justify-start sm:w-auto" onClick={() => window.open(`${attachmentBase}/${file.id}/download?download=1`, "_blank")}><Download className="mr-1 h-4 w-4 shrink-0" /> <span className="truncate">{file.original_filename}</span></Button>)}</div></div></div>;
       })}</div>{items.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No published content yet.</div>}</CardContent></Card>
     </DashLayout>
   );

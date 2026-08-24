@@ -712,6 +712,8 @@ async function createMemberNotifications(connection, {
   actionUrl = null,
   priority = "normal",
   excludeUserId = null,
+  shareAudience = "all",
+  shareCategoryId = null,
 }) {
   const [result] = await connection.query(
     `INSERT INTO notifications (
@@ -723,10 +725,22 @@ async function createMemberNotifications(connection, {
         FROM users u
         JOIN roles r ON r.id = u.role_id
         JOIN traders t ON t.user_id = u.id
+        LEFT JOIN business_categories viewer_category ON viewer_category.id = t.business_category_id
+        LEFT JOIN business_categories target_category ON target_category.id = :shareCategoryId
        WHERE r.code = 'TRADER'
          AND u.status = 'active'
          AND t.verification_status = 'approved'
-         AND (:excludeUserId IS NULL OR u.id <> :excludeUserId)`,
+         AND (:excludeUserId IS NULL OR u.id <> :excludeUserId)
+         AND (
+           :shareAudience = 'all'
+           OR (
+             :shareAudience = 'category'
+             AND (
+               t.business_category_id = :shareCategoryId
+              OR (target_category.name_en IS NOT NULL AND target_category.name_en = viewer_category.name_en)
+             )
+           )
+         )`,
     {
       type,
       title,
@@ -736,6 +750,8 @@ async function createMemberNotifications(connection, {
       actionUrl,
       priority,
       excludeUserId,
+      shareAudience,
+      shareCategoryId,
     },
   );
   return result.affectedRows || 0;
@@ -825,17 +841,30 @@ async function sendPushToUser({ userId, title, body, url, type, entityId = null,
   });
 }
 
-async function sendPushToAllMembers({ title, body, url, type, entityId, priority = "normal", notificationId = null }) {
+async function sendPushToAllMembers({ title, body, url, type, entityId, priority = "normal", notificationId = null, shareAudience = "all", shareCategoryId = null }) {
   const [subscriptions] = await pool.query(
     `SELECT ps.id, ps.endpoint, ps.p256dh_key, ps.auth_key
        FROM push_subscriptions ps
        JOIN users u ON u.id = ps.user_id
        JOIN roles r ON r.id = u.role_id
        LEFT JOIN traders t ON t.user_id = u.id
+       LEFT JOIN business_categories viewer_category ON viewer_category.id = t.business_category_id
+       LEFT JOIN business_categories target_category ON target_category.id = :shareCategoryId
       WHERE ps.is_active = 1
         AND u.status = 'active'
         AND r.code = 'TRADER'
-        AND (t.id IS NULL OR t.verification_status = 'approved')`,
+        AND (t.id IS NULL OR t.verification_status = 'approved')
+        AND (
+          :shareAudience = 'all'
+          OR (
+            :shareAudience = 'category'
+            AND (
+              t.business_category_id = :shareCategoryId
+              OR (target_category.name_en IS NOT NULL AND target_category.name_en = viewer_category.name_en)
+            )
+          )
+        )`,
+    { shareAudience, shareCategoryId },
   );
   return sendPushToSubscriptions({
     subscriptions,
@@ -885,7 +914,21 @@ function getPostNotificationMeta(postType) {
   };
 }
 
-async function notifyMembersAboutPublishedPost(connection, { postId, postType, titleEn, details, excludeUserId = null }) {
+function normalizeShareSettings(body = {}) {
+  const shareAudience = String(body.shareAudience || body.share_audience || "all");
+  return {
+    shareAudience: shareAudience === "category" ? "category" : "all",
+    shareCategoryId: shareAudience === "category" ? Number(body.shareCategoryId || body.share_category_id || 0) || null : null,
+  };
+}
+
+async function validateShareSettings({ shareAudience, shareCategoryId }) {
+  if (shareAudience !== "category") return null;
+  const [[category]] = await pool.query("SELECT id, name_en FROM business_categories WHERE id = :shareCategoryId AND status = 'active' LIMIT 1", { shareCategoryId });
+  return category || null;
+}
+
+async function notifyMembersAboutPublishedPost(connection, { postId, postType, titleEn, details, excludeUserId = null, shareAudience = "all", shareCategoryId = null }) {
   const meta = getPostNotificationMeta(postType);
   const cleanTitle = String(titleEn || "").trim();
   const cleanDetails = String(details || "").trim();
@@ -898,10 +941,12 @@ async function notifyMembersAboutPublishedPost(connection, { postId, postType, t
     actionUrl: meta.actionUrl,
     priority: meta.priority,
     excludeUserId,
+    shareAudience,
+    shareCategoryId,
   });
 }
 
-async function sendPublishedPostPush({ postId, postType, titleEn, details }) {
+async function sendPublishedPostPush({ postId, postType, titleEn, details, shareAudience = "all", shareCategoryId = null }) {
   try {
     const meta = getPostNotificationMeta(postType);
     await sendPushToAllMembers({
@@ -911,6 +956,8 @@ async function sendPublishedPostPush({ postId, postType, titleEn, details }) {
       type: meta.type,
       entityId: postId,
       priority: meta.priority,
+      shareAudience,
+      shareCategoryId,
     });
   } catch (error) {
     console.error("Post push notification failed", {
@@ -2582,14 +2629,14 @@ async function attachContentFiles(rows) {
 
 app.get("/api/v1/public/posts", async (_req, res) => {
   const [rows] = await pool.query(
-    "SELECT id, post_type, title_en, title_mr, content_en, content_mr, published_at, created_at FROM posts WHERE status = 'published' AND post_type IN ('news','event') ORDER BY published_at DESC, id DESC LIMIT 100",
+    "SELECT id, post_type, title_en, title_mr, content_en, content_mr, published_at, created_at, share_audience, share_category_id FROM posts WHERE status = 'published' AND post_type IN ('news','event') AND COALESCE(share_audience, 'all') = 'all' ORDER BY published_at DESC, id DESC LIMIT 100",
   );
   res.json({ ok: true, posts: await attachContentFiles(rows) });
 });
 
 app.get("/api/v1/public/notices", async (_req, res) => {
   const [rows] = await pool.query(
-    "SELECT id, post_type, title_en, title_mr, content_en, content_mr, published_at, created_at FROM posts WHERE status = 'published' AND post_type IN ('notice', 'circular') ORDER BY published_at DESC, id DESC LIMIT 100",
+    "SELECT id, post_type, title_en, title_mr, content_en, content_mr, published_at, created_at, share_audience, share_category_id FROM posts WHERE status = 'published' AND post_type IN ('notice', 'circular') AND COALESCE(share_audience, 'all') = 'all' ORDER BY published_at DESC, id DESC LIMIT 100",
   );
   res.json({ ok: true, notices: await attachContentFiles(rows) });
 });
@@ -2645,8 +2692,78 @@ app.get("/api/v1/public/content-attachments/:id/download", async (req, res) => {
        FROM content_attachments ca
        JOIN posts p ON p.id = ca.post_id
       WHERE ca.id = :attachmentId AND p.status = 'published'
+        AND COALESCE(p.share_audience, 'all') = 'all'
       LIMIT 1`,
     { attachmentId },
+  );
+  if (!attachment) {
+    res.status(404).json({ ok: false, error: "Attachment not found." });
+    return;
+  }
+  const disposition = String(req.query.download || "") === "1" ? "attachment" : "inline";
+  await recordDownloadEvent({ sourceTable: "content_attachments", sourceId: attachmentId, req });
+  await sendStoredFile(res, { ...attachment, disposition, missingMessage: "Attachment file is missing on the server." });
+});
+
+async function selectTraderVisibleContent({ traderId, postTypes }) {
+  const [rows] = await pool.query(
+    `SELECT p.id, p.post_type, p.title_en, p.title_mr, p.content_en, p.content_mr,
+            p.published_at, p.created_at, p.share_audience, p.share_category_id,
+            target_category.name_en AS share_category_name
+       FROM posts p
+       LEFT JOIN business_categories target_category ON target_category.id = p.share_category_id
+       LEFT JOIN traders viewer ON viewer.id = :traderId
+       LEFT JOIN business_categories viewer_category ON viewer_category.id = viewer.business_category_id
+      WHERE p.status = 'published'
+        AND p.post_type IN (:postTypes)
+        AND (
+          COALESCE(p.share_audience, 'all') = 'all'
+          OR (
+            p.share_audience = 'category'
+            AND (
+              p.share_category_id = viewer.business_category_id
+              OR (target_category.name_en IS NOT NULL AND target_category.name_en = viewer_category.name_en)
+            )
+          )
+        )
+      ORDER BY p.published_at DESC, p.id DESC
+      LIMIT 100`,
+    { traderId: traderId || 0, postTypes },
+  );
+  return attachContentFiles(rows);
+}
+
+app.get("/api/v1/trader/market-updates", requireRoles("TRADER"), async (req, res) => {
+  res.json({ ok: true, posts: await selectTraderVisibleContent({ traderId: req.user.trader_id, postTypes: ["news", "event"] }) });
+});
+
+app.get("/api/v1/trader/notices", requireRoles("TRADER"), async (req, res) => {
+  res.json({ ok: true, notices: await selectTraderVisibleContent({ traderId: req.user.trader_id, postTypes: ["notice", "circular"] }) });
+});
+
+app.get("/api/v1/trader/content-attachments/:id/download", requireRoles("TRADER"), async (req, res) => {
+  const attachmentId = Number(req.params.id);
+  const [[attachment]] = await pool.query(
+    `SELECT ca.storage_key, ca.original_filename, ca.mime_type
+       FROM content_attachments ca
+       JOIN posts p ON p.id = ca.post_id
+       LEFT JOIN business_categories target_category ON target_category.id = p.share_category_id
+       LEFT JOIN traders viewer ON viewer.id = :traderId
+       LEFT JOIN business_categories viewer_category ON viewer_category.id = viewer.business_category_id
+      WHERE ca.id = :attachmentId
+        AND p.status = 'published'
+        AND (
+          COALESCE(p.share_audience, 'all') = 'all'
+          OR (
+            p.share_audience = 'category'
+            AND (
+              p.share_category_id = viewer.business_category_id
+              OR (target_category.name_en IS NOT NULL AND target_category.name_en = viewer_category.name_en)
+            )
+          )
+        )
+      LIMIT 1`,
+    { attachmentId, traderId: req.user.trader_id || 0 },
   );
   if (!attachment) {
     res.status(404).json({ ok: false, error: "Attachment not found." });
@@ -3238,6 +3355,12 @@ app.post("/api/v1/admin/posts", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async 
   const allowedTypes = new Set(["news", "notice", "circular", "event", "gallery", "announcement"]);
   const safePostType = allowedTypes.has(postType) ? postType : "announcement";
   const safeStatus = status === "draft" ? "draft" : "published";
+  const { shareAudience, shareCategoryId } = normalizeShareSettings(req.body);
+  const selectedShareCategory = await validateShareSettings({ shareAudience, shareCategoryId });
+  if (safeStatus === "published" && shareAudience === "category" && !selectedShareCategory) {
+    res.status(400).json({ ok: false, error: "Select a valid member category for this post." });
+    return;
+  }
   const publisherId = await ensureSystemPublisherUser();
   const safeTitleEn = String(titleEn).trim();
   const safeCategory = String(category || "General").trim() || "General";
@@ -3255,8 +3378,8 @@ app.post("/api/v1/admin/posts", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async 
   try {
     await connection.beginTransaction();
     const [result] = await connection.query(
-    `INSERT INTO posts (post_type, title_en, title_mr, content_en, content_mr, status, published_at, created_by_user_id)
-     VALUES (:postType, :titleEn, :titleMr, :contentEn, :contentMr, :status, IF(:status = 'published', NOW(), NULL), :publisherId)`,
+    `INSERT INTO posts (post_type, title_en, title_mr, content_en, content_mr, status, published_at, created_by_user_id, share_audience, share_category_id)
+     VALUES (:postType, :titleEn, :titleMr, :contentEn, :contentMr, :status, IF(:status = 'published', NOW(), NULL), :publisherId, :shareAudience, :shareCategoryId)`,
     {
       postType: safePostType,
       titleEn: safeTitleEn,
@@ -3265,6 +3388,8 @@ app.post("/api/v1/admin/posts", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async 
       contentMr: translated.contentMr,
       status: safeStatus,
       publisherId,
+      shareAudience,
+      shareCategoryId,
     },
   );
     const postId = result.insertId;
@@ -3284,12 +3409,14 @@ app.post("/api/v1/admin/posts", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async 
         titleEn: safeTitleEn,
         details: safeDetails,
         excludeUserId: req.user.id,
+        shareAudience,
+        shareCategoryId,
       });
     }
     await connection.commit();
     if (safeStatus === "published") {
       setImmediate(() => {
-        sendPublishedPostPush({ postId, postType: safePostType, titleEn: safeTitleEn, details: safeDetails });
+        sendPublishedPostPush({ postId, postType: safePostType, titleEn: safeTitleEn, details: safeDetails, shareAudience, shareCategoryId });
       });
     }
     res.status(201).json({ ok: true, postId, titleMr: translated.titleMr, contentMr: translated.contentMr });
@@ -3323,6 +3450,15 @@ app.put("/api/v1/admin/posts/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), asy
   const allowedTypes = new Set(["news", "notice", "circular", "event", "gallery", "announcement"]);
   const postType = allowedTypes.has(req.body?.postType) ? req.body.postType : before.post_type;
   const status = req.body?.status === "draft" ? "draft" : "published";
+  const { shareAudience, shareCategoryId } = normalizeShareSettings({
+    shareAudience: req.body?.shareAudience ?? before.share_audience ?? "all",
+    shareCategoryId: req.body?.shareCategoryId ?? before.share_category_id ?? null,
+  });
+  const selectedShareCategory = await validateShareSettings({ shareAudience, shareCategoryId });
+  if (status === "published" && shareAudience === "category" && !selectedShareCategory) {
+    res.status(400).json({ ok: false, error: "Select a valid member category for this post." });
+    return;
+  }
 
   if (!titleEn) {
     res.status(400).json({ ok: false, error: "Title is required." });
@@ -3346,9 +3482,11 @@ app.put("/api/v1/admin/posts/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), asy
             content_mr = :contentMr,
             status = :status,
             published_at = IF(:status = 'published', COALESCE(published_at, NOW()), NULL),
+            share_audience = :shareAudience,
+            share_category_id = :shareCategoryId,
             updated_by_user_id = :userId
       WHERE id = :postId`,
-    { postId, postType, titleEn, titleMr: translated.titleMr, contentEn, contentMr: translated.contentMr, status, userId: req.user.id },
+    { postId, postType, titleEn, titleMr: translated.titleMr, contentEn, contentMr: translated.contentMr, status, shareAudience, shareCategoryId, userId: req.user.id },
   );
   if (before.status !== "published" && status === "published") {
     await notifyMembersAboutPublishedPost(pool, {
@@ -3357,12 +3495,14 @@ app.put("/api/v1/admin/posts/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), asy
       titleEn,
       details,
       excludeUserId: req.user.id,
+      shareAudience,
+      shareCategoryId,
     });
     setImmediate(() => {
-      sendPublishedPostPush({ postId, postType, titleEn, details });
+      sendPublishedPostPush({ postId, postType, titleEn, details, shareAudience, shareCategoryId });
     });
   }
-  await writeAudit({ req, action: "post.update", module: "posts", entityType: "posts", entityId: postId, oldValues: before, newValues: { postType, titleEn, titleMr: translated.titleMr, category, details, contentMr: translated.contentMr, status } });
+  await writeAudit({ req, action: "post.update", module: "posts", entityType: "posts", entityId: postId, oldValues: before, newValues: { postType, titleEn, titleMr: translated.titleMr, category, details, contentMr: translated.contentMr, status, shareAudience, shareCategoryId } });
   res.json({ ok: true, postId, status, titleMr: translated.titleMr, contentMr: translated.contentMr });
 });
 
@@ -5041,6 +5181,44 @@ app.get("/api/v1/admin/business-categories", requireRoles("MAIN_ADMIN", "USER_AD
   res.json({ ok: true, categories });
 });
 
+app.get("/api/v1/admin/content-posts", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const kind = String(req.query.kind || "updates");
+  const postTypes = kind === "notices" ? ["notice", "circular"] : kind === "gallery" ? ["gallery"] : ["news", "event"];
+  const [rows] = await pool.query(
+    `SELECT p.id, p.post_type, p.title_en, p.title_mr, p.content_en, p.content_mr,
+            p.status, p.published_at, p.created_at, p.share_audience, p.share_category_id,
+            target_category.name_en AS share_category_name
+       FROM posts p
+       LEFT JOIN business_categories target_category ON target_category.id = p.share_category_id
+      WHERE p.status <> 'archived'
+        AND p.post_type IN (:postTypes)
+      ORDER BY p.published_at DESC, p.created_at DESC, p.id DESC
+      LIMIT 150`,
+    { postTypes },
+  );
+  res.json({ ok: true, posts: await attachContentFiles(rows) });
+});
+
+app.get("/api/v1/admin/content-attachments/:id/download", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const attachmentId = Number(req.params.id);
+  const [[attachment]] = await pool.query(
+    `SELECT ca.storage_key, ca.original_filename, ca.mime_type
+       FROM content_attachments ca
+       JOIN posts p ON p.id = ca.post_id
+      WHERE ca.id = :attachmentId
+        AND p.status <> 'archived'
+      LIMIT 1`,
+    { attachmentId },
+  );
+  if (!attachment) {
+    res.status(404).json({ ok: false, error: "Attachment not found." });
+    return;
+  }
+  const disposition = String(req.query.download || "") === "1" ? "attachment" : "inline";
+  await recordDownloadEvent({ sourceTable: "content_attachments", sourceId: attachmentId, req });
+  await sendStoredFile(res, { ...attachment, disposition, missingMessage: "Attachment file is missing on the server." });
+});
+
 app.get("/api/v1/admin/post-queue", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
   const status = String(req.query.status || "review");
   const statusWhere = status === "all" ? "p.status IN ('draft','scheduled','published','archived')" : "p.status IN ('draft','scheduled')";
@@ -5176,6 +5354,8 @@ app.patch("/api/v1/admin/posts/:id/decision", requireRoles("MAIN_ADMIN", "USER_A
       postType: before.post_type,
       titleEn: before.title_en,
       details,
+      shareAudience,
+      shareCategoryId,
     });
     setImmediate(() => {
       sendPublishedPostPush({
@@ -5183,6 +5363,8 @@ app.patch("/api/v1/admin/posts/:id/decision", requireRoles("MAIN_ADMIN", "USER_A
         postType: before.post_type,
         titleEn: before.title_en,
         details,
+        shareAudience,
+        shareCategoryId,
       });
     });
   }
