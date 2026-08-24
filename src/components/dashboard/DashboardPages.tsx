@@ -2521,10 +2521,14 @@ type ReportAnalytics = {
     downloadable_files?: number;
     file_downloads?: number;
     resolved_complaints?: number;
+    active_complaints?: number;
+    emergency_complaints?: number;
     published_notices?: number;
     total_traders?: number;
     approved_traders?: number;
     pending_traders?: number;
+    rejected_traders?: number;
+    suspended_traders?: number;
     published_content?: number;
     pwa_installs_total?: number;
     pwa_installs_today?: number;
@@ -2535,6 +2539,24 @@ type ReportAnalytics = {
     pwa_installs_desktop?: number;
     pwa_installs_other?: number;
     generated_at?: string;
+    current_month_label?: string;
+    current_month_start?: string;
+    current_month_end?: string;
+    monthly_logins?: number;
+    monthly_file_downloads?: number;
+    monthly_pwa_installs?: number;
+    monthly_complaints_received?: number;
+    monthly_complaints_resolved?: number;
+    monthly_posts_created?: number;
+    monthly_posts_published?: number;
+    monthly_notices_published?: number;
+    monthly_registrations?: number;
+    monthly_approved_registrations?: number;
+    monthly_customer_kyc_submitted?: number;
+    monthly_customer_kyc_verified?: number;
+    monthly_market_prices_published?: number;
+    monthly_mobile_change_requests?: number;
+    monthly_mobile_change_approved?: number;
   };
   charts: {
     registrations: Array<{ month: string; count: number }>;
@@ -2598,24 +2620,47 @@ export function AdminReportsPage() {
   }, []);
 
   const exportReport = () => {
+    const monthLabel = analytics.summary.current_month_label || new Date().toLocaleString("en-IN", { month: "long", year: "numeric" });
+    const generatedAt = lastLoadedAt || new Date();
     const lines = [
-      ["Report", "Value"],
-      ["Portal logins last 30 days", analytics.summary.portal_logins_30d || 0],
-      ["File downloads", analytics.summary.file_downloads || 0],
+      ["Market Yard Portal - Monthly Admin Report"],
+      ["Month", monthLabel],
+      ["Period Start", analytics.summary.current_month_start || ""],
+      ["Period End", analytics.summary.current_month_end || ""],
+      ["Generated From Live DB", generatedAt.toLocaleString("en-IN")],
+      [],
+      ["Current Month Summary", "Count"],
+      ["New member registrations", analytics.summary.monthly_registrations || 0],
+      ["Member registrations approved", analytics.summary.monthly_approved_registrations || 0],
+      ["Customer KYC submitted", analytics.summary.monthly_customer_kyc_submitted || 0],
+      ["Customer KYC verified", analytics.summary.monthly_customer_kyc_verified || 0],
+      ["Complaints received", analytics.summary.monthly_complaints_received || 0],
+      ["Complaints resolved / closed", analytics.summary.monthly_complaints_resolved || 0],
+      ["Posts created", analytics.summary.monthly_posts_created || 0],
+      ["Posts published", analytics.summary.monthly_posts_published || 0],
+      ["Notices / circulars published", analytics.summary.monthly_notices_published || 0],
+      ["Market price entries published", analytics.summary.monthly_market_prices_published || 0],
+      ["File downloads", analytics.summary.monthly_file_downloads || 0],
+      ["Portal logins", analytics.summary.monthly_logins || 0],
+      ["App installs", analytics.summary.monthly_pwa_installs || 0],
+      ["Mobile change requests", analytics.summary.monthly_mobile_change_requests || 0],
+      ["Mobile changes approved", analytics.summary.monthly_mobile_change_approved || 0],
+      [],
+      ["Overall Dashboard Snapshot", "Count"],
+      ["Total members", analytics.summary.total_traders || 0],
+      ["Approved members", analytics.summary.approved_traders || 0],
+      ["Pending member reviews", analytics.summary.pending_traders || 0],
+      ["Rejected members", analytics.summary.rejected_traders || 0],
+      ["Suspended / deactivated members", analytics.summary.suspended_traders || 0],
+      ["Active complaints", analytics.summary.active_complaints || 0],
+      ["Resolved complaints total", analytics.summary.resolved_complaints || 0],
+      ["Emergency active complaints", analytics.summary.emergency_complaints || 0],
+      ["Published notices total", analytics.summary.published_notices || 0],
+      ["Published content total", analytics.summary.published_content || 0],
+      ["Total file downloads", analytics.summary.file_downloads || 0],
       ["Total app installs", analytics.summary.pwa_installs_total || 0],
-      ["Today's app installs", analytics.summary.pwa_installs_today || 0],
-      ["This week's app installs", analytics.summary.pwa_installs_week || 0],
-      ["This month's app installs", analytics.summary.pwa_installs_month || 0],
-      ["Unique registered users with app installs", analytics.summary.pwa_installs_registered_users || 0],
       ["Mobile app installs", analytics.summary.pwa_installs_mobile || 0],
       ["Desktop app installs", analytics.summary.pwa_installs_desktop || 0],
-      ["Other app installs", analytics.summary.pwa_installs_other || 0],
-      ["Resolved complaints", analytics.summary.resolved_complaints || 0],
-      ["Published notices", analytics.summary.published_notices || 0],
-      ["Total Members", analytics.summary.total_traders || 0],
-      ["Approved Members", analytics.summary.approved_traders || 0],
-      ["Pending Member reviews", analytics.summary.pending_traders || 0],
-      ["Published content", analytics.summary.published_content || 0],
       [],
       ["Monthly registrations"],
       ["Month", "Count"],
@@ -2642,12 +2687,12 @@ export function AdminReportsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `market-yard-report-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `market-yard-monthly-admin-report-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    toast.success("Report exported");
+    toast.success("Monthly admin report exported");
   };
 
   const summary = analytics.summary;
@@ -2676,6 +2721,31 @@ export function AdminReportsPage() {
           </div>
         }
       />
+      <Card className="mb-6 border-primary/20 bg-secondary/25">
+        <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+          <div>
+            <div className="font-display text-lg font-bold text-primary-dark">
+              {summary.current_month_label || "Current month"} report
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Download includes live monthly registrations, KYC, complaints, posts, prices, downloads, logins, and installs.
+            </div>
+          </div>
+          <Button onClick={exportReport}>
+            <Download className="mr-1 h-4 w-4" /> Download monthly report
+          </Button>
+        </CardContent>
+      </Card>
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={Store} label="This month registrations" value={loading ? "..." : (summary.monthly_registrations || 0).toLocaleString()} />
+        <StatCard icon={IdCard} label="Customer KYC verified" value={loading ? "..." : (summary.monthly_customer_kyc_verified || 0).toLocaleString()} tone="success" />
+        <StatCard icon={MessageSquare} label="Complaints this month" value={loading ? "..." : (summary.monthly_complaints_received || 0).toLocaleString()} tone="warning" />
+        <StatCard icon={CheckCircle2} label="Complaints solved" value={loading ? "..." : (summary.monthly_complaints_resolved || 0).toLocaleString()} tone="success" />
+        <StatCard icon={Newspaper} label="Posts published" value={loading ? "..." : (summary.monthly_posts_published || 0).toLocaleString()} tone="primary" />
+        <StatCard icon={FileText} label="Notices published" value={loading ? "..." : (summary.monthly_notices_published || 0).toLocaleString()} />
+        <StatCard icon={Download} label="Downloads this month" value={loading ? "..." : (summary.monthly_file_downloads || 0).toLocaleString()} tone="saffron" />
+        <StatCard icon={Smartphone} label="Installs this month" value={loading ? "..." : (summary.monthly_pwa_installs || 0).toLocaleString()} tone="primary" />
+      </div>
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Users} label="Logins last 30 days" value={loading ? "..." : (summary.portal_logins_30d || 0).toLocaleString()} />
         <StatCard icon={Download} label="File downloads" value={loading ? "..." : (summary.file_downloads || 0).toLocaleString()} tone="saffron" />

@@ -5662,12 +5662,18 @@ app.get("/api/v1/admin/reports/analytics", requireRoles("MAIN_ADMIN", "USER_ADMI
   const [[summary]] = await pool.query(`
     SELECT
       NOW() AS generated_at,
+      DATE_FORMAT(CURDATE(), '%M %Y') AS current_month_label,
+      DATE_FORMAT(DATE_FORMAT(CURDATE(), '%Y-%m-01'), '%Y-%m-%d') AS current_month_start,
+      DATE_FORMAT(LAST_DAY(CURDATE()), '%Y-%m-%d') AS current_month_end,
       (SELECT COUNT(*) FROM login_events WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS portal_logins_30d,
+      (SELECT COUNT(*) FROM login_events WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_logins,
       (SELECT COUNT(*) FROM file_download_events) AS file_downloads,
+      (SELECT COUNT(*) FROM file_download_events WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_file_downloads,
       (SELECT COUNT(*) FROM pwa_installs) AS pwa_installs_total,
       (SELECT COUNT(*) FROM pwa_installs WHERE DATE(installed_at) = CURDATE()) AS pwa_installs_today,
       (SELECT COUNT(*) FROM pwa_installs WHERE installed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS pwa_installs_week,
       (SELECT COUNT(*) FROM pwa_installs WHERE installed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS pwa_installs_month,
+      (SELECT COUNT(*) FROM pwa_installs WHERE installed_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_pwa_installs,
       (SELECT COUNT(DISTINCT user_id) FROM pwa_installs WHERE user_id IS NOT NULL) AS pwa_installs_registered_users,
       (SELECT COUNT(*) FROM pwa_installs WHERE platform IN ('android','ios')) AS pwa_installs_mobile,
       (SELECT COUNT(*) FROM pwa_installs WHERE platform = 'desktop') AS pwa_installs_desktop,
@@ -5681,14 +5687,26 @@ app.get("/api/v1/admin/reports/analytics", requireRoles("MAIN_ADMIN", "USER_ADMI
       ) AS downloadable_files,
       (SELECT COUNT(*) FROM support_tickets WHERE status NOT IN ('resolved','closed','rejected')) AS active_complaints,
       (SELECT COUNT(*) FROM support_tickets WHERE status IN ('resolved','closed')) AS resolved_complaints,
+      (SELECT COUNT(*) FROM support_tickets WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_complaints_received,
+      (SELECT COUNT(*) FROM support_tickets WHERE status IN ('resolved','closed') AND COALESCE(resolved_at, updated_at) >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_complaints_resolved,
       (SELECT COUNT(*) FROM support_tickets WHERE priority = 'emergency' AND status NOT IN ('resolved','closed','rejected')) AS emergency_complaints,
       (SELECT COUNT(*) FROM posts WHERE post_type IN ('notice','circular') AND status = 'published') AS published_notices,
+      (SELECT COUNT(*) FROM posts WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_posts_created,
+      (SELECT COUNT(*) FROM posts WHERE status = 'published' AND COALESCE(published_at, updated_at, created_at) >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_posts_published,
+      (SELECT COUNT(*) FROM posts WHERE post_type IN ('notice','circular') AND status = 'published' AND COALESCE(published_at, updated_at, created_at) >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_notices_published,
       (SELECT COUNT(*) FROM traders) AS total_traders,
       (SELECT COUNT(*) FROM traders WHERE verification_status = 'approved') AS approved_traders,
+      (SELECT COUNT(*) FROM traders WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_registrations,
+      (SELECT COUNT(*) FROM traders WHERE verification_status = 'approved' AND COALESCE(verified_at, updated_at) >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_approved_registrations,
       (SELECT COUNT(*) FROM traders WHERE verification_status IN ('submitted','under_review','correction_required')) AS pending_traders,
       (SELECT COUNT(*) FROM traders WHERE verification_status = 'rejected') AS rejected_traders,
       (SELECT COUNT(*) FROM traders WHERE verification_status IN ('suspended','deactivated')) AS suspended_traders,
-      (SELECT COUNT(*) FROM posts WHERE status = 'published') AS published_content
+      (SELECT COUNT(*) FROM posts WHERE status = 'published') AS published_content,
+      (SELECT COUNT(*) FROM customers WHERE deleted_at IS NULL AND created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_customer_kyc_submitted,
+      (SELECT COUNT(*) FROM customers WHERE deleted_at IS NULL AND kyc_status = 'verified' AND verified_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_customer_kyc_verified,
+      (SELECT COUNT(*) FROM market_prices WHERE status = 'published' AND published_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_market_prices_published,
+      (SELECT COUNT(*) FROM mobile_change_requests WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_mobile_change_requests,
+      (SELECT COUNT(*) FROM mobile_change_requests WHERE status = 'approved' AND decided_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_mobile_change_approved
   `);
 
   const [registrations] = await pool.query(`
