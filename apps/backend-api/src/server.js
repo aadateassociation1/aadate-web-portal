@@ -5661,6 +5661,7 @@ app.delete("/api/v1/admin/ratings/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN")
 app.get("/api/v1/admin/reports/analytics", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (_req, res) => {
   const [[summary]] = await pool.query(`
     SELECT
+      NOW() AS generated_at,
       (SELECT COUNT(*) FROM login_events WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS portal_logins_30d,
       (SELECT COUNT(*) FROM file_download_events) AS file_downloads,
       (SELECT COUNT(*) FROM pwa_installs) AS pwa_installs_total,

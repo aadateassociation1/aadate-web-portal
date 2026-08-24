@@ -2534,6 +2534,7 @@ type ReportAnalytics = {
     pwa_installs_mobile?: number;
     pwa_installs_desktop?: number;
     pwa_installs_other?: number;
+    generated_at?: string;
   };
   charts: {
     registrations: Array<{ month: string; count: number }>;
@@ -2562,9 +2563,10 @@ const emptyReportAnalytics: ReportAnalytics = {
 export function AdminReportsPage() {
   const [analytics, setAnalytics] = useState<ReportAnalytics>(emptyReportAnalytics);
   const [loading, setLoading] = useState(true);
+  const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null);
 
-  const loadAnalytics = async () => {
-    setLoading(true);
+  const loadAnalytics = async (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     try {
       const response = await fetch("/api/v1/admin/reports/analytics", { credentials: "include" });
       const result = await response.json();
@@ -2581,15 +2583,18 @@ export function AdminReportsPage() {
           contentByStatus: (result.charts?.contentByStatus || []).map((row: { status: string; count: number | string }) => ({ status: row.status, count: Number(row.count || 0) })),
         },
       });
+      setLastLoadedAt(result.summary?.generated_at ? new Date(result.summary.generated_at) : new Date());
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to load reports.");
     } finally {
-      setLoading(false);
+      if (showSpinner) setLoading(false);
     }
   };
 
   useEffect(() => {
     loadAnalytics();
+    const intervalId = window.setInterval(() => loadAnalytics(false), 30000);
+    return () => window.clearInterval(intervalId);
   }, []);
 
   const exportReport = () => {
@@ -2616,8 +2621,8 @@ export function AdminReportsPage() {
       ["Month", "Count"],
       ...analytics.charts.registrations.map((row) => [row.month, row.count]),
       [],
-      ["Downloadable files by month"],
-      ["Month", "Files"],
+      ["File downloads by month"],
+      ["Month", "Downloads"],
       ...analytics.charts.downloads.map((row) => [row.month, row.downloads]),
       [],
       ["App installs by month"],
@@ -2651,10 +2656,26 @@ export function AdminReportsPage() {
   const pwaInstalls = analytics.charts.pwaInstalls;
   const pwaPlatforms = analytics.charts.pwaPlatforms;
   const complaintsByCategory = analytics.charts.complaintsByCategory;
+  const subtitle = lastLoadedAt
+    ? `Live DB report for registrations, complaints, files, and portal engagement. Last updated ${lastLoadedAt.toLocaleString("en-IN")}.`
+    : "Live DB report for registrations, complaints, files, and portal engagement.";
 
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Reports & Analytics" subtitle="Live DB report for registrations, complaints, files, and portal engagement." action={<Button variant="outline" onClick={exportReport}><Download className="mr-1 h-4 w-4" /> Export report</Button>} />
+      <PageTitle
+        title="Reports & Analytics"
+        subtitle={subtitle}
+        action={
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button variant="outline" onClick={() => loadAnalytics()}>
+              Refresh
+            </Button>
+            <Button variant="outline" onClick={exportReport}>
+              <Download className="mr-1 h-4 w-4" /> Export report
+            </Button>
+          </div>
+        }
+      />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Users} label="Logins last 30 days" value={loading ? "..." : (summary.portal_logins_30d || 0).toLocaleString()} />
         <StatCard icon={Download} label="File downloads" value={loading ? "..." : (summary.file_downloads || 0).toLocaleString()} tone="saffron" />
