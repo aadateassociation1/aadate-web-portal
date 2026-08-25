@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowRight, Bell, ClipboardList, Download, FileText, Newspaper, Phone,
-  UserCog, MessageSquare, TrendingUp, Users, Clock, ShieldCheck,
+  UserCog, MessageSquare, ShieldCheck,
   CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
@@ -172,9 +172,9 @@ function Home() {
           style={{ backgroundImage: `url(${heroImg})` }}
           aria-hidden
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/70 via-primary/30 to-primary-fresh/10" aria-hidden />
-        <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/45 via-transparent to-white/10" aria-hidden />
-        <div className="container-page relative grid gap-10 py-16 md:py-24 lg:grid-cols-2 lg:items-center">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/55 via-primary/18 to-transparent" aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/28 via-transparent to-white/5" aria-hidden />
+        <div className="container-page relative py-16 md:py-24">
           <div className="text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-saffron/40 bg-saffron/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-saffron">
               <ShieldCheck className="h-3.5 w-3.5" /> Official Association Portal
@@ -197,22 +197,6 @@ function Home() {
               <Button asChild size="lg" variant="ghost" className="text-white hover:bg-white/10">
                 <Link to="/updates">{t("hero.cta.updates")}</Link>
               </Button>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { icon: Users, val: "850+", label: t("stats.owners") },
-                { icon: Newspaper, val: "1", label: t("stats.portal") },
-                { icon: Clock, val: "24/7", label: t("stats.access") },
-                { icon: TrendingUp, val: "Fast", label: t("stats.resolution") },
-              ].map((s, i) => (
-                <div key={i} className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md">
-                  <s.icon className="h-6 w-6 text-saffron" />
-                  <div className="mt-3 font-display text-3xl font-bold text-white">{s.val}</div>
-                  <div className="mt-1 text-xs text-white/80 leading-snug">{s.label}</div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
