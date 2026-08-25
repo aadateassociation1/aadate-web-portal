@@ -194,7 +194,7 @@ function Home() {
               <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white hover:text-primary-dark">
                 <Link to="/register">{t("hero.cta.register")}</Link>
               </Button>
-              <Button asChild size="lg" variant="ghost" className="text-white hover:bg-white/10">
+              <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white hover:text-primary-dark">
                 <Link to="/updates">{t("hero.cta.updates")}</Link>
               </Button>
             </div>
