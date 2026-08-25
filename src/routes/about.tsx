@@ -2,7 +2,7 @@ import { createFileRoute } from "@/lib/simple-router";
 import { SiteLayout } from "@/components/public/SiteLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Target, Eye, Heart, Trophy, Users, Building2 } from "lucide-react";
-import heroImg from "@/assets/market-hero.jpg";
+import marketyardImg from "@/assets/marketyard.webp";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -30,7 +30,7 @@ function About() {
 
       <section className="py-16">
         <div className="container-page grid gap-10 lg:grid-cols-2 lg:items-center">
-          <img src={heroImg} alt="Market yard" width={1600} height={900} loading="lazy" className="rounded-3xl shadow-xl object-cover aspect-[4/3]" />
+          <img src={marketyardImg} alt="Market yard" width={1600} height={900} loading="lazy" className="rounded-3xl shadow-xl object-cover aspect-[4/3]" />
           <div>
             <h2 className="font-display text-3xl font-bold text-primary-dark">Our Story</h2>
             <p className="mt-4 text-muted-foreground leading-relaxed">
