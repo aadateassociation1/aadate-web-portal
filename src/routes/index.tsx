@@ -259,15 +259,15 @@ function Home() {
               Everything a Member needs, in one portal
             </h2>
           </div>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-8 grid grid-cols-3 gap-2 sm:mt-10 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
             {SERVICES.map((s) => (
               <Card key={s.title} className="border-border/60 transition hover:border-primary hover:shadow-lg">
-                <CardContent className="p-6">
-                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-secondary text-primary">
+                <CardContent className="p-2.5 text-center sm:p-6 sm:text-left">
+                  <div className="mx-auto grid h-9 w-9 place-items-center rounded-xl bg-secondary text-primary sm:mx-0 sm:h-11 sm:w-11">
                     <s.icon className="h-5 w-5" />
                   </div>
-                  <h3 className="mt-4 font-display font-semibold text-primary-dark">{s.title}</h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
+                  <h3 className="mt-2 font-display text-[11px] font-semibold leading-snug text-primary-dark sm:mt-4 sm:text-base">{s.title}</h3>
+                  <p className="mt-1.5 hidden text-sm leading-relaxed text-muted-foreground sm:block">{s.desc}</p>
                 </CardContent>
               </Card>
             ))}
