@@ -344,7 +344,7 @@ function Home() {
       </section>
 
       {/* Daily market prices */}
-      <section className="bg-secondary/35 py-16 md:py-20">
+      <section className="py-16 md:py-20">
         <div className="container-page">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
@@ -385,7 +385,7 @@ function Home() {
       </section>
 
       {/* Market updates */}
-      <section className="py-16 md:py-20">
+      <section className="bg-leaf py-16 md:py-20">
         <div className="container-page">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
@@ -417,7 +417,7 @@ function Home() {
       </section>
 
       {/* Notices */}
-      <section className="bg-leaf py-16 md:py-20">
+      <section className="py-16 md:py-20">
         <div className="container-page">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
@@ -473,7 +473,7 @@ function Home() {
       </Dialog>
 
       {/* How it works */}
-      <section className="py-16 md:py-20">
+      <section className="bg-leaf py-16 md:py-20">
         <div className="container-page">
           <div className="mx-auto max-w-2xl text-center">
             <span className="text-xs font-bold uppercase tracking-wider text-primary">{t("section.how")}</span>
@@ -497,7 +497,7 @@ function Home() {
       </section>
 
       {/* Gallery preview */}
-      <section className="bg-leaf py-16 md:py-20">
+      <section className="py-16 md:py-20">
         <div className="container-page">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
@@ -527,7 +527,7 @@ function Home() {
       </section>
 
       {/* Public reviews */}
-      <section className="py-16 md:py-20">
+      <section className="bg-leaf py-16 md:py-20">
         <div className="container-page">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
@@ -574,7 +574,7 @@ function Home() {
       </section>
 
       {/* Complaint feedback */}
-      <section className="bg-secondary/30 py-14 md:py-16">
+      <section className="py-14 md:py-16">
         <div className="container-page">
           <div className="text-center">
             <h2 className="font-display text-3xl font-bold text-primary-dark sm:text-4xl">Member Complaint Resolution Reviews</h2>
