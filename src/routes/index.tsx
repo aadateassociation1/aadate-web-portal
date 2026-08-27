@@ -276,7 +276,7 @@ function Home() {
       </section>
 
       {/* Chairman */}
-      <section className="bg-cream py-16 md:py-20">
+      <section className="bg-leaf py-16 md:py-20">
         <div className="container-page">
           <div className="max-w-2xl">
             <span className="text-xs font-bold uppercase tracking-wider text-primary">{t("section.chairman")}</span>
