@@ -479,17 +479,17 @@ function Home() {
             <span className="text-xs font-bold uppercase tracking-wider text-primary">{t("section.how")}</span>
             <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Five simple steps</h2>
           </div>
-          <div className="mt-12 grid gap-5 md:grid-cols-3 lg:grid-cols-5">
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
             {HOW_STEPS.map((s) => (
-              <div key={s.n} className="relative rounded-2xl border border-border bg-card p-6 text-center">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 grid h-9 w-9 place-items-center rounded-full saffron-gradient font-display font-bold text-primary-dark shadow">
+              <div key={s.n} className={`relative rounded-2xl border border-border bg-card px-3 pb-4 pt-6 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${s.n === 5 ? "col-span-2 mx-auto w-1/2 min-w-[150px] md:col-span-1 md:w-auto md:min-w-0" : ""}`}>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 grid h-8 w-8 place-items-center rounded-full saffron-gradient font-display text-sm font-bold text-primary-dark shadow">
                   {s.n}
                 </div>
-                <div className="mx-auto mt-3 grid h-12 w-12 place-items-center rounded-xl bg-secondary text-primary">
-                  <s.icon className="h-6 w-6" />
+                <div className="mx-auto mt-2 grid h-10 w-10 place-items-center rounded-xl bg-secondary text-primary sm:h-12 sm:w-12">
+                  <s.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <h4 className="mt-4 font-display font-semibold text-primary-dark">{s.title}</h4>
-                <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
+                <h4 className="mt-3 font-display text-sm font-semibold leading-snug text-primary-dark sm:text-base">{s.title}</h4>
+                <p className="mt-1.5 line-clamp-3 text-[10px] leading-relaxed text-muted-foreground sm:text-xs">{s.desc}</p>
               </div>
             ))}
           </div>
