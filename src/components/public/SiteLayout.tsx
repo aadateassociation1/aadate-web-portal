@@ -134,9 +134,9 @@ function Header() {
               </Button>
             </>
           )}
-          <Button asChild variant="outline" size="icon" className="h-10 w-10 rounded-md border-border text-primary xl:hidden">
+          <Button asChild variant="outline" size="icon" className="h-11 w-11 rounded-md border-border text-foreground">
             <Link to={dashLink || "/login"} aria-label={dashLink ? "Open dashboard" : "Open login"}>
-              <UserCircle className="h-5 w-5" />
+              <UserCircle className="h-6 w-6" />
             </Link>
           </Button>
           <button
