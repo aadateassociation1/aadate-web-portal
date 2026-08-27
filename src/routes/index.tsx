@@ -570,9 +570,9 @@ function Home() {
             <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Happy Resolutions</h2>
             <p className="mt-3 text-sm text-muted-foreground">Approved feedback from resolved complaints.</p>
           </div>
-          <div className="mt-9 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mx-auto mt-9 grid max-w-5xl justify-center gap-5 md:grid-cols-2 lg:grid-cols-3">
             {complaintFeedback.slice(0, 6).map((item) => (
-              <Card key={item.id} className="overflow-hidden border-border/60 bg-background shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+              <Card key={item.id} className="w-full max-w-sm overflow-hidden border-border/60 bg-background shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                 <CardContent className="flex h-full flex-col p-5">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex text-saffron">
