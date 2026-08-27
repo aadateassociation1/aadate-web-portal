@@ -1440,7 +1440,7 @@ function AdminComplaintFeedbackPanel() {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <StatusBadge status={item.feedback_status} />
-                    {item.reopen_requested ? <Badge className="bg-warning text-white">Reopen: {item.reopen_request_status}</Badge> : null}
+                    {Boolean(item.reopen_requested) ? <Badge className="bg-warning text-white">Reopen: {item.reopen_request_status}</Badge> : null}
                   </div>
                 </div>
                 <div className="mt-4 grid gap-3 md:grid-cols-4">
@@ -1453,8 +1453,8 @@ function AdminComplaintFeedbackPanel() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   {item.feedback_status === "pending" && <Button size="sm" className="bg-primary" onClick={() => act(item, "approve")}>Approve</Button>}
                   {item.feedback_status === "pending" && <Button size="sm" variant="destructive" onClick={() => act(item, "reject")}>Reject</Button>}
-                  {item.reopen_requested && item.reopen_request_status === "pending" && <Button size="sm" className="bg-saffron text-primary-dark" onClick={() => act(item, "reopen-approve")}>Approve Reopen</Button>}
-                  {item.reopen_requested && item.reopen_request_status === "pending" && <Button size="sm" variant="outline" onClick={() => act(item, "reopen-reject")}>Reject Reopen</Button>}
+                  {Boolean(item.reopen_requested) && item.reopen_request_status === "pending" && <Button size="sm" className="bg-saffron text-primary-dark" onClick={() => act(item, "reopen-approve")}>Approve Reopen</Button>}
+                  {Boolean(item.reopen_requested) && item.reopen_request_status === "pending" && <Button size="sm" variant="outline" onClick={() => act(item, "reopen-reject")}>Reject Reopen</Button>}
                   <Button size="sm" variant="outline" onClick={() => window.open("/admin/complaints", "_self")}>Open Complaint</Button>
                 </div>
               </div>
