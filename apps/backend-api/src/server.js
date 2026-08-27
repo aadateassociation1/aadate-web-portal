@@ -5576,8 +5576,8 @@ app.delete("/api/v1/admin/posts/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), 
 
 app.post("/api/v1/complaints", requireRoles("TRADER"), async (req, res) => {
   const { subject, description, priority = "medium", category = "general", visibility = "admin-only", payment = null, attachments = {} } = req.body || {};
-  if (!subject || !description) {
-    res.status(400).json({ ok: false, error: "subject and description are required." });
+  if (!subject) {
+    res.status(400).json({ ok: false, error: "subject is required." });
     return;
   }
   const ticketNumber = `CMP-${Date.now().toString().slice(-8)}`;
