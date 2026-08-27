@@ -120,11 +120,7 @@ function Header() {
           <div className="hidden sm:inline-flex">
             <LangSwitcher tone="light" />
           </div>
-          {dashLink ? (
-            <Button asChild size="sm" className="hidden sm:inline-flex">
-              <Link to={dashLink}>Dashboard</Link>
-            </Button>
-          ) : (
+          {!dashLink && (
             <>
               <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
                 <Link to="/login">{t("nav.login")}</Link>
