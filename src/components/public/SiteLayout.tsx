@@ -285,7 +285,7 @@ function ScrollTopFAB() {
     <button
       type="button"
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      className={`fixed bottom-24 right-5 z-50 grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-xl transition hover:scale-105 hover:bg-primary/90 ${
+      className={`fixed bottom-24 right-5 z-50 grid h-12 w-12 place-items-center rounded-full bg-saffron text-saffron-foreground shadow-xl transition hover:scale-105 hover:bg-saffron/90 ${
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"
       }`}
       aria-label="Scroll to top"
