@@ -4,7 +4,7 @@ import {
   Menu, X,
   Clock, Mail,
   Facebook, Twitter, Youtube, MapPin, ChevronRight,
-  ArrowUp,
+  ArrowUp, UserCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -134,6 +134,11 @@ function Header() {
               </Button>
             </>
           )}
+          <Button asChild variant="outline" size="icon" className="h-10 w-10 rounded-md border-border text-primary xl:hidden">
+            <Link to={dashLink || "/login"} aria-label={dashLink ? "Open dashboard" : "Open login"}>
+              <UserCircle className="h-5 w-5" />
+            </Link>
+          </Button>
           <button
             onClick={() => setOpen((value) => !value)}
             className="grid h-10 w-10 place-items-center rounded-md border border-border text-foreground xl:hidden"
