@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link, Outlet, useRouterState } from "@/lib/simple-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@/lib/simple-router";
 import { useEffect, useState } from "react";
 import { DashLayout } from "@/components/dashboard/DashLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -148,7 +148,7 @@ function OwnerDash() {
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{pendingFeedback[0]?.ticket_number} - {pendingFeedback[0]?.subject}</p>
               </div>
-              <Button asChild className="bg-primary"><Link to="/member/complaints">{lang === "mr" ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Give Feedback"}</Link></Button>
+              <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/member/complaints">{lang === "mr" ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Give Feedback"}</Link></Button>
             </div>
           </CardContent>
         </Card>
@@ -166,7 +166,7 @@ function OwnerDash() {
           </div>
           <div className="flex flex-wrap justify-end gap-2">
             <Button variant="outline" onClick={() => setShowFeedbackPrompt(false)}>{lang === "mr" ? "\u0928\u0902\u0924\u0930 \u0906\u0920\u0935\u0923 \u0915\u0930\u0942\u0928 \u0926\u094d\u092f\u093e" : "Remind Me Later"}</Button>
-            <Button asChild className="bg-primary"><Link to="/member/complaints">{lang === "mr" ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Open Feedback"}</Link></Button>
+            <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/member/complaints">{lang === "mr" ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Open Feedback"}</Link></Button>
           </div>
         </DialogContent>
       </Dialog>

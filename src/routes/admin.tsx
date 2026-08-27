@@ -442,7 +442,7 @@ function AdminDash() {
                   <Upload className="h-4 w-4 text-primary" /> Attach image / PDF / video
                   <input type="file" className="hidden" />
                 </label>
-                <Button type="submit" className="w-full bg-primary">Publish update</Button>
+                <Button type="submit" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90">Publish update</Button>
               </form>
             </CardContent>
           </Card>

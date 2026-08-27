@@ -50,7 +50,7 @@ function AdminLoginForm({ role }: { role: Extract<UserRole, "main_admin" | "user
         <Input required type="password" value={pw} onChange={(event) => setPw(event.target.value)} autoComplete="current-password" />
       </div>
       {err && <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{err}</div>}
-      <Button type="submit" className="w-full bg-primary" size="lg">Sign in to Admin Hub</Button>
+      <Button type="submit" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90" size="lg">Sign in to Admin Hub</Button>
     </form>
   );
 }

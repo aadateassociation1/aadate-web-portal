@@ -128,7 +128,7 @@ function ForgotPasswordPage() {
                   <Label>Registered mobile number</Label>
                   <Input value={mobile} onChange={(event) => setMobile(limitDigits(event.target.value, 10))} placeholder="10-digit mobile number" inputMode="numeric" maxLength={10} pattern="\d{10}" disabled={step !== "mobile"} />
                 </div>
-                <Button type="button" className="w-full bg-primary" onClick={sendOtp} disabled={loading || step !== "mobile"}>
+                <Button type="button" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={sendOtp} disabled={loading || step !== "mobile"}>
                   {loading && step === "mobile" ? "Sending..." : "Send OTP"}
                 </Button>
 
@@ -138,7 +138,7 @@ function ForgotPasswordPage() {
                       <Label>OTP</Label>
                       <Input value={otp} onChange={(event) => setOtp(limitDigits(event.target.value, 6))} placeholder="6-digit OTP" inputMode="numeric" maxLength={6} pattern="\d{6}" />
                     </div>
-                    <Button type="button" className="w-full bg-primary" onClick={verifyOtp} disabled={loading || step !== "otp"}>
+                    <Button type="button" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={verifyOtp} disabled={loading || step !== "otp"}>
                       {loading && step === "otp" ? "Verifying..." : "Verify OTP"}
                     </Button>
                   </>
@@ -154,7 +154,7 @@ function ForgotPasswordPage() {
                       <Label>Confirm password</Label>
                       <Input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Confirm password" />
                     </div>
-                    <Button type="button" className="w-full bg-primary" onClick={updatePassword} disabled={loading}>
+                    <Button type="button" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={updatePassword} disabled={loading}>
                       {loading ? "Updating..." : "Update password"}
                     </Button>
                   </>

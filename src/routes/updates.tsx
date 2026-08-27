@@ -179,7 +179,7 @@ function Updates() {
                   </div>
                   <div className="mt-4 flex gap-2">
                     <Button size="sm" variant="outline" className="flex-1" onClick={() => setSelected(u)}><Eye className="h-4 w-4 mr-1" /> View</Button>
-                    <Button size="sm" className="flex-1 bg-primary" onClick={() => downloadUpdate(u)}><Download className="h-4 w-4 mr-1" /> Download</Button>
+                    <Button size="sm" className="flex-1 bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => downloadUpdate(u)}><Download className="h-4 w-4 mr-1" /> Download</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -255,7 +255,7 @@ function Updates() {
               </div>
               <div className="flex flex-wrap justify-end gap-2 border-t px-6 py-4">
                 <Button variant="outline" onClick={() => setSelected(null)}>Close</Button>
-                <Button className="bg-primary" onClick={() => downloadUpdate(selected)}><Download className="mr-1 h-4 w-4" /> Download Report</Button>
+                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => downloadUpdate(selected)}><Download className="mr-1 h-4 w-4" /> Download Report</Button>
               </div>
             </div>
           )}

@@ -143,7 +143,7 @@ function Notices() {
                     </div>
                     <div className="col-span-2 grid grid-cols-2 gap-2 sm:col-span-1 sm:flex sm:flex-row">
                       <Button size="sm" variant="outline" onClick={() => setSelected(n)}><Eye className="h-4 w-4 sm:mr-1" /> <span>View</span></Button>
-                      <Button size="sm" className="bg-primary" onClick={() => downloadNotice(n)}><Download className="h-4 w-4 sm:mr-1" /> <span>Download</span></Button>
+                      <Button size="sm" className="bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => downloadNotice(n)}><Download className="h-4 w-4 sm:mr-1" /> <span>Download</span></Button>
                     </div>
                   </div>
                 </CardContent>
@@ -216,7 +216,7 @@ function Notices() {
 
               <div className="flex flex-wrap justify-end gap-2 border-t px-6 py-4">
                 <Button variant="outline" onClick={() => setSelected(null)}>Close</Button>
-                <Button className="bg-primary" onClick={() => downloadNotice(selected)}><Download className="mr-1 h-4 w-4" /> Download Notice</Button>
+                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => downloadNotice(selected)}><Download className="mr-1 h-4 w-4" /> Download Notice</Button>
               </div>
             </div>
           )}

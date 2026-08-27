@@ -448,7 +448,7 @@ export function AdminMarketPricesPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => window.open(`/api/v1/admin/market-prices/export?date=${date}`, "_blank")}><Download className="mr-2 h-4 w-4" /> Export Today's Prices</Button>
-          <Button onClick={() => setAddOpen(true)} className="bg-primary"><Plus className="mr-2 h-4 w-4" /> Add New Item</Button>
+          <Button onClick={() => setAddOpen(true)} className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Plus className="mr-2 h-4 w-4" /> Add New Item</Button>
         </div>
       </div>
 
@@ -472,7 +472,7 @@ export function AdminMarketPricesPage() {
               </div>
               <Button variant="outline" onClick={copyPrevious}><Copy className="mr-2 h-4 w-4" /> Copy Previous Day</Button>
               <Button variant="outline" disabled={saving} onClick={() => saveRows("draft")}>Save Draft</Button>
-              <Button disabled={saving} onClick={() => saveRows("published")} className="bg-primary">Save & Publish Today's Prices</Button>
+              <Button disabled={saving} onClick={() => saveRows("published")} className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Save & Publish Today's Prices</Button>
             </div>
 
             <div className="mt-5 overflow-x-auto rounded-lg border">
@@ -552,7 +552,7 @@ export function AdminMarketPricesPage() {
               <input type="checkbox" checked={newItem.isActive} onChange={(event) => setNewItem((item) => ({ ...item, isActive: event.target.checked }))} />
               <span className="text-sm font-medium">Active item</span>
             </div>
-            <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button><Button type="submit" className="bg-primary">Save Item</Button></div>
+            <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button><Button type="submit" className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Save Item</Button></div>
           </form>
         </DialogContent>
       </Dialog>

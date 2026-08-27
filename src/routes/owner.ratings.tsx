@@ -304,7 +304,7 @@ function TraderRatings() {
                 </label>
               </div>
 
-              <Button type="submit" className="w-full bg-primary" disabled={submitting || loading}>
+              <Button type="submit" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={submitting || loading}>
                 {submitting ? "Submitting..." : "Submit Review"}
               </Button>
             </form>

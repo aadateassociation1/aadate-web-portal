@@ -73,7 +73,7 @@ function Contact() {
                     <div><Label>Subject</Label><Input required placeholder="Enquiry subject" /></div>
                   </div>
                   <div><Label>Message</Label><Textarea required rows={5} placeholder="How can we help you?" /></div>
-                  <Button type="submit" className="w-full sm:w-auto bg-primary" disabled={sent}>{sent ? "Sent ✓" : "Send Message"}</Button>
+                  <Button type="submit" className="w-full sm:w-auto bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={sent}>{sent ? "Sent ✓" : "Send Message"}</Button>
                 </form>
               </CardContent>
             </Card>

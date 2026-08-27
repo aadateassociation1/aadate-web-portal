@@ -1421,7 +1421,7 @@ function AdminComplaintFeedbackPanel() {
         </div>
         <div className="mb-4 flex flex-wrap gap-2">
           {filters.map((item) => (
-            <Button key={item.value} type="button" size="sm" variant={filter === item.value ? "default" : "outline"} className={filter === item.value ? "bg-primary" : ""} onClick={() => setFilter(item.value)}>{item.label}</Button>
+            <Button key={item.value} type="button" size="sm" variant={filter === item.value ? "default" : "outline"} className={filter === item.value ? "bg-saffron text-saffron-foreground hover:bg-saffron/90" : ""} onClick={() => setFilter(item.value)}>{item.label}</Button>
           ))}
         </div>
         {loading ? (
@@ -1451,7 +1451,7 @@ function AdminComplaintFeedbackPanel() {
                 </div>
                 {item.comment && <div className="mt-3 rounded-lg border bg-secondary/20 p-3 text-sm text-muted-foreground">{item.comment}</div>}
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {item.feedback_status === "pending" && <Button size="sm" className="bg-primary" onClick={() => act(item, "approve")}>Approve</Button>}
+                  {item.feedback_status === "pending" && <Button size="sm" className="bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => act(item, "approve")}>Approve</Button>}
                   {item.feedback_status === "pending" && <Button size="sm" variant="destructive" onClick={() => act(item, "reject")}>Reject</Button>}
                   {Boolean(item.reopen_requested) && item.reopen_request_status === "pending" && <Button size="sm" className="bg-saffron text-primary-dark" onClick={() => act(item, "reopen-approve")}>Approve Reopen</Button>}
                   {Boolean(item.reopen_requested) && item.reopen_request_status === "pending" && <Button size="sm" variant="outline" onClick={() => act(item, "reopen-reject")}>Reject Reopen</Button>}
@@ -1770,7 +1770,7 @@ function PublicPostEditDialog({
           )}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" className="bg-primary" disabled={saving}>{saving ? "Saving..." : "Update"}</Button>
+            <Button type="submit" className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={saving}>{saving ? "Saving..." : "Update"}</Button>
           </div>
         </form>
       </DialogContent>
@@ -1934,7 +1934,7 @@ export function AdminGalleryPage() {
                   </div>
                 </div>
               )}
-              <Button type="submit" className="w-full bg-primary">
+              <Button type="submit" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90">
                 <ImagePlus className="mr-1 h-4 w-4" /> Publish to Gallery
               </Button>
             </form>
@@ -2239,7 +2239,7 @@ export function AdminOwnerPostsPage() {
                     </div>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button className="bg-primary" onClick={() => decidePost(post, "approve")}>
+                    <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => decidePost(post, "approve")}>
                       <Send className="mr-1 h-4 w-4" /> Reshare Post
                     </Button>
                     <Button variant="outline" onClick={() => decidePost(post, "reject")}>Reject</Button>
@@ -2382,7 +2382,7 @@ function PublishCard({ kind, onPublished }: { kind: "update" | "notice"; onPubli
               })}
             </div>
           )}
-          <Button type="submit" className="w-full bg-primary">Publish</Button>
+          <Button type="submit" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90">Publish</Button>
         </form>
       </CardContent>
     </Card>
@@ -2762,7 +2762,7 @@ export function AdminCommitteePage() {
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" className="bg-primary">Save Member</Button>
+              <Button type="submit" className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Save Member</Button>
             </div>
           </form>
         </DialogContent>
@@ -3278,7 +3278,7 @@ function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records 
               </div>
               <div className="flex justify-end gap-2 sm:col-span-2">
                 <Button type="button" variant="outline" onClick={() => setEditingGala(null)}>Cancel</Button>
-                <Button className="bg-primary" disabled={savingGala}>{savingGala ? "Submitting..." : "Submit for approval"}</Button>
+                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={savingGala}>{savingGala ? "Submitting..." : "Submit for approval"}</Button>
               </div>
             </form>
           )}
@@ -3590,7 +3590,7 @@ export function OwnerProfilePage() {
               </div>
               <div className="sm:col-span-2 rounded-lg bg-secondary/50 p-3 text-sm text-muted-foreground">Current address: {formatTraderAddress(profile) || "-"}</div>
               <div className="sm:col-span-2 flex justify-end">
-                <Button className="bg-primary" disabled={saving}>{saving ? "Saving..." : "Save mandatory details"}</Button>
+                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={saving}>{saving ? "Saving..." : "Save mandatory details"}</Button>
               </div>
             </form>
           </CardContent>
@@ -3946,7 +3946,7 @@ export function OwnerKycPage() {
           </div>
           <form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={(event) => { event.preventDefault(); void searchSharedCustomers(riskQuery.trim()); }}>
             <Input value={riskQuery} onChange={(event) => setRiskQuery(event.target.value)} placeholder="Search by customer name, mobile, or customer code" />
-            <Button type="submit" className="bg-primary" disabled={riskLoading}><Search className="mr-1 h-4 w-4" /> {riskLoading ? "Searching..." : "Search"}</Button>
+            <Button type="submit" className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={riskLoading}><Search className="mr-1 h-4 w-4" /> {riskLoading ? "Searching..." : "Search"}</Button>
           </form>
           <div className="mt-4 grid gap-3">
             {riskResults.map((customer) => {
@@ -4057,7 +4057,7 @@ export function OwnerKycPage() {
                         <>
                           <video ref={videoRef} autoPlay playsInline muted className="h-44 w-full rounded-md bg-black object-cover" />
                           <div className="flex flex-wrap gap-2">
-                            <Button type="button" onClick={captureCustomerPhoto} className="bg-primary"><Camera className="mr-1 h-4 w-4" /> Capture photo</Button>
+                            <Button type="button" onClick={captureCustomerPhoto} className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Camera className="mr-1 h-4 w-4" /> Capture photo</Button>
                             <Button type="button" variant="outline" onClick={stopCustomerCamera}>Cancel</Button>
                           </div>
                         </>
@@ -4083,7 +4083,7 @@ export function OwnerKycPage() {
                   <Input name="district" required placeholder="District" defaultValue="Pune" />
                 </div>
               </div>
-              <Button className="bg-primary" disabled={saving}><IdCard className="mr-1 h-4 w-4" /> {saving ? "Saving..." : "Save KYC"}</Button>
+              <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={saving}><IdCard className="mr-1 h-4 w-4" /> {saving ? "Saving..." : "Save KYC"}</Button>
             </form>
           </CardContent>
         </Card>
@@ -4708,7 +4708,7 @@ function ComplaintFeedbackModal({ request, lang, onClose, onSubmitted }: { reque
                     <Label>{isMr ? "\u0906\u092a\u0932\u0940 \u0938\u092e\u0938\u094d\u092f\u093e \u0905\u091c\u0942\u0928\u0939\u0940 \u0938\u0941\u091f\u0932\u0947\u0932\u0940 \u0928\u093e\u0939\u0940 \u0915\u093e?" : "Is your issue still unresolved?"}</Label>
                     <div className="mt-2 grid gap-2">
                       {issueResolutionOptions.map((item) => (
-                        <button key={item.value} type="button" onClick={() => setIssueStatus(item.value)} className={`rounded-lg border p-3 text-left text-sm transition hover:border-primary ${issueStatus === item.value ? "border-primary bg-primary/10 font-semibold text-primary-dark" : "bg-background"}`}>
+                        <button key={item.value} type="button" onClick={() => setIssueStatus(item.value)} className={`rounded-lg border p-3 text-left text-sm transition hover:border-primary ${issueStatus === item.value ? "border-saffron bg-saffron/15 font-semibold text-primary-dark" : "bg-background"}`}>
                           {isMr ? item.mr : item.en}
                         </button>
                       ))}
@@ -4727,7 +4727,7 @@ function ComplaintFeedbackModal({ request, lang, onClose, onSubmitted }: { reque
               </div>
               <div className="flex flex-wrap justify-end gap-2">
                 <Button type="button" variant="outline" onClick={onClose}>{isMr ? "\u0928\u0902\u0924\u0930 \u0906\u0920\u0935\u0923 \u0915\u0930\u0942\u0928 \u0926\u094d\u092f\u093e" : "Remind Me Later"}</Button>
-                <Button type="button" className="bg-primary" onClick={submit} disabled={submitting}>{submitting ? (isMr ? "\u0938\u092c\u092e\u093f\u091f \u0939\u094b\u0924 \u0906\u0939\u0947..." : "Submitting...") : (isMr ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0938\u092c\u092e\u093f\u091f \u0915\u0930\u093e" : "Submit Feedback")}</Button>
+                <Button type="button" className="bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={submit} disabled={submitting}>{submitting ? (isMr ? "\u0938\u092c\u092e\u093f\u091f \u0939\u094b\u0924 \u0906\u0939\u0947..." : "Submitting...") : (isMr ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0938\u092c\u092e\u093f\u091f \u0915\u0930\u093e" : "Submit Feedback")}</Button>
               </div>
             </div>
           </div>
@@ -4807,7 +4807,7 @@ export function OwnerComplaintsPage() {
                   <div className="font-mono text-xs text-muted-foreground">{item.ticket_number}</div>
                   <h3 className="mt-1 font-display font-semibold text-primary-dark">{item.subject}</h3>
                   <div className="mt-2 text-sm text-muted-foreground">{item.parsed?.category || "General"} - {item.resolved_at ? new Date(item.resolved_at).toLocaleDateString("en-IN") : "Resolved"}</div>
-                  <Button className="mt-4 bg-primary" onClick={() => setActiveFeedback(item)}>{isMr ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Give Feedback"}</Button>
+                  <Button className="mt-4 bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => setActiveFeedback(item)}>{isMr ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Give Feedback"}</Button>
                 </div>
               ))}
             </div>
@@ -4831,7 +4831,7 @@ export function OwnerComplaintsPage() {
                   </div>
                   <span className="shrink-0"><StatusBadge status={c.status} /></span>
                 </div>
-                {pendingFeedback && <Button size="sm" className="mt-4 bg-primary" onClick={() => setActiveFeedback(pendingFeedback)}>{isMr ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Give Feedback"}</Button>}
+                {pendingFeedback && <Button size="sm" className="mt-4 bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => setActiveFeedback(pendingFeedback)}>{isMr ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Give Feedback"}</Button>}
                 <div className="mt-4 grid gap-2">
                   {c.history.slice(0, 4).map((item) => (
                     <div key={item.id} className="rounded-lg border bg-secondary/20 p-3 text-sm">
@@ -5056,7 +5056,7 @@ export function OwnerPostPage() {
 
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs text-muted-foreground">Your post will go only to admin. Other Members can see it only after admin reshares it.</p>
-                <Button className="bg-primary" disabled={submitting}><Upload className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Post"}</Button>
+                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={submitting}><Upload className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Post"}</Button>
               </div>
             </form>
           </CardContent>
@@ -5099,7 +5099,7 @@ export function OwnerPostPage() {
             <CardContent className="p-6">
               <h2 className="font-display font-bold text-primary-dark">Visible after reshare</h2>
               <p className="mt-2 text-sm text-muted-foreground">Admin-approved posts appear only for the selected Member audience with owner name and download options.</p>
-              <Button asChild className="mt-4 w-full bg-primary">
+              <Button asChild className="mt-4 w-full bg-saffron text-saffron-foreground hover:bg-saffron/90">
                 <Link to="/owner/shared-posts"><Newspaper className="mr-1 h-4 w-4" /> Open Shared Posts</Link>
               </Button>
             </CardContent>
@@ -5258,7 +5258,7 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
           </div>
           <div className="grid gap-3 sm:flex sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">Your complaint will be sent to the admin team for review and assignment.</p>
-            <Button className="w-full bg-primary sm:w-auto" disabled={submitting}><Upload className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Complaint"}</Button>
+            <Button className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90 sm:w-auto" disabled={submitting}><Upload className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Complaint"}</Button>
           </div>
         </form>
       </CardContent>
@@ -5350,7 +5350,7 @@ export function MobileChangeApplicationForm({ compact = false }: { compact?: boo
           </label>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">Admin approval is required before the new number becomes active.</p>
-            <Button className="bg-primary"><Phone className="mr-1 h-4 w-4" /> Submit Application</Button>
+            <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Phone className="mr-1 h-4 w-4" /> Submit Application</Button>
           </div>
         </form>
       </CardContent>
@@ -5533,7 +5533,7 @@ export function OwnerMobileChangePage() {
 
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs text-muted-foreground">Admin approval is required before the new number becomes active.</p>
-                <Button className="bg-primary" disabled={submitting}><Phone className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Application"}</Button>
+                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={submitting}><Phone className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Application"}</Button>
               </div>
             </form>
           </CardContent>
@@ -5818,7 +5818,7 @@ export function OwnerChangePasswordPage() {
   return (
     <DashLayout kind="owner">
       <PageTitle title="Change Password" subtitle="Update your portal password securely." />
-      <Card className="max-w-xl border-border/60"><CardContent className="p-6"><form className="space-y-4" onSubmit={(e) => { e.preventDefault(); toast.success("Password changed"); }}><div><Label>Current password</Label><Input type="password" required /></div><div><Label>New password</Label><Input type="password" required /></div><div><Label>Confirm new password</Label><Input type="password" required /></div><Button className="bg-primary"><KeyRound className="mr-1 h-4 w-4" /> Update Password</Button></form></CardContent></Card>
+      <Card className="max-w-xl border-border/60"><CardContent className="p-6"><form className="space-y-4" onSubmit={(e) => { e.preventDefault(); toast.success("Password changed"); }}><div><Label>Current password</Label><Input type="password" required /></div><div><Label>New password</Label><Input type="password" required /></div><div><Label>Confirm new password</Label><Input type="password" required /></div><Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><KeyRound className="mr-1 h-4 w-4" /> Update Password</Button></form></CardContent></Card>
     </DashLayout>
   );
 }
@@ -5833,7 +5833,7 @@ export function AdminChangePasswordPage() {
             <div><Label>Current password</Label><Input type="password" required /></div>
             <div><Label>New password</Label><Input type="password" required /></div>
             <div><Label>Confirm new password</Label><Input type="password" required /></div>
-            <Button className="bg-primary"><KeyRound className="mr-1 h-4 w-4" /> Update Password</Button>
+            <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><KeyRound className="mr-1 h-4 w-4" /> Update Password</Button>
           </form>
         </CardContent>
       </Card>

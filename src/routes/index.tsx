@@ -439,7 +439,7 @@ function Home() {
                   <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{n.parsed?.details || ""}</p>
                   <div className="mt-4 flex gap-2">
                     <Button size="sm" variant="outline" onClick={() => setSelectedNotice(n)}><FileText className="h-4 w-4 mr-1" /> View</Button>
-                    <Button size="sm" className="bg-primary" onClick={() => downloadNotice(n)}><Download className="h-4 w-4 mr-1" /> Download</Button>
+                    <Button size="sm" className="bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => downloadNotice(n)}><Download className="h-4 w-4 mr-1" /> Download</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -465,7 +465,7 @@ function Home() {
               </DialogHeader>
               <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
                 <Button variant="outline" onClick={() => setSelectedNotice(null)}>Close</Button>
-                <Button className="bg-primary" onClick={() => downloadNotice(selectedNotice)}><Download className="mr-1 h-4 w-4" /> Download</Button>
+                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => downloadNotice(selectedNotice)}><Download className="mr-1 h-4 w-4" /> Download</Button>
               </div>
             </>
           )}

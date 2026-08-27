@@ -134,7 +134,7 @@ export function PwaInstallPrompt() {
         )}
       </div>
       <div className="flex shrink-0 flex-col gap-2">
-        {(promptEvent || platform === "android") && <Button size="sm" className="bg-primary" onClick={install}>Install</Button>}
+        {(promptEvent || platform === "android") && <Button size="sm" className="bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={install}>Install</Button>}
         <Button size="sm" variant="ghost" onClick={dismiss}>Later</Button>
       </div>
     </div>

@@ -117,7 +117,7 @@ function Register() {
                 <p className="mt-3 text-muted-foreground">Your application <span className="font-mono font-bold text-primary">{done}</span> has been received. You will be able to log in after admin approval.</p>
                 <div className="mt-6 flex justify-center gap-3">
                   <Button asChild variant="outline"><Link to="/">Back to Home</Link></Button>
-                  <Button asChild className="bg-primary"><Link to="/login">Go to Login</Link></Button>
+                  <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/login">Go to Login</Link></Button>
                 </div>
               </CardContent>
             </Card>
@@ -137,10 +137,10 @@ function Register() {
           </p>
 
           <div className="mt-5 inline-flex max-w-full flex-wrap gap-1 rounded-lg border bg-background p-1 shadow-sm">
-            <Button type="button" size="sm" variant={mode === "new" ? "default" : "ghost"} className={mode === "new" ? "h-9 bg-primary px-4" : "h-9 px-4"} onClick={() => { setMode("new"); setDuplicateMember(null); }}>
+            <Button type="button" size="sm" variant={mode === "new" ? "default" : "ghost"} className={mode === "new" ? "h-9 bg-saffron text-saffron-foreground hover:bg-saffron/90 px-4" : "h-9 px-4"} onClick={() => { setMode("new"); setDuplicateMember(null); }}>
               New Member Registration
             </Button>
-            <Button type="button" size="sm" variant={mode === "add-gala" ? "default" : "ghost"} className={mode === "add-gala" ? "h-9 bg-primary px-4" : "h-9 px-4"} onClick={() => setMode("add-gala")}>
+            <Button type="button" size="sm" variant={mode === "add-gala" ? "default" : "ghost"} className={mode === "add-gala" ? "h-9 bg-saffron text-saffron-foreground hover:bg-saffron/90 px-4" : "h-9 px-4"} onClick={() => setMode("add-gala")}>
               Add Another Gala / Shop
             </Button>
           </div>
