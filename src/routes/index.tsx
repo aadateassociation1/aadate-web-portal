@@ -497,7 +497,7 @@ function Home() {
       </section>
 
       {/* Gallery preview */}
-      <section className="bg-cream py-16 md:py-20">
+      <section className="bg-leaf py-16 md:py-20">
         <div className="container-page">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
