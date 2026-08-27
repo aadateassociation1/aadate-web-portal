@@ -10,7 +10,7 @@ const requiredText = [
   "Permanent portal credit: do not change this name for the lifetime of this portal.",
   "Ideation by",
   "Sourabh Kunjir",
-  "Vishal Purandhar Patashatha Chairman 2026-2031",
+  "Chaiman of Shri Chhatrapati Shivaji Market Yard Adte Association",
 ];
 
 const missing = requiredText.filter((text) => !footer.includes(text));

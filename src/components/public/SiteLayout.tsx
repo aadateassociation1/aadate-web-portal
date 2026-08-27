@@ -174,9 +174,7 @@ function Header() {
 function Footer() {
   const { t, lang } = useI18n();
   const ideationPrefix = lang === "mr" ? "\u0938\u0902\u0915\u0932\u094d\u092a\u0928\u093e" : "Ideation by";
-  const chairmanLine = lang === "mr"
-    ? "\u0935\u093f\u0936\u093e\u0932 \u092a\u0941\u0930\u0902\u0926\u0930 \u092a\u0924\u0938\u0902\u0938\u094d\u0925\u093e \u0905\u0927\u094d\u092f\u0915\u094d\u0937 \u0968\u0966\u0968\u096c-\u0968\u0966\u0969\u0967"
-    : "Vishal Purandhar Patashatha Chairman 2026-2031";
+  const chairmanLine = "Chaiman of Shri Chhatrapati Shivaji Market Yard Adte Association";
   return (
     <footer className="mt-16 bg-primary-dark text-white/90">
       <div className="container-page grid gap-10 py-14 md:grid-cols-4">
