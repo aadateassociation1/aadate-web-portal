@@ -356,34 +356,77 @@ function Home() {
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {prices.slice(0, 8).map((price) => (
-              <Card key={price.item_id} className="border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <Badge variant="secondary" className="capitalize">{price.category}</Badge>
-                      <h3 className="mt-3 font-display text-lg font-bold leading-snug text-primary-dark">{price.name_en}</h3>
-                      <div className="text-sm text-muted-foreground">{price.name_mr}</div>
+              <Card
+                key={price.item_id}
+                className="group overflow-hidden rounded-[24px] border border-border/70 bg-background shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(0,0,0,0.08)]"
+              >
+                <CardContent className="p-0">
+                  <div className="border-b border-border/60 bg-gradient-to-br from-secondary/55 via-background to-background px-4 py-4 sm:px-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <Badge variant="secondary" className="rounded-full bg-background/90 px-3 py-1 capitalize text-primary-dark shadow-sm">
+                          {price.category}
+                        </Badge>
+                        <h3 className="mt-3 line-clamp-1 font-display text-xl font-bold tracking-tight text-primary-dark">
+                          {price.name_en}
+                        </h3>
+                        <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{price.name_mr}</p>
+                      </div>
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-dark text-white shadow-sm ring-4 ring-background">
+                        <IndianRupee className="h-5 w-5" />
+                      </div>
                     </div>
-                    <IndianRupee className="h-9 w-9 shrink-0 rounded-lg bg-primary p-2 text-white" />
                   </div>
-                  <div className="mt-5 font-display text-2xl font-bold text-primary-dark">
-                    ₹{price.min_price} - ₹{price.max_price}
-                    <span className="ml-1 text-sm font-semibold text-muted-foreground">/ {price.unit}</span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Average ₹{price.modal_price}</span>
-                    <span className={price.change_direction === "up" ? "font-semibold text-success" : price.change_direction === "down" ? "font-semibold text-destructive" : "text-muted-foreground"}>
-                      {price.change_amount === null ? "New" : price.change_direction === "up" ? `↑ ₹${price.change_amount}` : price.change_direction === "down" ? `↓ ₹${Math.abs(price.change_amount)}` : "— ₹0"}
-                    </span>
+
+                  <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
+                    <div className="rounded-[20px] bg-primary-dark px-4 py-4 text-white">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                        Today&apos;s market range
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-end gap-x-2 gap-y-1">
+                        <div className="font-display text-3xl font-bold leading-none sm:text-[2rem]">
+                          {"\u20B9"}{price.min_price} - {"\u20B9"}{price.max_price}
+                        </div>
+                        <span className="text-sm font-medium text-white/75">per {price.unit}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-[18px] border border-border/70 bg-background px-4 py-3">
+                      <div className="min-w-0">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                          Average price
+                        </div>
+                        <div className="mt-1 text-lg font-semibold text-primary-dark">{"\u20B9"}{price.modal_price}</div>
+                      </div>
+                      <span
+                        className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${
+                          price.change_amount === null
+                            ? "border border-primary/15 bg-secondary/70 text-primary-dark"
+                            : price.change_direction === "up"
+                              ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                              : price.change_direction === "down"
+                                ? "border border-red-200 bg-red-50 text-red-700"
+                                : "border border-primary/10 bg-background text-muted-foreground"
+                        }`}
+                      >
+                        {price.change_amount === null
+                          ? "Fresh entry"
+                          : price.change_direction === "up"
+                            ? `+ \u20B9${price.change_amount}`
+                            : price.change_direction === "down"
+                              ? `- \u20B9${Math.abs(price.change_amount)}`
+                              : "Stable"}
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
             {prices.length === 0 && <div className="rounded-lg border bg-background p-8 text-center text-sm text-muted-foreground sm:col-span-2 lg:col-span-4">Today's market prices have not been published yet. Please check again shortly.</div>}
           </div>
+
         </div>
       </section>
-
       {/* Market updates */}
       <section className="bg-leaf py-16 md:py-20">
         <div className="container-page">
