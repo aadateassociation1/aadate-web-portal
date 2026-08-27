@@ -40,47 +40,47 @@ import { useI18n } from "@/lib/i18n";
 
 const CHART_COLORS = ["#86c127", "#e37814", "#86c127", "#D92D20", "#7C3AED", "#0284C7"];
 const COMPLAINT_CATEGORIES = [
-  { en: "Water Supply", mr: "à¤ªà¤¾à¤£à¥€ à¤ªà¥à¤°à¤µà¤ à¤¾" },
-  { en: "Electricity", mr: "à¤µà¥€à¤œ à¤ªà¥à¤°à¤µà¤ à¤¾" },
-  { en: "Cleanliness", mr: "à¤¸à¥à¤µà¤šà¥à¤›à¤¤à¤¾" },
-  { en: "Garbage / Waste Management", mr: "à¤•à¤šà¤°à¤¾ à¤µà¥à¤¯à¤µà¤¸à¥à¤¥à¤¾à¤ªà¤¨" },
-  { en: "Drainage", mr: "à¤¸à¤¾à¤‚à¤¡à¤ªà¤¾à¤£à¥€ / à¤¡à¥à¤°à¥‡à¤¨à¥‡à¤œ" },
-  { en: "Public Toilet", mr: "à¤¸à¤¾à¤°à¥à¤µà¤œà¤¨à¤¿à¤• à¤¸à¥à¤µà¤šà¥à¤›à¤¤à¤¾à¤—à¥ƒà¤¹" },
-  { en: "Parking", mr: "à¤µà¤¾à¤¹à¤¨à¤¤à¤³ / à¤ªà¤¾à¤°à¥à¤•à¤¿à¤‚à¤—" },
-  { en: "Security", mr: "à¤¸à¥à¤°à¤•à¥à¤·à¤¾" },
-  { en: "CCTV / Surveillance", mr: "à¤¸à¥€à¤¸à¥€à¤Ÿà¥€à¤µà¥à¤¹à¥€ / à¤¨à¤¿à¤—à¤°à¤¾à¤£à¥€" },
-  { en: "Street Lights", mr: "à¤°à¤¸à¥à¤¤à¥à¤¯à¤¾à¤µà¤°à¥€à¤² à¤¦à¤¿à¤µà¥‡" },
-  { en: "Internal Roads", mr: "à¤…à¤‚à¤¤à¤°à¥à¤—à¤¤ à¤°à¤¸à¥à¤¤à¥‡" },
-  { en: "Road Damage / Potholes", mr: "à¤°à¤¸à¥à¤¤à¤¾ à¤–à¤°à¤¾à¤¬ / à¤–à¤¡à¥à¤¡à¥‡" },
-  { en: "Traffic Management", mr: "à¤µà¤¾à¤¹à¤¤à¥‚à¤• à¤µà¥à¤¯à¤µà¤¸à¥à¤¥à¤¾à¤ªà¤¨" },
-  { en: "Market Facility", mr: "à¤¬à¤¾à¤œà¤¾à¤° à¤¸à¥à¤µà¤¿à¤§à¤¾" },
-  { en: "Shop / Gala Issue", mr: "à¤¦à¥à¤•à¤¾à¤¨ / à¤—à¤¾à¤³à¤¾ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
-  { en: "Gala Number / Record Issue", mr: "à¤—à¤¾à¤³à¤¾ à¤•à¥à¤°à¤®à¤¾à¤‚à¤• / à¤¨à¥‹à¤‚à¤¦ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
-  { en: "Encroachment", mr: "à¤…à¤¤à¤¿à¤•à¥à¤°à¤®à¤£" },
-  { en: "Unauthorized Vendors", mr: "à¤…à¤¨à¤§à¤¿à¤•à¥ƒà¤¤ à¤µà¤¿à¤•à¥à¤°à¥‡à¤¤à¥‡" },
-  { en: "Loading / Unloading Issue", mr: "à¤®à¤¾à¤² à¤šà¤¢à¤µà¤£à¥‡ / à¤‰à¤¤à¤°à¤µà¤£à¥‡ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
-  { en: "Weighing Scale Issue", mr: "à¤µà¤œà¤¨à¤•à¤¾à¤Ÿà¤¾ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
-  { en: "Market Price Issue", mr: "à¤¬à¤¾à¤œà¤¾à¤°à¤­à¤¾à¤µ à¤¸à¤‚à¤¬à¤‚à¤§à¤¿à¤¤ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
-  { en: "Drinking Water", mr: "à¤ªà¤¿à¤£à¥à¤¯à¤¾à¤šà¥‡ à¤ªà¤¾à¤£à¥€" },
-  { en: "Fire Safety", mr: "à¤…à¤—à¥à¤¨à¤¿à¤¸à¥à¤°à¤•à¥à¤·à¤¾" },
-  { en: "Stray Animals", mr: "à¤­à¤Ÿà¤•à¥€ à¤œà¤¨à¤¾à¤µà¤°à¥‡" },
-  { en: "Pest / Mosquito Problem", mr: "à¤•à¥€à¤Ÿà¤• / à¤¡à¤¾à¤¸ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
-  { en: "Building / Structure Repair", mr: "à¤‡à¤®à¤¾à¤°à¤¤ / à¤¬à¤¾à¤‚à¤§à¤•à¤¾à¤® à¤¦à¥à¤°à¥à¤¸à¥à¤¤à¥€" },
-  { en: "Shed / Roof Leakage", mr: "à¤¶à¥‡à¤¡ / à¤›à¤¤ à¤—à¤³à¤¤à¥€" },
-  { en: "Association Office Service", mr: "à¤…à¤¸à¥‹à¤¸à¤¿à¤à¤¶à¤¨ à¤•à¤¾à¤°à¥à¤¯à¤¾à¤²à¤¯ à¤¸à¥‡à¤µà¤¾" },
-  { en: "Staff Behaviour", mr: "à¤•à¤°à¥à¤®à¤šà¤¾à¤°à¥€ à¤µà¤°à¥à¤¤à¤£à¥‚à¤•" },
-  { en: "Member Service Issue", mr: "à¤¸à¤­à¤¾à¤¸à¤¦ à¤¸à¥‡à¤µà¤¾ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
-  { en: "Mobile App / Portal Issue", mr: "à¤®à¥‹à¤¬à¤¾à¤ˆà¤² à¥²à¤ª / à¤ªà¥‹à¤°à¥à¤Ÿà¤² à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
-  { en: "Login / Password Issue", mr: "à¤²à¥‰à¤—à¤¿à¤¨ / à¤ªà¤¾à¤¸à¤µà¤°à¥à¤¡ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
-  { en: "Notification Issue", mr: "à¤¸à¥‚à¤šà¤¨à¤¾ / à¤¨à¥‹à¤Ÿà¤¿à¤«à¤¿à¤•à¥‡à¤¶à¤¨ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
-  { en: "Emergency / Safety Issue", mr: "à¤†à¤ªà¤¤à¥à¤•à¤¾à¤²à¥€à¤¨ / à¤¸à¥à¤°à¤•à¥à¤·à¤¾ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
-  { en: "Other Complaint", mr: "à¤‡à¤¤à¤° à¤¤à¤•à¥à¤°à¤¾à¤°" },
+  { en: "Water Supply", mr: "\u092a\u093e\u0923\u0940 \u092a\u0941\u0930\u0935\u0920\u093e" },
+  { en: "Electricity", mr: "\u0935\u0940\u091c \u092a\u0941\u0930\u0935\u0920\u093e" },
+  { en: "Cleanliness", mr: "\u0938\u094d\u0935\u091a\u094d\u091b\u0924\u093e" },
+  { en: "Garbage / Waste Management", mr: "\u0915\u091a\u0930\u093e \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u0928" },
+  { en: "Drainage", mr: "\u0938\u093e\u0902\u0921\u092a\u093e\u0923\u0940 / \u0921\u094d\u0930\u0947\u0928\u0947\u091c" },
+  { en: "Public Toilet", mr: "\u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0938\u094d\u0935\u091a\u094d\u091b\u0924\u093e\u0917\u0943\u0939" },
+  { en: "Parking", mr: "\u0935\u093e\u0939\u0928\u0924\u0933 / \u092a\u093e\u0930\u094d\u0915\u093f\u0902\u0917" },
+  { en: "Security", mr: "\u0938\u0941\u0930\u0915\u094d\u0937\u093e" },
+  { en: "CCTV / Surveillance", mr: "\u0938\u0940\u0938\u0940\u091f\u0940\u0935\u094d\u0939\u0940 / \u0928\u093f\u0917\u0930\u093e\u0923\u0940" },
+  { en: "Street Lights", mr: "\u0930\u0938\u094d\u0924\u094d\u092f\u093e\u0935\u0930\u0940\u0932 \u0926\u093f\u0935\u0947" },
+  { en: "Internal Roads", mr: "\u0905\u0902\u0924\u0930\u094d\u0917\u0924 \u0930\u0938\u094d\u0924\u0947" },
+  { en: "Road Damage / Potholes", mr: "\u0930\u0938\u094d\u0924\u093e \u0916\u0930\u093e\u092c / \u0916\u0921\u094d\u0921\u0947" },
+  { en: "Traffic Management", mr: "\u0935\u093e\u0939\u0924\u0942\u0915 \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u0928" },
+  { en: "Market Facility", mr: "\u092c\u093e\u091c\u093e\u0930 \u0938\u0941\u0935\u093f\u0927\u093e" },
+  { en: "Shop / Gala Issue", mr: "\u0926\u0941\u0915\u093e\u0928 / \u0917\u093e\u0933\u093e \u0938\u092e\u0938\u094d\u092f\u093e" },
+  { en: "Gala Number / Record Issue", mr: "\u0917\u093e\u0933\u093e \u0915\u094d\u0930\u092e\u093e\u0902\u0915 / \u0928\u094b\u0902\u0926 \u0938\u092e\u0938\u094d\u092f\u093e" },
+  { en: "Encroachment", mr: "\u0905\u0924\u093f\u0915\u094d\u0930\u092e\u0923" },
+  { en: "Unauthorized Vendors", mr: "\u0905\u0928\u0927\u093f\u0915\u0943\u0924 \u0935\u093f\u0915\u094d\u0930\u0947\u0924\u0947" },
+  { en: "Loading / Unloading Issue", mr: "\u092e\u093e\u0932 \u091a\u0922\u0935\u0923\u0947 / \u0909\u0924\u0930\u0935\u0923\u0947 \u0938\u092e\u0938\u094d\u092f\u093e" },
+  { en: "Weighing Scale Issue", mr: "\u0935\u091c\u0928\u0915\u093e\u091f\u093e \u0938\u092e\u0938\u094d\u092f\u093e" },
+  { en: "Market Price Issue", mr: "\u092c\u093e\u091c\u093e\u0930\u092d\u093e\u0935 \u0938\u0902\u092c\u0902\u0927\u093f\u0924 \u0938\u092e\u0938\u094d\u092f\u093e" },
+  { en: "Drinking Water", mr: "\u092a\u093f\u0923\u094d\u092f\u093e\u091a\u0947 \u092a\u093e\u0923\u0940" },
+  { en: "Fire Safety", mr: "\u0905\u0917\u094d\u0928\u093f\u0938\u0941\u0930\u0915\u094d\u0937\u093e" },
+  { en: "Stray Animals", mr: "\u092d\u091f\u0915\u0940 \u091c\u0928\u093e\u0935\u0930\u0947" },
+  { en: "Pest / Mosquito Problem", mr: "\u0915\u0940\u091f\u0915 / \u0921\u093e\u0938 \u0938\u092e\u0938\u094d\u092f\u093e" },
+  { en: "Building / Structure Repair", mr: "\u0907\u092e\u093e\u0930\u0924 / \u092c\u093e\u0902\u0927\u0915\u093e\u092e \u0926\u0941\u0930\u0941\u0938\u094d\u0924\u0940" },
+  { en: "Shed / Roof Leakage", mr: "\u0936\u0947\u0921 / \u091b\u0924 \u0917\u0933\u0924\u0940" },
+  { en: "Association Office Service", mr: "\u0905\u0938\u094b\u0938\u093f\u090f\u0936\u0928 \u0915\u093e\u0930\u094d\u092f\u093e\u0932\u092f \u0938\u0947\u0935\u093e" },
+  { en: "Staff Behaviour", mr: "\u0915\u0930\u094d\u092e\u091a\u093e\u0930\u0940 \u0935\u0930\u094d\u0924\u0923\u0942\u0915" },
+  { en: "Member Service Issue", mr: "\u0938\u092d\u093e\u0938\u0926 \u0938\u0947\u0935\u093e \u0938\u092e\u0938\u094d\u092f\u093e" },
+  { en: "Mobile App / Portal Issue", mr: "\u092e\u094b\u092c\u093e\u0908\u0932 \u0905\u0945\u092a / \u092a\u094b\u0930\u094d\u091f\u0932 \u0938\u092e\u0938\u094d\u092f\u093e" },
+  { en: "Login / Password Issue", mr: "\u0932\u0949\u0917\u093f\u0928 / \u092a\u093e\u0938\u0935\u0930\u094d\u0921 \u0938\u092e\u0938\u094d\u092f\u093e" },
+  { en: "Notification Issue", mr: "\u0938\u0942\u091a\u0928\u093e / \u0928\u094b\u091f\u093f\u092b\u093f\u0915\u0947\u0936\u0928 \u0938\u092e\u0938\u094d\u092f\u093e" },
+  { en: "Emergency / Safety Issue", mr: "\u0906\u092a\u0924\u094d\u0915\u093e\u0932\u0940\u0928 / \u0938\u0941\u0930\u0915\u094d\u0937\u093e \u0938\u092e\u0938\u094d\u092f\u093e" },
+  { en: "Other Complaint", mr: "\u0907\u0924\u0930 \u0924\u0915\u094d\u0930\u093e\u0930" },
 ];
 const COMPLAINT_PRIORITIES = [
-  { value: "low", en: "Low", mr: "à¤•à¤®à¥€" },
-  { value: "medium", en: "Medium", mr: "à¤®à¤§à¥à¤¯à¤®" },
-  { value: "high", en: "High", mr: "à¤‰à¤šà¥à¤š" },
-  { value: "urgent", en: "Emergency", mr: "à¤†à¤ªà¤¤à¥à¤•à¤¾à¤²à¥€à¤¨" },
+  { value: "low", en: "Low", mr: "\u0915\u092e\u0940" },
+  { value: "medium", en: "Medium", mr: "\u092e\u0927\u094d\u092f\u092e" },
+  { value: "high", en: "High", mr: "\u0909\u091a\u094d\u091a" },
+  { value: "urgent", en: "Emergency", mr: "\u0906\u092a\u0924\u094d\u0915\u093e\u0932\u0940\u0928" },
 ];
 const MEMBER_POST_CATEGORIES = [
   "Market Rate Update",
@@ -1138,7 +1138,7 @@ export function AdminComplaintsPage() {
     <>
       <div className="line-clamp-2 whitespace-normal break-words font-semibold leading-snug text-primary-dark">{complaint.subject}</div>
       <div className="mt-1 line-clamp-2 whitespace-normal break-words text-xs leading-5 text-muted-foreground">
-        {complaint.parsed?.category || "General"} â€¢ {complaint.parsed?.description || "No description provided."}
+        {complaint.parsed?.category || "General"} - {complaint.parsed?.description || "No description provided."}
       </div>
     </>
   );
@@ -1243,7 +1243,7 @@ export function AdminComplaintsPage() {
             <div className="flex max-h-[90vh] flex-col">
               <DialogHeader className="sticky top-0 z-10 border-b bg-background px-6 py-5">
                 <DialogTitle className="font-display text-2xl text-primary-dark">Complaint Details</DialogTitle>
-                <DialogDescription>à¤¤à¤•à¥à¤°à¤¾à¤° à¤¤à¤ªà¤¶à¥€à¤² â€¢ {selectedComplaint.ticket_number}</DialogDescription>
+                <DialogDescription>{"\u0924\u0915\u094d\u0930\u093e\u0930 \u0924\u092a\u0936\u0940\u0932"} - {selectedComplaint.ticket_number}</DialogDescription>
               </DialogHeader>
               <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
                 <div className="flex flex-wrap gap-2">
@@ -1302,7 +1302,7 @@ export function AdminComplaintsPage() {
                           <div className="flex flex-wrap items-center justify-between gap-3 p-3">
                             <div className="min-w-0">
                               <div className="truncate text-sm font-semibold text-primary-dark">{file.original_filename}</div>
-                              <div className="text-xs text-muted-foreground">{file.attachment_type} â€¢ {Math.ceil((file.file_size_bytes || 0) / 1024)} KB</div>
+                              <div className="text-xs text-muted-foreground">{file.attachment_type} - {Math.ceil((file.file_size_bytes || 0) / 1024)} KB</div>
                             </div>
                             <div className="flex gap-2">
                               <Button size="sm" variant="outline" onClick={() => window.open(attachmentUrl(file), "_blank")}>View</Button>
@@ -2723,7 +2723,7 @@ export function AdminCommitteePage() {
               </div>
               <div className="space-y-2">
                 <Label>Name in Marathi</Label>
-                <Input value={form.nameMr} onChange={(event) => setForm({ ...form, nameMr: event.target.value })} placeholder="à¤®à¤°à¤¾à¤ à¥€ à¤¨à¤¾à¤µ" />
+                <Input value={form.nameMr} onChange={(event) => setForm({ ...form, nameMr: event.target.value })} placeholder={"\u092e\u0930\u093e\u0920\u0940 \u0928\u093e\u0935"} />
               </div>
               <div className="space-y-2">
                 <Label>Designation *</Label>
@@ -2731,7 +2731,7 @@ export function AdminCommitteePage() {
               </div>
               <div className="space-y-2">
                 <Label>Designation in Marathi</Label>
-                <Input value={form.designationMr} onChange={(event) => setForm({ ...form, designationMr: event.target.value })} placeholder="à¤…à¤§à¥à¤¯à¤•à¥à¤·, à¤¸à¤šà¤¿à¤µ..." />
+                <Input value={form.designationMr} onChange={(event) => setForm({ ...form, designationMr: event.target.value })} placeholder={"\u0905\u0927\u094d\u092f\u0915\u094d\u0937, \u0938\u091a\u093f\u0935..."} />
               </div>
               <div className="space-y-2">
                 <Label>Gala number</Label>
@@ -3963,7 +3963,7 @@ export function OwnerKycPage() {
                       <div className="mt-1 text-sm text-muted-foreground">{customer.customer_code} - {customer.mobile} - {[customer.address_line1, customer.village_city, customer.district].filter(Boolean).join(", ")}</div>
                       {isHighRisk && (
                         <div className="mt-3 rounded-md border border-destructive/30 bg-background p-3 text-sm">
-                          <div className="font-semibold text-destructive">Unpaid warning: â‚¹{Number(customer.verified_market_outstanding || 0).toLocaleString("en-IN")} across {customer.active_market_warning_count} market alert(s)</div>
+                          <div className="font-semibold text-destructive">Unpaid warning: Rs. {Number(customer.verified_market_outstanding || 0).toLocaleString("en-IN")} across {customer.active_market_warning_count} market alert(s)</div>
                           <div className="mt-1 text-muted-foreground">{customer.latest_warning_note || "No note available."}</div>
                           {customer.latest_warning_trader && <div className="mt-1 text-xs text-muted-foreground">Reported by {customer.latest_warning_trader}</div>}
                         </div>
@@ -5223,9 +5223,9 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
               </Select>
             </div>
             <div>
-              <Label>Priority * / à¤ªà¥à¤°à¤¾à¤§à¤¾à¤¨à¥à¤¯ *</Label>
+              <Label>{"Priority * / \u092a\u094d\u0930\u093e\u0927\u093e\u0928\u094d\u092f *"}</Label>
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger><SelectValue placeholder="Select Priority / à¤ªà¥à¤°à¤¾à¤§à¤¾à¤¨à¥à¤¯ à¤¨à¤¿à¤µà¤¡à¤¾" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={"Select Priority / \u092a\u094d\u0930\u093e\u0927\u093e\u0928\u094d\u092f \u0928\u093f\u0935\u0921\u093e"} /></SelectTrigger>
                 <SelectContent>
                   {COMPLAINT_PRIORITIES.map((item) => (
                     <SelectItem key={item.value} value={item.value}>{item.en} / {item.mr}</SelectItem>
