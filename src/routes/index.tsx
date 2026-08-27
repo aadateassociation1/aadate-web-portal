@@ -593,7 +593,6 @@ function Home() {
                   {complaintFeedback.map((item) => (
                     <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
                       <Card className="h-full overflow-hidden border-border/60 bg-background shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-                        <div className="h-1.5 bg-gradient-to-r from-primary via-lime-500 to-saffron" />
                         <CardContent className="flex min-h-[250px] flex-col items-center p-6 text-center">
                           <div className="rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary-dark">
                             {item.category || "Resolved Complaint"}
@@ -603,10 +602,7 @@ function Home() {
                               <Star key={star} className={`h-4 w-4 ${star <= Number(item.rating || 0) ? "fill-current" : ""}`} />
                             ))}
                           </div>
-                          <div className="mt-5 flex h-9 w-9 items-center justify-center rounded-full bg-saffron/10 font-display text-2xl font-bold text-saffron">
-                            &quot;
-                          </div>
-                          <p className="mt-4 line-clamp-4 flex-1 text-sm leading-relaxed text-muted-foreground">
+                          <p className="mt-5 line-clamp-4 flex-1 text-sm leading-relaxed text-muted-foreground">
                             {item.comment}
                           </p>
                           <div className="mt-5 rounded-full bg-secondary px-5 py-2 font-display text-sm font-bold capitalize text-primary">
