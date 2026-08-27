@@ -68,8 +68,8 @@ function About() {
 
       <section className="py-16">
         <div className="container-page">
-          <h2 className="font-display text-3xl font-bold text-primary-dark">Facilities &amp; Achievements</h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <h2 className="text-center font-display text-2xl font-bold leading-tight text-primary-dark sm:text-left sm:text-3xl">Facilities &amp; Achievements</h2>
+          <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-4">
             {[
               { icon: Building2, title: "Cold storage", body: "500 MT capacity for perishables" },
               { icon: Users, title: "Committee training", body: "Monthly farmer awareness camps" },
@@ -77,10 +77,10 @@ function About() {
               { icon: Target, title: "24x7 security", body: "CCTV across all sections" },
             ].map((f) => (
               <Card key={f.title} className="border-border/60">
-                <CardContent className="p-5">
-                  <f.icon className="h-6 w-6 text-primary" />
-                  <div className="mt-3 font-display font-semibold text-primary-dark">{f.title}</div>
-                  <div className="text-sm text-muted-foreground mt-1">{f.body}</div>
+                <CardContent className="p-3 text-center sm:p-5 sm:text-left">
+                  <f.icon className="mx-auto h-6 w-6 text-primary sm:mx-0" />
+                  <div className="mt-3 font-display text-sm font-semibold leading-snug text-primary-dark sm:text-base">{f.title}</div>
+                  <div className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">{f.body}</div>
                 </CardContent>
               </Card>
             ))}
