@@ -262,6 +262,15 @@ function Footer() {
   );
 }
 
+function ScrollToTopOnRouteChange() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [pathname]);
+
+  return null;
+}
 function ScrollTopFAB() {
   const [visible, setVisible] = useState(false);
 
@@ -289,6 +298,7 @@ function ScrollTopFAB() {
 export function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
+      <ScrollToTopOnRouteChange />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
