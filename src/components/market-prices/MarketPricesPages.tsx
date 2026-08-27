@@ -126,16 +126,16 @@ function changeView(row: MarketPriceRow) {
 
 function CategoryTabs({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return (
-    <div className="grid gap-2 sm:grid-cols-4">
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
       {CATEGORIES.map((category) => (
         <button
           key={category.value}
           type="button"
           onClick={() => onChange(category.value)}
-          className={`rounded-lg border px-4 py-3 text-left transition ${value === category.value ? "border-primary bg-secondary text-primary-dark shadow-sm" : "border-border bg-background hover:bg-secondary/60"}`}
+          className={`min-h-16 rounded-xl border px-2 py-2 text-center transition sm:min-h-0 sm:px-4 sm:py-3 sm:text-left ${value === category.value ? "border-primary bg-secondary text-primary-dark shadow-sm" : "border-border bg-background hover:bg-secondary/60"}`}
         >
-          <div className="font-display font-semibold">{category.label}</div>
-          <div className="text-xs text-muted-foreground">{category.mr}</div>
+          <div className="font-display text-sm font-semibold leading-tight sm:text-base">{category.label}</div>
+          <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground sm:text-xs">{category.mr}</div>
         </button>
       ))}
     </div>
