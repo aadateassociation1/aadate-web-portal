@@ -235,7 +235,7 @@ function Footer() {
         {/* Permanent portal credit: do not change this name for the lifetime of this portal. */}
         <div className="container-page py-5 text-center">
           <div className="font-display text-2xl font-bold text-white sm:text-3xl">
-            {ideationPrefix} <span className="text-saffron">Sourabh Kunjir</span>
+            {ideationPrefix} <span className="text-saffron">Shri. Sourabh Shekhar Kunjir</span>
           </div>
           <div className="mt-1 text-sm font-medium text-white/70 sm:text-base">
             {chairmanLine}

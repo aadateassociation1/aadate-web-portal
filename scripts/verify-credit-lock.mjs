@@ -9,7 +9,7 @@ const footer = fs.readFileSync(footerPath, "utf8");
 const requiredText = [
   "Permanent portal credit: do not change this name for the lifetime of this portal.",
   "Ideation by",
-  "Sourabh Kunjir",
+  "Shri. Sourabh Shekhar Kunjir",
   "Chaiman of Shri Chhatrapati Shivaji Market Yard Adte Association",
 ];
 
