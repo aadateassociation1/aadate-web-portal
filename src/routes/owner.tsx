@@ -1,12 +1,13 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@/lib/simple-router";
+﻿import { createFileRoute, Link, Outlet, useRouterState } from "@/lib/simple-router";
 import { useEffect, useState } from "react";
 import { DashLayout } from "@/components/dashboard/DashLayout";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ClipboardList, FileText, Newspaper, Phone, MessageSquare, Clock, ImagePlus, IdCard,
-  Star, Store,
+  Star, Store, CheckCircle2,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
@@ -67,8 +68,11 @@ function OwnerDash() {
     gala_number: string | null;
     parsed?: { category?: string; details?: string };
   };
+  type PendingFeedback = { id: number; complaint_id: number; ticket_number: string; subject: string; resolved_at?: string | null; parsed?: { category?: string } };
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [sharedPosts, setSharedPosts] = useState<SharedPost[]>([]);
+  const [pendingFeedback, setPendingFeedback] = useState<PendingFeedback[]>([]);
+  const [showFeedbackPrompt, setShowFeedbackPrompt] = useState(false);
   const { lang } = useI18n();
 
   useEffect(() => {
@@ -76,6 +80,15 @@ function OwnerDash() {
       .then((response) => response.json())
       .then((result) => {
         if (result.ok) setDashboard(result);
+      })
+      .catch(() => undefined);
+    fetch("/api/v1/trader/complaints/pending-feedback", { credentials: "include" })
+      .then((response) => response.json())
+      .then((result) => {
+        if (!result.ok) return;
+        const items = result.feedbackRequests || [];
+        setPendingFeedback(items);
+        if (items.length > 0) setShowFeedbackPrompt(true);
       })
       .catch(() => undefined);
     fetch("/api/v1/trader/shared-posts", { credentials: "include" })
@@ -124,6 +137,39 @@ function OwnerDash() {
           </div>
         </CardContent>
       </Card>
+      {pendingFeedback.length > 0 && (
+        <Card className="mb-4 border-saffron/50 bg-saffron/5 sm:mb-6">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                  <h2 className="font-display font-bold text-primary-dark">{lang === "mr" ? "\u092a\u094d\u0930\u0932\u0902\u092c\u093f\u0924 \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f" : "Pending Feedback"}</h2>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">{pendingFeedback[0]?.ticket_number} - {pendingFeedback[0]?.subject}</p>
+              </div>
+              <Button asChild className="bg-primary"><Link to="/member/complaints">{lang === "mr" ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Give Feedback"}</Link></Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Dialog open={showFeedbackPrompt && pendingFeedback.length > 0} onOpenChange={setShowFeedbackPrompt}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{lang === "mr" ? "\u0906\u092a\u0932\u094d\u092f\u093e \u0924\u0915\u094d\u0930\u093e\u0930\u0940\u091a\u0947 \u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u0915\u0938\u0947 \u091d\u093e\u0932\u0947?" : "How was your complaint resolution?"}</DialogTitle>
+            <DialogDescription>{lang === "mr" ? "\u0906\u092a\u0932\u0940 \u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u091d\u093e\u0932\u094d\u092f\u093e\u091a\u0947 \u0928\u094b\u0902\u0926\u0935\u093f\u0923\u094d\u092f\u093e\u0924 \u0906\u0932\u0947 \u0906\u0939\u0947. \u0915\u0943\u092a\u092f\u093e \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e." : "Your complaint has been marked as resolved. Please share your feedback."}</DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border bg-secondary/40 p-4">
+            <div className="font-mono text-xs text-muted-foreground">{pendingFeedback[0]?.ticket_number}</div>
+            <div className="mt-1 font-display font-semibold text-primary-dark">{pendingFeedback[0]?.subject}</div>
+          </div>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowFeedbackPrompt(false)}>{lang === "mr" ? "\u0928\u0902\u0924\u0930 \u0906\u0920\u0935\u0923 \u0915\u0930\u0942\u0928 \u0926\u094d\u092f\u093e" : "Remind Me Later"}</Button>
+            <Button asChild className="bg-primary"><Link to="/member/complaints">{lang === "mr" ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Open Feedback"}</Link></Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       {/* Overview cards */}
       <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
         {[

@@ -1,4 +1,4 @@
-import { Link, useRouter } from "@/lib/simple-router";
+﻿import { Link, useRouter } from "@/lib/simple-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   AlertTriangle, Bell, Camera, CheckCircle2, ClipboardList, Download, Eye, FileText,
@@ -40,47 +40,47 @@ import { useI18n } from "@/lib/i18n";
 
 const CHART_COLORS = ["#86c127", "#e37814", "#86c127", "#D92D20", "#7C3AED", "#0284C7"];
 const COMPLAINT_CATEGORIES = [
-  { en: "Water Supply", mr: "पाणी पुरवठा" },
-  { en: "Electricity", mr: "वीज पुरवठा" },
-  { en: "Cleanliness", mr: "स्वच्छता" },
-  { en: "Garbage / Waste Management", mr: "कचरा व्यवस्थापन" },
-  { en: "Drainage", mr: "सांडपाणी / ड्रेनेज" },
-  { en: "Public Toilet", mr: "सार्वजनिक स्वच्छतागृह" },
-  { en: "Parking", mr: "वाहनतळ / पार्किंग" },
-  { en: "Security", mr: "सुरक्षा" },
-  { en: "CCTV / Surveillance", mr: "सीसीटीव्ही / निगराणी" },
-  { en: "Street Lights", mr: "रस्त्यावरील दिवे" },
-  { en: "Internal Roads", mr: "अंतर्गत रस्ते" },
-  { en: "Road Damage / Potholes", mr: "रस्ता खराब / खड्डे" },
-  { en: "Traffic Management", mr: "वाहतूक व्यवस्थापन" },
-  { en: "Market Facility", mr: "बाजार सुविधा" },
-  { en: "Shop / Gala Issue", mr: "दुकान / गाळा समस्या" },
-  { en: "Gala Number / Record Issue", mr: "गाळा क्रमांक / नोंद समस्या" },
-  { en: "Encroachment", mr: "अतिक्रमण" },
-  { en: "Unauthorized Vendors", mr: "अनधिकृत विक्रेते" },
-  { en: "Loading / Unloading Issue", mr: "माल चढवणे / उतरवणे समस्या" },
-  { en: "Weighing Scale Issue", mr: "वजनकाटा समस्या" },
-  { en: "Market Price Issue", mr: "बाजारभाव संबंधित समस्या" },
-  { en: "Drinking Water", mr: "पिण्याचे पाणी" },
-  { en: "Fire Safety", mr: "अग्निसुरक्षा" },
-  { en: "Stray Animals", mr: "भटकी जनावरे" },
-  { en: "Pest / Mosquito Problem", mr: "कीटक / डास समस्या" },
-  { en: "Building / Structure Repair", mr: "इमारत / बांधकाम दुरुस्ती" },
-  { en: "Shed / Roof Leakage", mr: "शेड / छत गळती" },
-  { en: "Association Office Service", mr: "असोसिएशन कार्यालय सेवा" },
-  { en: "Staff Behaviour", mr: "कर्मचारी वर्तणूक" },
-  { en: "Member Service Issue", mr: "सभासद सेवा समस्या" },
-  { en: "Mobile App / Portal Issue", mr: "मोबाईल ॲप / पोर्टल समस्या" },
-  { en: "Login / Password Issue", mr: "लॉगिन / पासवर्ड समस्या" },
-  { en: "Notification Issue", mr: "सूचना / नोटिफिकेशन समस्या" },
-  { en: "Emergency / Safety Issue", mr: "आपत्कालीन / सुरक्षा समस्या" },
-  { en: "Other Complaint", mr: "इतर तक्रार" },
+  { en: "Water Supply", mr: "à¤ªà¤¾à¤£à¥€ à¤ªà¥à¤°à¤µà¤ à¤¾" },
+  { en: "Electricity", mr: "à¤µà¥€à¤œ à¤ªà¥à¤°à¤µà¤ à¤¾" },
+  { en: "Cleanliness", mr: "à¤¸à¥à¤µà¤šà¥à¤›à¤¤à¤¾" },
+  { en: "Garbage / Waste Management", mr: "à¤•à¤šà¤°à¤¾ à¤µà¥à¤¯à¤µà¤¸à¥à¤¥à¤¾à¤ªà¤¨" },
+  { en: "Drainage", mr: "à¤¸à¤¾à¤‚à¤¡à¤ªà¤¾à¤£à¥€ / à¤¡à¥à¤°à¥‡à¤¨à¥‡à¤œ" },
+  { en: "Public Toilet", mr: "à¤¸à¤¾à¤°à¥à¤µà¤œà¤¨à¤¿à¤• à¤¸à¥à¤µà¤šà¥à¤›à¤¤à¤¾à¤—à¥ƒà¤¹" },
+  { en: "Parking", mr: "à¤µà¤¾à¤¹à¤¨à¤¤à¤³ / à¤ªà¤¾à¤°à¥à¤•à¤¿à¤‚à¤—" },
+  { en: "Security", mr: "à¤¸à¥à¤°à¤•à¥à¤·à¤¾" },
+  { en: "CCTV / Surveillance", mr: "à¤¸à¥€à¤¸à¥€à¤Ÿà¥€à¤µà¥à¤¹à¥€ / à¤¨à¤¿à¤—à¤°à¤¾à¤£à¥€" },
+  { en: "Street Lights", mr: "à¤°à¤¸à¥à¤¤à¥à¤¯à¤¾à¤µà¤°à¥€à¤² à¤¦à¤¿à¤µà¥‡" },
+  { en: "Internal Roads", mr: "à¤…à¤‚à¤¤à¤°à¥à¤—à¤¤ à¤°à¤¸à¥à¤¤à¥‡" },
+  { en: "Road Damage / Potholes", mr: "à¤°à¤¸à¥à¤¤à¤¾ à¤–à¤°à¤¾à¤¬ / à¤–à¤¡à¥à¤¡à¥‡" },
+  { en: "Traffic Management", mr: "à¤µà¤¾à¤¹à¤¤à¥‚à¤• à¤µà¥à¤¯à¤µà¤¸à¥à¤¥à¤¾à¤ªà¤¨" },
+  { en: "Market Facility", mr: "à¤¬à¤¾à¤œà¤¾à¤° à¤¸à¥à¤µà¤¿à¤§à¤¾" },
+  { en: "Shop / Gala Issue", mr: "à¤¦à¥à¤•à¤¾à¤¨ / à¤—à¤¾à¤³à¤¾ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
+  { en: "Gala Number / Record Issue", mr: "à¤—à¤¾à¤³à¤¾ à¤•à¥à¤°à¤®à¤¾à¤‚à¤• / à¤¨à¥‹à¤‚à¤¦ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
+  { en: "Encroachment", mr: "à¤…à¤¤à¤¿à¤•à¥à¤°à¤®à¤£" },
+  { en: "Unauthorized Vendors", mr: "à¤…à¤¨à¤§à¤¿à¤•à¥ƒà¤¤ à¤µà¤¿à¤•à¥à¤°à¥‡à¤¤à¥‡" },
+  { en: "Loading / Unloading Issue", mr: "à¤®à¤¾à¤² à¤šà¤¢à¤µà¤£à¥‡ / à¤‰à¤¤à¤°à¤µà¤£à¥‡ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
+  { en: "Weighing Scale Issue", mr: "à¤µà¤œà¤¨à¤•à¤¾à¤Ÿà¤¾ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
+  { en: "Market Price Issue", mr: "à¤¬à¤¾à¤œà¤¾à¤°à¤­à¤¾à¤µ à¤¸à¤‚à¤¬à¤‚à¤§à¤¿à¤¤ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
+  { en: "Drinking Water", mr: "à¤ªà¤¿à¤£à¥à¤¯à¤¾à¤šà¥‡ à¤ªà¤¾à¤£à¥€" },
+  { en: "Fire Safety", mr: "à¤…à¤—à¥à¤¨à¤¿à¤¸à¥à¤°à¤•à¥à¤·à¤¾" },
+  { en: "Stray Animals", mr: "à¤­à¤Ÿà¤•à¥€ à¤œà¤¨à¤¾à¤µà¤°à¥‡" },
+  { en: "Pest / Mosquito Problem", mr: "à¤•à¥€à¤Ÿà¤• / à¤¡à¤¾à¤¸ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
+  { en: "Building / Structure Repair", mr: "à¤‡à¤®à¤¾à¤°à¤¤ / à¤¬à¤¾à¤‚à¤§à¤•à¤¾à¤® à¤¦à¥à¤°à¥à¤¸à¥à¤¤à¥€" },
+  { en: "Shed / Roof Leakage", mr: "à¤¶à¥‡à¤¡ / à¤›à¤¤ à¤—à¤³à¤¤à¥€" },
+  { en: "Association Office Service", mr: "à¤…à¤¸à¥‹à¤¸à¤¿à¤à¤¶à¤¨ à¤•à¤¾à¤°à¥à¤¯à¤¾à¤²à¤¯ à¤¸à¥‡à¤µà¤¾" },
+  { en: "Staff Behaviour", mr: "à¤•à¤°à¥à¤®à¤šà¤¾à¤°à¥€ à¤µà¤°à¥à¤¤à¤£à¥‚à¤•" },
+  { en: "Member Service Issue", mr: "à¤¸à¤­à¤¾à¤¸à¤¦ à¤¸à¥‡à¤µà¤¾ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
+  { en: "Mobile App / Portal Issue", mr: "à¤®à¥‹à¤¬à¤¾à¤ˆà¤² à¥²à¤ª / à¤ªà¥‹à¤°à¥à¤Ÿà¤² à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
+  { en: "Login / Password Issue", mr: "à¤²à¥‰à¤—à¤¿à¤¨ / à¤ªà¤¾à¤¸à¤µà¤°à¥à¤¡ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
+  { en: "Notification Issue", mr: "à¤¸à¥‚à¤šà¤¨à¤¾ / à¤¨à¥‹à¤Ÿà¤¿à¤«à¤¿à¤•à¥‡à¤¶à¤¨ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
+  { en: "Emergency / Safety Issue", mr: "à¤†à¤ªà¤¤à¥à¤•à¤¾à¤²à¥€à¤¨ / à¤¸à¥à¤°à¤•à¥à¤·à¤¾ à¤¸à¤®à¤¸à¥à¤¯à¤¾" },
+  { en: "Other Complaint", mr: "à¤‡à¤¤à¤° à¤¤à¤•à¥à¤°à¤¾à¤°" },
 ];
 const COMPLAINT_PRIORITIES = [
-  { value: "low", en: "Low", mr: "कमी" },
-  { value: "medium", en: "Medium", mr: "मध्यम" },
-  { value: "high", en: "High", mr: "उच्च" },
-  { value: "urgent", en: "Emergency", mr: "आपत्कालीन" },
+  { value: "low", en: "Low", mr: "à¤•à¤®à¥€" },
+  { value: "medium", en: "Medium", mr: "à¤®à¤§à¥à¤¯à¤®" },
+  { value: "high", en: "High", mr: "à¤‰à¤šà¥à¤š" },
+  { value: "urgent", en: "Emergency", mr: "à¤†à¤ªà¤¤à¥à¤•à¤¾à¤²à¥€à¤¨" },
 ];
 const MEMBER_POST_CATEGORIES = [
   "Market Rate Update",
@@ -1138,7 +1138,7 @@ export function AdminComplaintsPage() {
     <>
       <div className="line-clamp-2 whitespace-normal break-words font-semibold leading-snug text-primary-dark">{complaint.subject}</div>
       <div className="mt-1 line-clamp-2 whitespace-normal break-words text-xs leading-5 text-muted-foreground">
-        {complaint.parsed?.category || "General"} • {complaint.parsed?.description || "No description provided."}
+        {complaint.parsed?.category || "General"} â€¢ {complaint.parsed?.description || "No description provided."}
       </div>
     </>
   );
@@ -1146,6 +1146,7 @@ export function AdminComplaintsPage() {
   return (
     <DashLayout kind="admin">
       <PageTitle title="Complaint Management" subtitle="Assign, prioritize, comment on, and resolve owner complaints." />
+      <AdminComplaintFeedbackPanel />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={MessageSquare} label="Active" value={activeCount} tone="warning" />
         <StatCard icon={CheckCircle2} label="Resolved" value={resolvedCount} tone="success" />
@@ -1242,7 +1243,7 @@ export function AdminComplaintsPage() {
             <div className="flex max-h-[90vh] flex-col">
               <DialogHeader className="sticky top-0 z-10 border-b bg-background px-6 py-5">
                 <DialogTitle className="font-display text-2xl text-primary-dark">Complaint Details</DialogTitle>
-                <DialogDescription>तक्रार तपशील • {selectedComplaint.ticket_number}</DialogDescription>
+                <DialogDescription>à¤¤à¤•à¥à¤°à¤¾à¤° à¤¤à¤ªà¤¶à¥€à¤² â€¢ {selectedComplaint.ticket_number}</DialogDescription>
               </DialogHeader>
               <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
                 <div className="flex flex-wrap gap-2">
@@ -1301,7 +1302,7 @@ export function AdminComplaintsPage() {
                           <div className="flex flex-wrap items-center justify-between gap-3 p-3">
                             <div className="min-w-0">
                               <div className="truncate text-sm font-semibold text-primary-dark">{file.original_filename}</div>
-                              <div className="text-xs text-muted-foreground">{file.attachment_type} • {Math.ceil((file.file_size_bytes || 0) / 1024)} KB</div>
+                              <div className="text-xs text-muted-foreground">{file.attachment_type} â€¢ {Math.ceil((file.file_size_bytes || 0) / 1024)} KB</div>
                             </div>
                             <div className="flex gap-2">
                               <Button size="sm" variant="outline" onClick={() => window.open(attachmentUrl(file), "_blank")}>View</Button>
@@ -1346,6 +1347,124 @@ export function AdminComplaintsPage() {
   );
 }
 
+type AdminComplaintFeedback = ComplaintFeedbackRequest & {
+  member_name: string;
+  member_mobile: string;
+  business_name?: string | null;
+  gala_number?: string | null;
+  trader_code?: string | null;
+  reaction?: string | null;
+  rating?: number | null;
+  comment?: string | null;
+  issue_resolution_status?: string | null;
+  submitted_at?: string | null;
+};
+
+function AdminComplaintFeedbackPanel() {
+  const [feedback, setFeedback] = useState<AdminComplaintFeedback[]>([]);
+  const [filter, setFilter] = useState("pending");
+  const [loading, setLoading] = useState(true);
+  const filters = [
+    { value: "all", label: "All" },
+    { value: "pending", label: "Pending" },
+    { value: "approved", label: "Approved" },
+    { value: "rejected", label: "Rejected" },
+    { value: "not_satisfied", label: "Not Satisfied" },
+    { value: "reopen_requested", label: "Reopen Requested" },
+  ];
+  const loadFeedback = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/v1/admin/complaint-feedback?filter=${encodeURIComponent(filter)}`, { credentials: "include" });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not load complaint feedback.");
+      setFeedback(result.feedback || []);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load complaint feedback.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { loadFeedback(); }, [filter]);
+
+  const act = async (item: AdminComplaintFeedback, action: "approve" | "reject" | "reopen-approve" | "reopen-reject") => {
+    const needsRemark = action === "reject" || action === "reopen-reject";
+    const adminRemark = needsRemark ? window.prompt("Admin remark") || "" : "";
+    if (needsRemark && !adminRemark.trim()) return;
+    try {
+      const response = await fetch(`/api/v1/admin/complaint-feedback/${item.id}/${action}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminRemark }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Action failed.");
+      toast.success("Complaint feedback updated.");
+      await loadFeedback();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Action failed.");
+    }
+  };
+
+  const reactionLabel = (value?: string | null) => complaintFeedbackReactions.find((item) => item.value === value)?.en || "-";
+
+  return (
+    <Card className="mb-6 border-primary/20 bg-primary/5">
+      <CardContent className="p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-xl font-bold text-primary-dark">Complaint Feedback</h2>
+            <p className="text-sm text-muted-foreground">Review member satisfaction, approve feedback, and handle reopen requests.</p>
+          </div>
+          <Badge className="bg-primary text-white">{feedback.length}</Badge>
+        </div>
+        <div className="mb-4 flex flex-wrap gap-2">
+          {filters.map((item) => (
+            <Button key={item.value} type="button" size="sm" variant={filter === item.value ? "default" : "outline"} className={filter === item.value ? "bg-primary" : ""} onClick={() => setFilter(item.value)}>{item.label}</Button>
+          ))}
+        </div>
+        {loading ? (
+          <div className="rounded-lg border bg-background p-6 text-center text-sm text-muted-foreground">Loading complaint feedback...</div>
+        ) : feedback.length === 0 ? (
+          <div className="rounded-lg border bg-background p-6 text-center text-sm text-muted-foreground">No complaint feedback found.</div>
+        ) : (
+          <div className="grid gap-3">
+            {feedback.map((item) => (
+              <div key={item.id} className="rounded-lg border bg-background p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-mono text-xs text-muted-foreground">{item.ticket_number} - {item.parsed?.category || "General"}</div>
+                    <h3 className="mt-1 font-display font-semibold text-primary-dark">{item.subject}</h3>
+                    <div className="mt-1 text-sm text-muted-foreground">{item.member_name} - {item.business_name || item.trader_code || item.member_mobile}</div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <StatusBadge status={item.feedback_status} />
+                    {item.reopen_requested ? <Badge className="bg-warning text-white">Reopen: {item.reopen_request_status}</Badge> : null}
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-3 md:grid-cols-4">
+                  <div className="rounded-lg bg-secondary/40 p-3"><div className="text-xs text-muted-foreground">Reaction</div><div className="font-semibold text-primary-dark">{reactionLabel(item.reaction)}</div></div>
+                  <div className="rounded-lg bg-secondary/40 p-3"><div className="text-xs text-muted-foreground">Star Rating</div><div className="font-semibold text-primary-dark">{item.rating ? `${item.rating}/5` : "-"}</div></div>
+                  <div className="rounded-lg bg-secondary/40 p-3"><div className="text-xs text-muted-foreground">Resolution Status</div><div className="font-semibold text-primary-dark">{(item.issue_resolution_status || "-").replace(/_/g, " ")}</div></div>
+                  <div className="rounded-lg bg-secondary/40 p-3"><div className="text-xs text-muted-foreground">Submitted</div><div className="font-semibold text-primary-dark">{item.submitted_at ? new Date(item.submitted_at).toLocaleString("en-IN") : "-"}</div></div>
+                </div>
+                {item.comment && <div className="mt-3 rounded-lg border bg-secondary/20 p-3 text-sm text-muted-foreground">{item.comment}</div>}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {item.feedback_status === "pending" && <Button size="sm" className="bg-primary" onClick={() => act(item, "approve")}>Approve</Button>}
+                  {item.feedback_status === "pending" && <Button size="sm" variant="destructive" onClick={() => act(item, "reject")}>Reject</Button>}
+                  {item.reopen_requested && item.reopen_request_status === "pending" && <Button size="sm" className="bg-saffron text-primary-dark" onClick={() => act(item, "reopen-approve")}>Approve Reopen</Button>}
+                  {item.reopen_requested && item.reopen_request_status === "pending" && <Button size="sm" variant="outline" onClick={() => act(item, "reopen-reject")}>Reject Reopen</Button>}
+                  <Button size="sm" variant="outline" onClick={() => window.open("/admin/complaints", "_self")}>Open Complaint</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 export function AdminUpdatesPage() {
   const [updates, setUpdates] = useState<DashboardPost[]>([]);
   const [editing, setEditing] = useState<DashboardPost | null>(null);
@@ -2345,7 +2464,7 @@ export function AdminMobileRequestsPage() {
                 {requests.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="break-all font-mono text-[11px] leading-tight">{r.request_code}</TableCell>
-                    <TableCell>{r.trader_name}<div className="text-xs text-muted-foreground">Gala {r.gala_number || "-"} · {r.trader_code}</div></TableCell>
+                    <TableCell>{r.trader_name}<div className="text-xs text-muted-foreground">Gala {r.gala_number || "-"} Â· {r.trader_code}</div></TableCell>
                     <TableCell className="whitespace-normal break-all font-mono text-xs">{r.old_mobile}</TableCell>
                     <TableCell className="whitespace-normal break-all font-mono text-xs">{r.new_mobile}</TableCell>
                     <TableCell className="whitespace-normal text-sm leading-snug">{r.reason}</TableCell>
@@ -2604,7 +2723,7 @@ export function AdminCommitteePage() {
               </div>
               <div className="space-y-2">
                 <Label>Name in Marathi</Label>
-                <Input value={form.nameMr} onChange={(event) => setForm({ ...form, nameMr: event.target.value })} placeholder="मराठी नाव" />
+                <Input value={form.nameMr} onChange={(event) => setForm({ ...form, nameMr: event.target.value })} placeholder="à¤®à¤°à¤¾à¤ à¥€ à¤¨à¤¾à¤µ" />
               </div>
               <div className="space-y-2">
                 <Label>Designation *</Label>
@@ -2612,7 +2731,7 @@ export function AdminCommitteePage() {
               </div>
               <div className="space-y-2">
                 <Label>Designation in Marathi</Label>
-                <Input value={form.designationMr} onChange={(event) => setForm({ ...form, designationMr: event.target.value })} placeholder="अध्यक्ष, सचिव..." />
+                <Input value={form.designationMr} onChange={(event) => setForm({ ...form, designationMr: event.target.value })} placeholder="à¤…à¤§à¥à¤¯à¤•à¥à¤·, à¤¸à¤šà¤¿à¤µ..." />
               </div>
               <div className="space-y-2">
                 <Label>Gala number</Label>
@@ -3844,7 +3963,7 @@ export function OwnerKycPage() {
                       <div className="mt-1 text-sm text-muted-foreground">{customer.customer_code} - {customer.mobile} - {[customer.address_line1, customer.village_city, customer.district].filter(Boolean).join(", ")}</div>
                       {isHighRisk && (
                         <div className="mt-3 rounded-md border border-destructive/30 bg-background p-3 text-sm">
-                          <div className="font-semibold text-destructive">Unpaid warning: ₹{Number(customer.verified_market_outstanding || 0).toLocaleString("en-IN")} across {customer.active_market_warning_count} market alert(s)</div>
+                          <div className="font-semibold text-destructive">Unpaid warning: â‚¹{Number(customer.verified_market_outstanding || 0).toLocaleString("en-IN")} across {customer.active_market_warning_count} market alert(s)</div>
                           <div className="mt-1 text-muted-foreground">{customer.latest_warning_note || "No note available."}</div>
                           {customer.latest_warning_trader && <div className="mt-1 text-xs text-muted-foreground">Reported by {customer.latest_warning_trader}</div>}
                         </div>
@@ -4457,6 +4576,167 @@ function OwnerListPage({ title, subtitle, icon: Icon, items }: { title: string; 
   );
 }
 
+type ComplaintFeedbackRequest = {
+  id: number;
+  complaint_id: number;
+  ticket_number: string;
+  subject: string;
+  complaint_status: string;
+  resolved_at?: string | null;
+  resolved_by_name?: string | null;
+  feedback_status: "requested" | "pending" | "approved" | "rejected";
+  reopen_requested?: number | boolean;
+  reopen_request_status?: string;
+  admin_remark?: string | null;
+  parsed?: { category?: string; description?: string; payment?: unknown };
+};
+
+const complaintFeedbackReactions = [
+  { value: "amazing", icon: "\uD83E\uDD29", en: "Amazing", mr: "\u0909\u0924\u094d\u0915\u0943\u0937\u094d\u091f", tone: "border-success/50 bg-success/10" },
+  { value: "satisfied", icon: "\uD83D\uDC4D", en: "Satisfied", mr: "\u0938\u092e\u093e\u0927\u093e\u0928\u0940", tone: "border-primary/50 bg-primary/10" },
+  { value: "okay", icon: "\uD83D\uDE42", en: "Okay", mr: "\u0920\u0940\u0915 \u0906\u0939\u0947", tone: "border-saffron/50 bg-saffron/10" },
+  { value: "not_satisfied", icon: "\uD83D\uDE15", en: "Not Satisfied", mr: "\u0905\u0938\u092e\u093e\u0927\u093e\u0928\u0940", tone: "border-warning/50 bg-warning/10" },
+  { value: "very_dissatisfied", icon: "\uD83D\uDE1E", en: "Very Dissatisfied", mr: "\u0916\u0942\u092a \u0905\u0938\u092e\u093e\u0927\u093e\u0928\u0940", tone: "border-destructive/50 bg-destructive/10" },
+];
+
+const issueResolutionOptions = [
+  { value: "still_unresolved", en: "Yes, issue is still unresolved", mr: "\u0939\u094b\u092f, \u0938\u092e\u0938\u094d\u092f\u093e \u0905\u091c\u0942\u0928\u0939\u0940 \u0938\u0941\u091f\u0932\u0947\u0932\u0940 \u0928\u093e\u0939\u0940" },
+  { value: "partially_resolved", en: "Partially resolved", mr: "\u0905\u0902\u0936\u0924\u0903 \u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u091d\u093e\u0932\u0947" },
+  { value: "service_unsatisfactory", en: "Resolved, but service was unsatisfactory", mr: "\u0938\u092e\u0938\u094d\u092f\u093e \u0938\u0941\u091f\u0932\u0940, \u092a\u0923 \u0938\u0947\u0935\u093e \u0938\u092e\u093e\u0927\u093e\u0928\u0915\u093e\u0930\u0915 \u0928\u0935\u094d\u0939\u0924\u0940" },
+];
+
+function feedbackStatusLabel(status?: string | null, lang: string = "en") {
+  const labels: Record<string, { en: string; mr: string }> = {
+    requested: { en: "Feedback Pending", mr: "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u092a\u094d\u0930\u0932\u0902\u092c\u093f\u0924" },
+    pending: { en: "Feedback Under Review", mr: "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u092a\u0930\u0940\u0915\u094d\u0937\u0923\u093e\u0927\u0940\u0928" },
+    approved: { en: "Feedback Approved", mr: "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u092e\u0902\u091c\u0942\u0930" },
+    rejected: { en: "Feedback Review Required", mr: "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u092a\u0941\u0928\u0930\u093e\u0935\u0932\u094b\u0915\u0928 \u0906\u0935\u0936\u094d\u092f\u0915" },
+  };
+  const item = labels[status || ""];
+  return item ? item[lang === "mr" ? "mr" : "en"] : "";
+}
+
+function ComplaintFeedbackModal({ request, lang, onClose, onSubmitted }: { request: ComplaintFeedbackRequest | null; lang: string; onClose: () => void; onSubmitted: () => void }) {
+  const [reaction, setReaction] = useState("");
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [issueStatus, setIssueStatus] = useState("still_unresolved");
+  const [reopenRequested, setReopenRequested] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const isMr = lang === "mr";
+  const dissatisfied = reaction === "not_satisfied" || reaction === "very_dissatisfied";
+
+  useEffect(() => {
+    if (!request) return;
+    setReaction("");
+    setRating(0);
+    setComment("");
+    setIssueStatus("still_unresolved");
+    setReopenRequested(false);
+  }, [request?.id]);
+
+  const submit = async () => {
+    if (!request) return;
+    if (!reaction || rating < 1) {
+      toast.error(isMr ? "\u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u093f\u0915\u094d\u0930\u093f\u092f\u093e \u0906\u0923\u093f \u0930\u0947\u091f\u093f\u0902\u0917 \u0928\u093f\u0935\u0921\u093e." : "Please select a reaction and star rating.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const response = await fetch(`/api/v1/trader/complaints/${request.complaint_id}/feedback`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reaction, rating, comment, issueResolutionStatus: dissatisfied ? issueStatus : "resolved", reopenRequested: dissatisfied && reopenRequested }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not submit feedback.");
+      toast.success(isMr ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0905\u200d\u0945\u0921\u092e\u093f\u0928\u0915\u0921\u0947 \u0924\u092a\u093e\u0938\u0923\u0940\u0938\u093e\u0920\u0940 \u092a\u093e\u0920\u0935\u0932\u093e." : "Feedback sent to admin for review.");
+      onSubmitted();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not submit feedback.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={Boolean(request)} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[92vh] overflow-y-auto p-0 sm:max-w-3xl">
+        {request && (
+          <div>
+            <div className="bg-primary px-5 py-5 text-white sm:px-6">
+              <DialogHeader>
+                <DialogTitle className="font-display text-2xl text-white">{isMr ? "\u0906\u092a\u0932\u094d\u092f\u093e \u0924\u0915\u094d\u0930\u093e\u0930\u0940\u091a\u0947 \u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u0915\u0938\u0947 \u091d\u093e\u0932\u0947?" : "How was your complaint resolution?"}</DialogTitle>
+                <DialogDescription className="text-white/85">
+                  {isMr ? "\u0906\u092a\u0932\u0940 \u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u091d\u093e\u0932\u094d\u092f\u093e\u091a\u0947 \u0928\u094b\u0902\u0926\u0935\u093f\u0923\u094d\u092f\u093e\u0924 \u0906\u0932\u0947 \u0906\u0939\u0947. \u0915\u0943\u092a\u092f\u093e \u092f\u093e \u0928\u093f\u0930\u093e\u0915\u0930\u0923\u093e\u092c\u0926\u094d\u0926\u0932 \u0906\u092a\u0932\u093e \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e." : "Your complaint has been marked as resolved. Please share your feedback about the resolution."}
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+            <div className="space-y-5 p-5 sm:p-6">
+              <div className="grid gap-3 rounded-lg border bg-secondary/40 p-4 sm:grid-cols-2">
+                <div><div className="text-xs text-muted-foreground">Complaint ID</div><div className="font-mono font-semibold text-primary-dark">{request.ticket_number}</div></div>
+                <div><div className="text-xs text-muted-foreground">Category</div><div className="font-semibold text-primary-dark">{request.parsed?.category || "General"}</div></div>
+                <div className="sm:col-span-2"><div className="text-xs text-muted-foreground">Complaint Title</div><div className="font-display font-semibold text-primary-dark">{request.subject}</div></div>
+                <div><div className="text-xs text-muted-foreground">Resolved Date</div><div className="text-sm font-medium">{request.resolved_at ? new Date(request.resolved_at).toLocaleString("en-IN") : "-"}</div></div>
+                <div><div className="text-xs text-muted-foreground">Resolved By</div><div className="text-sm font-medium">{request.resolved_by_name || "Admin team"}</div></div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-5">
+                {complaintFeedbackReactions.map((item) => {
+                  const selected = reaction === item.value;
+                  return (
+                    <button key={item.value} type="button" onClick={() => setReaction(item.value)} className={`relative min-h-28 rounded-lg border p-3 text-center transition hover:-translate-y-0.5 hover:shadow-md ${selected ? `${item.tone} ring-2 ring-primary/25` : "bg-background hover:border-primary/50"}`}>
+                      {selected && <CheckCircle2 className="absolute right-2 top-2 h-4 w-4 text-primary" />}
+                      <div className="text-3xl leading-none">{item.icon}</div>
+                      <div className="mt-2 text-sm font-bold text-primary-dark">{isMr ? item.mr : item.en}</div>
+                      <div className="mt-1 text-[11px] text-muted-foreground">{isMr ? item.en : item.mr}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div>
+                <Label>{isMr ? "\u0938\u094d\u091f\u093e\u0930 \u0930\u0947\u091f\u093f\u0902\u0917" : "Star rating"}</Label>
+                <div className="mt-2 flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button key={star} type="button" onClick={() => setRating(star)} className={`grid h-11 w-11 place-items-center rounded-lg border text-xl transition ${rating >= star ? "border-saffron bg-saffron text-primary-dark" : "bg-background text-muted-foreground hover:border-saffron"}`}>{"\u2605"}</button>
+                  ))}
+                </div>
+              </div>
+              {dissatisfied && (
+                <div className="space-y-4 rounded-lg border border-destructive/25 bg-destructive/5 p-4">
+                  <div>
+                    <Label>{isMr ? "\u0906\u092a\u0932\u0940 \u0938\u092e\u0938\u094d\u092f\u093e \u0905\u091c\u0942\u0928\u0939\u0940 \u0938\u0941\u091f\u0932\u0947\u0932\u0940 \u0928\u093e\u0939\u0940 \u0915\u093e?" : "Is your issue still unresolved?"}</Label>
+                    <div className="mt-2 grid gap-2">
+                      {issueResolutionOptions.map((item) => (
+                        <button key={item.value} type="button" onClick={() => setIssueStatus(item.value)} className={`rounded-lg border p-3 text-left text-sm transition hover:border-primary ${issueStatus === item.value ? "border-primary bg-primary/10 font-semibold text-primary-dark" : "bg-background"}`}>
+                          {isMr ? item.mr : item.en}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="flex items-start gap-3 rounded-lg border bg-background p-3 text-sm">
+                    <input type="checkbox" className="mt-1 h-4 w-4" checked={reopenRequested} onChange={(event) => setReopenRequested(event.target.checked)} />
+                    <span>{isMr ? "\u0924\u0915\u094d\u0930\u093e\u0930 \u092a\u0941\u0928\u094d\u0939\u093e \u0938\u0941\u0930\u0942 \u0915\u0930\u0923\u094d\u092f\u093e\u091a\u0940 \u0935\u093f\u0928\u0902\u0924\u0940" : "Request Reopen Complaint"}</span>
+                  </label>
+                </div>
+              )}
+              <div>
+                <Label>{isMr ? "\u0906\u092a\u0932\u093e \u0905\u0928\u0941\u092d\u0935 \u0905\u0927\u093f\u0915 \u0938\u0935\u093f\u0938\u094d\u0924\u0930 \u0938\u093e\u0902\u0917\u093e" : "Tell us more about your experience"}</Label>
+                <Textarea value={comment} onChange={(event) => setComment(event.target.value.slice(0, 500))} rows={4} maxLength={500} placeholder={isMr ? "\u0906\u092a\u0932\u094d\u092f\u093e \u0924\u0915\u094d\u0930\u093e\u0930\u0940\u0935\u0930 \u091d\u093e\u0932\u0947\u0932\u094d\u092f\u093e \u0915\u093e\u0930\u094d\u092f\u0935\u093e\u0939\u0940\u092c\u0926\u094d\u0926\u0932 \u0905\u0924\u093f\u0930\u093f\u0915\u094d\u0924 \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e." : "Please share any additional feedback about how your complaint was handled."} />
+                <div className="mt-1 text-right text-xs text-muted-foreground">{comment.length}/500</div>
+              </div>
+              <div className="flex flex-wrap justify-end gap-2">
+                <Button type="button" variant="outline" onClick={onClose}>{isMr ? "\u0928\u0902\u0924\u0930 \u0906\u0920\u0935\u0923 \u0915\u0930\u0942\u0928 \u0926\u094d\u092f\u093e" : "Remind Me Later"}</Button>
+                <Button type="button" className="bg-primary" onClick={submit} disabled={submitting}>{submitting ? (isMr ? "\u0938\u092c\u092e\u093f\u091f \u0939\u094b\u0924 \u0906\u0939\u0947..." : "Submitting...") : (isMr ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0938\u092c\u092e\u093f\u091f \u0915\u0930\u093e" : "Submit Feedback")}</Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function OwnerComplaintsPage() {
   type TraderComplaint = {
     id: number;
@@ -4465,60 +4745,110 @@ export function OwnerComplaintsPage() {
     priority: string;
     status: string;
     created_at: string;
+    feedback_id?: number | null;
+    feedback_status?: string | null;
+    reopen_requested?: number | boolean | null;
+    reopen_request_status?: string | null;
     parsed?: { category?: string; description?: string };
-    history: Array<{
-      id: number;
-      old_status: string | null;
-      new_status: string;
-      remarks: string | null;
-      changed_by_name: string;
-      created_at: string;
-    }>;
+    history: Array<{ id: number; old_status: string | null; new_status: string; remarks: string | null; changed_by_name: string; created_at: string }>;
   };
+  const { lang } = useI18n();
   const [complaints, setComplaints] = useState<TraderComplaint[]>([]);
+  const [feedbackRequests, setFeedbackRequests] = useState<ComplaintFeedbackRequest[]>([]);
+  const [activeFeedback, setActiveFeedback] = useState<ComplaintFeedbackRequest | null>(null);
   const [loading, setLoading] = useState(true);
+  const isMr = lang === "mr";
 
-  useEffect(() => {
-    fetch("/api/v1/trader/complaints", { credentials: "include" })
-      .then((response) => response.json())
-      .then((result) => {
-        if (result.ok) setComplaints(result.complaints || []);
-        else toast.error(result.error || "Could not load complaints.");
-      })
-      .catch(() => toast.error("Could not load complaints."))
-      .finally(() => setLoading(false));
-  }, []);
+  const loadComplaints = async () => {
+    setLoading(true);
+    try {
+      const [complaintsResponse, feedbackResponse] = await Promise.all([
+        fetch("/api/v1/trader/complaints", { credentials: "include" }),
+        fetch("/api/v1/trader/complaints/pending-feedback", { credentials: "include" }),
+      ]);
+      const complaintsResult = await complaintsResponse.json();
+      const feedbackResult = await feedbackResponse.json();
+      if (!complaintsResponse.ok || !complaintsResult.ok) throw new Error(complaintsResult.error || "Could not load complaints.");
+      if (!feedbackResponse.ok || !feedbackResult.ok) throw new Error(feedbackResult.error || "Could not load pending feedback.");
+      setComplaints(complaintsResult.complaints || []);
+      const pending = feedbackResult.feedbackRequests || [];
+      setFeedbackRequests(pending);
+      setActiveFeedback((current) => current || pending[0] || null);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load complaints.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadComplaints(); }, []);
+
+  const feedbackByComplaint = feedbackRequests.reduce<Record<number, ComplaintFeedbackRequest>>((acc, item) => {
+    acc[item.complaint_id] = item;
+    return acc;
+  }, {});
 
   return (
     <DashLayout kind="owner">
-      <PageTitle title="My Complaints" subtitle="Track complaint status, assigned department, and admin comments." action={<Button asChild><Link to="/owner/new-complaint"><Plus className="mr-1 h-4 w-4" /> New Complaint</Link></Button>} />
-      <div className="grid gap-4">
-        {complaints.map((c) => (
-          <Card key={c.id} className="border-border/60">
-            <CardContent className="p-4 sm:p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="font-mono text-xs text-muted-foreground">{c.ticket_number} - {c.parsed?.category || "General"}</div>
-                  <h2 className="whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{c.subject}</h2>
-                  <p className="mt-1 whitespace-normal break-words text-sm leading-5 text-muted-foreground">{c.parsed?.description || ""}</p>
+      <PageTitle title={isMr ? "\u092e\u093e\u091d\u094d\u092f\u093e \u0924\u0915\u094d\u0930\u093e\u0930\u0940" : "My Complaints"} subtitle={isMr ? "\u0924\u0915\u094d\u0930\u093e\u0930\u0940\u091a\u0940 \u0938\u094d\u0925\u093f\u0924\u0940, \u0905\u200d\u0945\u0921\u092e\u093f\u0928 \u091f\u093f\u092a\u094d\u092a\u0923\u0940 \u0906\u0923\u093f \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u091f\u094d\u0930\u0945\u0915 \u0915\u0930\u093e." : "Track complaint status, admin comments, and resolution feedback."} action={<Button asChild><Link to="/owner/new-complaint"><Plus className="mr-1 h-4 w-4" /> New Complaint</Link></Button>} />
+      {feedbackRequests.length > 0 && (
+        <Card className="mb-5 border-saffron/50 bg-saffron/5">
+          <CardContent className="p-4 sm:p-5">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-display text-lg font-bold text-primary-dark">{isMr ? "\u092a\u094d\u0930\u0932\u0902\u092c\u093f\u0924 \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f" : "Pending Feedback"}</h2>
+                <p className="text-sm text-muted-foreground">{isMr ? "\u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u091d\u093e\u0932\u0947\u0932\u094d\u092f\u093e \u0924\u0915\u094d\u0930\u093e\u0930\u0940\u0902\u0935\u0930 \u0906\u092a\u0932\u093e \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e." : "Share your feedback for resolved complaints."}</p>
+              </div>
+              <Badge className="bg-saffron text-primary-dark">{feedbackRequests.length}</Badge>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {feedbackRequests.map((item) => (
+                <div key={item.id} className="rounded-lg border bg-background p-4">
+                  <div className="font-mono text-xs text-muted-foreground">{item.ticket_number}</div>
+                  <h3 className="mt-1 font-display font-semibold text-primary-dark">{item.subject}</h3>
+                  <div className="mt-2 text-sm text-muted-foreground">{item.parsed?.category || "General"} - {item.resolved_at ? new Date(item.resolved_at).toLocaleDateString("en-IN") : "Resolved"}</div>
+                  <Button className="mt-4 bg-primary" onClick={() => setActiveFeedback(item)}>{isMr ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Give Feedback"}</Button>
                 </div>
-                <span className="shrink-0"><StatusBadge status={c.status} /></span>
-              </div>
-              <div className="mt-4 grid gap-2">
-                {c.history.slice(0, 4).map((item) => (
-                  <div key={item.id} className="rounded-lg border bg-secondary/20 p-3 text-sm">
-                    <div className="font-medium text-primary-dark">{item.old_status || "submitted"} {"->"} {item.new_status}</div>
-                    {item.remarks && <div className="mt-1 text-muted-foreground">{item.remarks}</div>}
-                    <div className="mt-1 text-xs text-muted-foreground">{item.changed_by_name} - {new Date(item.created_at).toLocaleString("en-IN")}</div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      <div className="grid gap-4">
+        {complaints.map((c) => {
+          const pendingFeedback = feedbackByComplaint[c.id];
+          const status = c.feedback_status || pendingFeedback?.feedback_status;
+          return (
+            <Card key={c.id} className="border-border/60">
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-mono text-xs text-muted-foreground">{c.ticket_number} - {c.parsed?.category || "General"}</div>
+                    <h2 className="whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{c.subject}</h2>
+                    <p className="mt-1 whitespace-normal break-words text-sm leading-5 text-muted-foreground">{c.parsed?.description || ""}</p>
+                    {status && <div className="mt-2"><Badge className="bg-primary/10 text-primary">{feedbackStatusLabel(status, lang)}</Badge></div>}
+                    {c.reopen_request_status === "pending" && <Badge className="mt-2 bg-warning text-white">Reopen Requested</Badge>}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  <span className="shrink-0"><StatusBadge status={c.status} /></span>
+                </div>
+                {pendingFeedback && <Button size="sm" className="mt-4 bg-primary" onClick={() => setActiveFeedback(pendingFeedback)}>{isMr ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Give Feedback"}</Button>}
+                <div className="mt-4 grid gap-2">
+                  {c.history.slice(0, 4).map((item) => (
+                    <div key={item.id} className="rounded-lg border bg-secondary/20 p-3 text-sm">
+                      <div className="font-medium text-primary-dark">{item.old_status || "submitted"} {"->"} {item.new_status}</div>
+                      {item.remarks && <div className="mt-1 text-muted-foreground">{item.remarks}</div>}
+                      <div className="mt-1 text-xs text-muted-foreground">{item.changed_by_name} - {new Date(item.created_at).toLocaleString("en-IN")}</div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
         {!loading && complaints.length === 0 && <Card className="border-border/60"><CardContent className="py-10 text-center text-sm text-muted-foreground">No complaints yet.</CardContent></Card>}
         {loading && <Card className="border-border/60"><CardContent className="py-10 text-center text-sm text-muted-foreground">Loading complaints...</CardContent></Card>}
       </div>
+      <ComplaintFeedbackModal request={activeFeedback} lang={lang} onClose={() => setActiveFeedback(null)} onSubmitted={() => { setActiveFeedback(null); loadComplaints(); }} />
     </DashLayout>
   );
 }
@@ -4893,9 +5223,9 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
               </Select>
             </div>
             <div>
-              <Label>Priority * / प्राधान्य *</Label>
+              <Label>Priority * / à¤ªà¥à¤°à¤¾à¤§à¤¾à¤¨à¥à¤¯ *</Label>
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger><SelectValue placeholder="Select Priority / प्राधान्य निवडा" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select Priority / à¤ªà¥à¤°à¤¾à¤§à¤¾à¤¨à¥à¤¯ à¤¨à¤¿à¤µà¤¡à¤¾" /></SelectTrigger>
                 <SelectContent>
                   {COMPLAINT_PRIORITIES.map((item) => (
                     <SelectItem key={item.value} value={item.value}>{item.en} / {item.mr}</SelectItem>
@@ -5510,3 +5840,5 @@ export function AdminChangePasswordPage() {
     </DashLayout>
   );
 }
+
+

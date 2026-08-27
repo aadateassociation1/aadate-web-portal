@@ -1507,6 +1507,37 @@ async function ensurePlatformExtensions() {
   await addColumnIfMissing("support_tickets", "resolved_at", "resolved_at DATETIME NULL");
   await addIndexIfMissing("support_tickets", "idx_tickets_status_resolved", "idx_tickets_status_resolved (status, resolved_at)");
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS complaint_feedback (
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      complaint_id BIGINT UNSIGNED NOT NULL,
+      member_user_id BIGINT UNSIGNED NOT NULL,
+      reaction ENUM('amazing','satisfied','okay','not_satisfied','very_dissatisfied') NULL,
+      rating TINYINT UNSIGNED NULL,
+      comment VARCHAR(500) NULL,
+      issue_resolution_status ENUM('resolved','partially_resolved','still_unresolved','service_unsatisfactory') NULL,
+      reopen_requested TINYINT(1) NOT NULL DEFAULT 0,
+      reopen_request_status ENUM('not_requested','pending','approved','rejected') NOT NULL DEFAULT 'not_requested',
+      feedback_status ENUM('requested','pending','approved','rejected') NOT NULL DEFAULT 'requested',
+      admin_remark VARCHAR(500) NULL,
+      requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      submitted_at DATETIME NULL,
+      approved_by BIGINT UNSIGNED NULL,
+      approved_at DATETIME NULL,
+      rejected_by BIGINT UNSIGNED NULL,
+      rejected_at DATETIME NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      UNIQUE KEY uq_complaint_feedback_member (complaint_id, member_user_id),
+      INDEX idx_complaint_feedback_status (feedback_status, created_at),
+      INDEX idx_complaint_feedback_reopen (reopen_request_status, reopen_requested),
+      INDEX idx_complaint_feedback_member_status (member_user_id, feedback_status),
+      CONSTRAINT fk_complaint_feedback_ticket FOREIGN KEY (complaint_id) REFERENCES support_tickets(id) ON DELETE CASCADE,
+      CONSTRAINT fk_complaint_feedback_member FOREIGN KEY (member_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      CONSTRAINT fk_complaint_feedback_approved_by FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL,
+      CONSTRAINT fk_complaint_feedback_rejected_by FOREIGN KEY (rejected_by) REFERENCES users(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS mobile_change_requests (
       id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
       request_code VARCHAR(30) NOT NULL UNIQUE,
@@ -5590,8 +5621,9 @@ app.post("/api/v1/complaints", requireRoles("TRADER"), async (req, res) => {
 
 app.get("/api/v1/trader/complaints", requireRoles("TRADER"), async (req, res) => {
   const [rows] = await pool.query(
-    `SELECT st.*
+    `SELECT st.*, cf.id AS feedback_id, cf.feedback_status, cf.reopen_requested, cf.reopen_request_status
        FROM support_tickets st
+       LEFT JOIN complaint_feedback cf ON cf.complaint_id = st.id AND cf.member_user_id = st.created_by_user_id
       WHERE st.created_by_user_id = :userId
       ORDER BY st.created_at DESC
       LIMIT 100`,
@@ -5676,7 +5708,7 @@ app.patch("/api/v1/admin/complaints/:id/status", requireRoles("MAIN_ADMIN", "USE
     res.status(400).json({ ok: false, error: "Valid complaint id and status are required." });
     return;
   }
-  const [[before]] = await pool.query("SELECT status FROM support_tickets WHERE id = :complaintId LIMIT 1", { complaintId });
+  const [[before]] = await pool.query("SELECT id, ticket_number, subject, description, status, created_by_user_id, resolved_at FROM support_tickets WHERE id = :complaintId LIMIT 1", { complaintId });
   if (!before) {
     res.status(404).json({ ok: false, error: "Complaint not found." });
     return;
@@ -5698,10 +5730,247 @@ app.patch("/api/v1/admin/complaints/:id/status", requireRoles("MAIN_ADMIN", "USE
      VALUES (:complaintId, :oldStatus, :status, :remarks, :userId)`,
     { complaintId, oldStatus: before.status, status, remarks: remarks || `Status updated to ${status}`, userId: req.user.id },
   );
+  if (["resolved", "closed"].includes(status) && !["resolved", "closed"].includes(before.status)) {
+    const [feedbackInsert] = await pool.query(
+      `INSERT IGNORE INTO complaint_feedback (complaint_id, member_user_id, feedback_status, reopen_request_status, requested_at)
+       VALUES (:complaintId, :memberUserId, 'requested', 'not_requested', NOW())`,
+      { complaintId, memberUserId: before.created_by_user_id },
+    );
+    if ((feedbackInsert.affectedRows || 0) > 0) {
+      const message = "Your complaint has been resolved. Please share your feedback.";
+      const [notificationResult] = await pool.query(
+        `INSERT INTO notifications (user_id, notification_type, title, message, related_entity_type, related_entity_id, action_url, priority, channel, delivery_status, sent_at)
+         VALUES (:userId, 'complaint_feedback', 'Complaint feedback requested', :message, 'support_tickets', :complaintId, '/member/complaints?feedback=1', 'high', 'in_app', 'sent', NOW())`,
+        { userId: before.created_by_user_id, message, complaintId },
+      );
+      await sendPushToUser({
+        userId: before.created_by_user_id,
+        title: "Complaint feedback requested",
+        body: message,
+        url: "/member/complaints?feedback=1",
+        type: "complaint_feedback",
+        entityId: complaintId,
+        priority: "high",
+        notificationId: notificationResult.insertId || null,
+      });
+    }
+  }
   await writeAudit({ req, action: "complaint.status_update", module: "complaints", entityType: "support_tickets", entityId: complaintId, newValues: { status } });
   res.json({ ok: true, complaintId, status });
 });
 
+const COMPLAINT_FEEDBACK_REACTIONS = new Set(["amazing", "satisfied", "okay", "not_satisfied", "very_dissatisfied"]);
+const COMPLAINT_FEEDBACK_ISSUE_STATUSES = new Set(["resolved", "partially_resolved", "still_unresolved", "service_unsatisfactory"]);
+
+function complaintFeedbackSelect(whereClause = "") {
+  return `SELECT cf.*, st.ticket_number, st.subject, st.description, st.status AS complaint_status, st.resolved_at,
+                 resolver.full_name AS resolved_by_name,
+                 member.full_name AS member_name, member.mobile AS member_mobile,
+                 t.trader_code, t.business_name, mg.gala_number
+            FROM complaint_feedback cf
+            JOIN support_tickets st ON st.id = cf.complaint_id
+            JOIN users member ON member.id = cf.member_user_id
+            LEFT JOIN users resolver ON resolver.id = st.assigned_to_user_id
+            LEFT JOIN traders t ON t.user_id = st.created_by_user_id
+            LEFT JOIN market_galas mg ON mg.id = t.gala_id
+           ${whereClause}`;
+}
+
+function parseComplaintPayload(row) {
+  try { return JSON.parse(row.description || "{}"); } catch { return {}; }
+}
+
+app.get("/api/v1/trader/complaints/pending-feedback", requireRoles("TRADER"), async (req, res) => {
+  const [rows] = await pool.query(
+    complaintFeedbackSelect(`WHERE cf.member_user_id = :userId
+        AND st.status IN ('resolved','closed')
+        AND cf.feedback_status IN ('requested','rejected')
+      ORDER BY cf.requested_at DESC, cf.id DESC`),
+    { userId: req.user.id },
+  );
+  res.json({ ok: true, feedbackRequests: rows.map((row) => ({ ...row, parsed: parseComplaintPayload(row) })) });
+});
+
+app.post("/api/v1/trader/complaints/:id/feedback", requireRoles("TRADER"), async (req, res) => {
+  const complaintId = Number(req.params.id);
+  const reaction = String(req.body?.reaction || "");
+  const rating = Number(req.body?.rating || 0);
+  const comment = String(req.body?.comment || "").trim().slice(0, 500);
+  const issueResolutionStatus = String(req.body?.issueResolutionStatus || "resolved");
+  const reopenRequested = Boolean(req.body?.reopenRequested);
+  const dissatisfied = ["not_satisfied", "very_dissatisfied"].includes(reaction);
+  if (!complaintId || !COMPLAINT_FEEDBACK_REACTIONS.has(reaction) || rating < 1 || rating > 5) {
+    res.status(400).json({ ok: false, error: "Reaction and 1-5 star rating are required." });
+    return;
+  }
+  if (dissatisfied && !COMPLAINT_FEEDBACK_ISSUE_STATUSES.has(issueResolutionStatus)) {
+    res.status(400).json({ ok: false, error: "Select the current complaint resolution status." });
+    return;
+  }
+  const [[feedback]] = await pool.query(
+    `SELECT cf.id, cf.feedback_status, st.status AS complaint_status
+       FROM complaint_feedback cf
+       JOIN support_tickets st ON st.id = cf.complaint_id
+      WHERE cf.complaint_id = :complaintId
+        AND cf.member_user_id = :userId
+        AND st.created_by_user_id = :userId
+      LIMIT 1`,
+    { complaintId, userId: req.user.id },
+  );
+  if (!feedback) {
+    res.status(404).json({ ok: false, error: "Feedback request not found for this complaint." });
+    return;
+  }
+  if (!["resolved", "closed"].includes(feedback.complaint_status)) {
+    res.status(400).json({ ok: false, error: "Feedback can be submitted only after complaint resolution." });
+    return;
+  }
+  if (!["requested", "rejected"].includes(feedback.feedback_status)) {
+    res.status(409).json({ ok: false, error: "Feedback has already been submitted for this complaint." });
+    return;
+  }
+  await pool.query(
+    `UPDATE complaint_feedback
+        SET reaction = :reaction,
+            rating = :rating,
+            comment = :comment,
+            issue_resolution_status = :issueResolutionStatus,
+            reopen_requested = :reopenRequested,
+            reopen_request_status = :reopenStatus,
+            feedback_status = 'pending',
+            admin_remark = NULL,
+            submitted_at = NOW(),
+            approved_by = NULL,
+            approved_at = NULL,
+            rejected_by = NULL,
+            rejected_at = NULL
+      WHERE id = :feedbackId`,
+    {
+      feedbackId: feedback.id,
+      reaction,
+      rating,
+      comment: comment || null,
+      issueResolutionStatus: dissatisfied ? issueResolutionStatus : "resolved",
+      reopenRequested: dissatisfied && reopenRequested ? 1 : 0,
+      reopenStatus: dissatisfied && reopenRequested ? "pending" : "not_requested",
+    },
+  );
+  await writeAudit({ req, action: "complaint_feedback.submit", module: "complaints", entityType: "complaint_feedback", entityId: feedback.id, newValues: { complaintId, reaction, rating, reopenRequested: dissatisfied && reopenRequested } });
+  res.json({ ok: true, feedbackId: feedback.id, status: "pending" });
+});
+
+app.get("/api/v1/admin/complaint-feedback", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const filter = String(req.query.filter || "all");
+  const clauses = [];
+  if (["pending", "approved", "rejected"].includes(filter)) clauses.push("cf.feedback_status = :filter");
+  if (filter === "not_satisfied") clauses.push("cf.reaction IN ('not_satisfied','very_dissatisfied')");
+  if (filter === "reopen_requested") clauses.push("cf.reopen_requested = 1 AND cf.reopen_request_status = 'pending'");
+  const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+  const [rows] = await pool.query(
+    complaintFeedbackSelect(`${where} ORDER BY cf.created_at DESC, cf.id DESC LIMIT 200`),
+    { filter },
+  );
+  res.json({ ok: true, feedback: rows.map((row) => ({ ...row, parsed: parseComplaintPayload(row) })) });
+});
+
+async function updateComplaintFeedbackDecision({ req, res, feedbackId, feedbackStatus, adminRemark }) {
+  const approved = feedbackStatus === "approved";
+  const [result] = await pool.query(
+    `UPDATE complaint_feedback
+        SET feedback_status = :feedbackStatus,
+            admin_remark = :adminRemark,
+            approved_by = IF(:approved = 1, :userId, approved_by),
+            approved_at = IF(:approved = 1, NOW(), approved_at),
+            rejected_by = IF(:approved = 0, :userId, rejected_by),
+            rejected_at = IF(:approved = 0, NOW(), rejected_at)
+      WHERE id = :feedbackId
+        AND feedback_status = 'pending'`,
+    { feedbackId, feedbackStatus, adminRemark: adminRemark || null, approved: approved ? 1 : 0, userId: req.user.id },
+  );
+  if (!result.affectedRows) {
+    res.status(404).json({ ok: false, error: "Pending feedback not found." });
+    return false;
+  }
+  await writeAudit({ req, action: `complaint_feedback.${feedbackStatus}`, module: "complaints", entityType: "complaint_feedback", entityId: feedbackId, newValues: { feedbackStatus } });
+  res.json({ ok: true, feedbackId, feedbackStatus });
+  return true;
+}
+
+app.patch("/api/v1/admin/complaint-feedback/:id/approve", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  await updateComplaintFeedbackDecision({ req, res, feedbackId: Number(req.params.id), feedbackStatus: "approved", adminRemark: String(req.body?.adminRemark || "").trim().slice(0, 500) });
+});
+
+app.patch("/api/v1/admin/complaint-feedback/:id/reject", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  await updateComplaintFeedbackDecision({ req, res, feedbackId: Number(req.params.id), feedbackStatus: "rejected", adminRemark: String(req.body?.adminRemark || "").trim().slice(0, 500) });
+});
+
+app.patch("/api/v1/admin/complaint-feedback/:id/reopen-approve", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const feedbackId = Number(req.params.id);
+  const adminRemark = String(req.body?.adminRemark || "").trim().slice(0, 500);
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [[feedback]] = await connection.query(
+      `SELECT cf.id, cf.complaint_id, st.status AS old_status
+         FROM complaint_feedback cf
+         JOIN support_tickets st ON st.id = cf.complaint_id
+        WHERE cf.id = :feedbackId
+          AND cf.reopen_requested = 1
+          AND cf.reopen_request_status = 'pending'
+        LIMIT 1`,
+      { feedbackId },
+    );
+    if (!feedback) {
+      await connection.rollback();
+      res.status(404).json({ ok: false, error: "Pending reopen request not found." });
+      return;
+    }
+    await connection.query(
+      `UPDATE complaint_feedback
+          SET reopen_request_status = 'approved', admin_remark = COALESCE(:adminRemark, admin_remark)
+        WHERE id = :feedbackId`,
+      { feedbackId, adminRemark: adminRemark || null },
+    );
+    await connection.query(
+      `UPDATE support_tickets
+          SET status = 'in_progress', resolved_at = NULL, assigned_to_user_id = :userId
+        WHERE id = :complaintId`,
+      { complaintId: feedback.complaint_id, userId: req.user.id },
+    );
+    await connection.query(
+      `INSERT INTO complaint_status_history (complaint_id, old_status, new_status, remarks, changed_by_user_id)
+       VALUES (:complaintId, :oldStatus, 'in_progress', :remarks, :userId)`,
+      { complaintId: feedback.complaint_id, oldStatus: feedback.old_status, remarks: adminRemark || "Reopen request approved from member feedback.", userId: req.user.id },
+    );
+    await connection.commit();
+    await writeAudit({ req, action: "complaint_feedback.reopen_approved", module: "complaints", entityType: "complaint_feedback", entityId: feedbackId, newValues: { complaintId: feedback.complaint_id } });
+    res.json({ ok: true, feedbackId, complaintId: feedback.complaint_id, status: "in_progress" });
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+});
+
+app.patch("/api/v1/admin/complaint-feedback/:id/reopen-reject", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const feedbackId = Number(req.params.id);
+  const adminRemark = String(req.body?.adminRemark || "").trim().slice(0, 500);
+  const [result] = await pool.query(
+    `UPDATE complaint_feedback
+        SET reopen_request_status = 'rejected', admin_remark = COALESCE(:adminRemark, admin_remark)
+      WHERE id = :feedbackId
+        AND reopen_requested = 1
+        AND reopen_request_status = 'pending'`,
+    { feedbackId, adminRemark: adminRemark || null },
+  );
+  if (!result.affectedRows) {
+    res.status(404).json({ ok: false, error: "Pending reopen request not found." });
+    return;
+  }
+  await writeAudit({ req, action: "complaint_feedback.reopen_rejected", module: "complaints", entityType: "complaint_feedback", entityId: feedbackId, newValues: { reopenRequestStatus: "rejected" } });
+  res.json({ ok: true, feedbackId, reopenRequestStatus: "rejected" });
+});
 app.post("/api/v1/ratings", requireRoles("TRADER"), async (req, res) => {
   const traderId = Number(req.user.trader_id);
   const reviewerType = String(req.body?.reviewerType || "trader").toLowerCase();
@@ -6376,3 +6645,4 @@ ensurePlatformExtensions()
     console.error("Failed to initialize backend extensions", error);
     process.exit(1);
   });
+
