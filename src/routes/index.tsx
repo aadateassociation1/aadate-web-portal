@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import {
   ArrowRight, Bell, ClipboardList, Download, FileText, Newspaper, Phone,
   UserCog, MessageSquare, ShieldCheck,
-  CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
+  CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
 import marketyardImg from "@/assets/marketyard.webp";
@@ -565,34 +565,45 @@ function Home() {
       {/* Complaint feedback */}
       <section className="bg-secondary/30 py-14 md:py-16">
         <div className="container-page">
-          <div className="mx-auto max-w-xl text-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary">Complaint reviews</span>
-            <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Happy Resolutions</h2>
-            <p className="mt-3 text-sm text-muted-foreground">Approved feedback from resolved complaints.</p>
+          <div className="text-center">
+            <h2 className="font-display text-3xl font-bold text-primary-dark sm:text-4xl">Reviews</h2>
+            <div className="mt-2 flex justify-center text-saffron">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star key={star} className="h-4 w-4 fill-current" />
+              ))}
+            </div>
+            <p className="mt-2 text-sm font-medium text-muted-foreground">Resolved complaint feedback</p>
           </div>
-          <div className="mx-auto mt-9 grid max-w-5xl justify-center gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {complaintFeedback.slice(0, 6).map((item) => (
-              <Card key={item.id} className="w-full max-w-sm overflow-hidden border-border/60 bg-background shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-                <CardContent className="flex h-full flex-col p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex text-saffron">
+
+          <div className="relative mx-auto mt-9 max-w-6xl">
+            <button className="absolute left-0 top-1/2 z-10 hidden h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border bg-background text-primary shadow-sm md:flex" aria-label="Previous review" type="button">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button className="absolute right-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border bg-background text-primary shadow-sm md:flex" aria-label="Next review" type="button">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {complaintFeedback.slice(0, 3).map((item) => (
+                <Card key={item.id} className="border-border/60 bg-background shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                  <CardContent className="flex min-h-[230px] flex-col items-center p-6 text-center">
+                    <div className="text-sm font-bold text-primary-dark">{item.category || "Resolved Complaint"}</div>
+                    <div className="mt-2 flex text-saffron">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star key={star} className={`h-4 w-4 ${star <= Number(item.rating || 0) ? "fill-current" : ""}`} />
                       ))}
                     </div>
-                    <Badge variant="outline" className="bg-secondary/50 text-[11px]">{item.category || "General"}</Badge>
-                  </div>
-                  <p className="mt-5 flex-1 text-base font-medium leading-relaxed text-primary-dark">
-                    &quot;{item.comment}&quot;
-                  </p>
-                  <div className="mt-5 flex items-center justify-between rounded-lg bg-primary/5 px-3 py-2">
-                    <div className="font-display text-sm font-semibold capitalize text-primary-dark">{item.reaction?.replace(/_/g, " ") || "Resolved"}</div>
-                    <div className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString("en-IN")}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {complaintFeedback.length === 0 && <div className="rounded-lg border bg-background p-8 text-center text-sm text-muted-foreground md:col-span-2 lg:col-span-3">No approved complaint feedback yet.</div>}
+                    <p className="mt-5 flex-1 text-sm leading-relaxed text-muted-foreground">
+                      &quot;{item.comment}&quot;
+                    </p>
+                    <div className="mt-5 font-display text-sm font-bold capitalize text-primary">
+                      {item.reaction?.replace(/_/g, " ") || "Resolved"}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {complaintFeedback.length === 0 && <div className="rounded-lg border bg-background p-8 text-center text-sm text-muted-foreground md:col-span-2 lg:col-span-3">No approved complaint feedback yet.</div>}
+            </div>
           </div>
         </div>
       </section>
