@@ -129,57 +129,98 @@ function Updates() {
 
           <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {filtered.map((u) => (
-              <Card key={u.id} className="border-border/60 hover:shadow-lg transition">
+              <Card
+                key={u.id}
+                className="overflow-hidden border-border/60 bg-background shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl"
+              >
                 {(() => {
                   const preview = u.attachments?.find((file) => file.attachment_type === "image") || u.attachments?.find((file) => file.attachment_type === "video");
                   if (!preview) return null;
                   const previewUrl = `/api/v1/public/content-attachments/${preview.id}/download`;
                   return (
-                    <button type="button" className="relative block h-52 w-full overflow-hidden rounded-t-lg bg-secondary/30 text-left" onClick={() => setSelected(u)}>
+                    <button
+                      type="button"
+                      className="group relative block h-48 w-full overflow-hidden bg-secondary/30 text-left sm:h-52"
+                      onClick={() => setSelected(u)}
+                    >
                       {preview.attachment_type === "image" ? (
-                        <img src={previewUrl} alt={u.title} className="h-full w-full object-cover" />
+                        <img
+                          src={previewUrl}
+                          alt={u.title}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
                       ) : (
-                        <video src={previewUrl} className="h-full w-full object-cover" muted preload="metadata" />
+                        <video
+                          src={previewUrl}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                          muted
+                          preload="metadata"
+                        />
                       )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/65 via-primary-dark/10 to-transparent" />
                       {u.attachments && u.attachments.length > 1 && (
-                        <span className="absolute right-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow">
+                        <span className="absolute right-3 top-3 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-primary-dark shadow-sm backdrop-blur">
                           {u.attachments.length} files
                         </span>
                       )}
                       {preview.attachment_type === "video" && (
-                        <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow">
+                        <span className="absolute left-3 top-3 rounded-full bg-saffron px-3 py-1 text-xs font-semibold text-saffron-foreground shadow-sm">
                           Video
                         </span>
                       )}
                     </button>
                   );
                 })()}
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="secondary" className="bg-secondary text-primary-dark">{u.category}</Badge>
+                    <Badge variant="secondary" className="bg-secondary text-primary-dark">
+                      {u.category}
+                    </Badge>
                     {u.emergency && <Badge className="bg-destructive text-white">Emergency</Badge>}
                     {u.featured && <Badge className="bg-saffron text-saffron-foreground">Featured</Badge>}
                   </div>
-                  <h3 className="mt-3 font-display font-semibold text-primary-dark">
+                  <h3 className="mt-3 line-clamp-2 text-lg font-display font-semibold text-primary-dark sm:text-xl">
                     {lang === "mr" ? u.titleMr : u.title}
                   </h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{u.summary}</p>
+                  <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                    {u.summary}
+                  </p>
                   {u.attachments && u.attachments.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {u.attachments.map((file) => (
-                        <Badge key={file.id} variant="outline" className="border-primary/30 text-primary">
+                        <Badge
+                          key={file.id}
+                          variant="outline"
+                          className="border-primary/20 bg-secondary/40 text-primary-dark"
+                        >
                           {file.attachment_type === "image" ? "Image" : file.attachment_type === "video" ? "Video" : "PDF"}
                         </Badge>
                       ))}
                     </div>
                   )}
-                  <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {new Date(u.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  <div className="mt-4 flex items-center justify-between rounded-xl bg-secondary/35 px-3 py-2 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {new Date(u.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
                     <span>{u.views} views</span>
                   </div>
-                  <div className="mt-4 flex gap-2">
-                    <Button size="sm" variant="outline" className="flex-1" onClick={() => setSelected(u)}><Eye className="h-4 w-4 mr-1" /> View</Button>
-                    <Button size="sm" className="flex-1 bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => downloadUpdate(u)}><Download className="h-4 w-4 mr-1" /> Download</Button>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full rounded-xl"
+                      onClick={() => setSelected(u)}
+                    >
+                      <Eye className="mr-1 h-4 w-4" /> View
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="w-full rounded-xl bg-saffron text-saffron-foreground hover:bg-saffron/90"
+                      onClick={() => downloadUpdate(u)}
+                    >
+                      <Download className="mr-1 h-4 w-4" /> Download
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -264,3 +305,4 @@ function Updates() {
     </SiteLayout>
   );
 }
+
