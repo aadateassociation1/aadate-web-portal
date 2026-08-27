@@ -563,31 +563,31 @@ function Home() {
       </section>
 
       {/* Complaint feedback */}
-      <section className="bg-secondary/30 py-16 md:py-20">
+      <section className="bg-secondary/30 py-14 md:py-16">
         <div className="container-page">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div className="max-w-2xl">
-              <span className="text-xs font-bold uppercase tracking-wider text-primary">Complaint reviews</span>
-              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Complaint Resolution Feedback</h2>
-              <p className="mt-3 text-sm text-muted-foreground">Approved public feedback about resolved complaints. Member identity and complaint details are kept private.</p>
-            </div>
+          <div className="mx-auto max-w-xl text-center">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">Complaint reviews</span>
+            <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Happy Resolutions</h2>
+            <p className="mt-3 text-sm text-muted-foreground">Approved feedback from resolved complaints.</p>
           </div>
-          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-9 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {complaintFeedback.slice(0, 6).map((item) => (
-              <Card key={item.id} className="border-border/60 bg-background shadow-sm">
-                <CardContent className="flex h-full flex-col p-6">
+              <Card key={item.id} className="overflow-hidden border-border/60 bg-background shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                <CardContent className="flex h-full flex-col p-5">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex text-saffron">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star key={star} className={`h-4 w-4 ${star <= Number(item.rating || 0) ? "fill-current" : ""}`} />
                       ))}
                     </div>
-                    <Badge variant="outline">{item.category || "General"}</Badge>
+                    <Badge variant="outline" className="bg-secondary/50 text-[11px]">{item.category || "General"}</Badge>
                   </div>
-                  <p className="mt-4 flex-1 text-sm leading-relaxed text-foreground/80">{item.comment}</p>
-                  <div className="mt-5 rounded-lg bg-secondary/50 p-3">
-                    <div className="font-display font-semibold leading-snug text-primary-dark">{item.reaction?.replace(/_/g, " ") || "Feedback"}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">Approved on {new Date(item.created_at).toLocaleDateString("en-IN")}</div>
+                  <p className="mt-5 flex-1 text-base font-medium leading-relaxed text-primary-dark">
+                    &quot;{item.comment}&quot;
+                  </p>
+                  <div className="mt-5 flex items-center justify-between rounded-lg bg-primary/5 px-3 py-2">
+                    <div className="font-display text-sm font-semibold capitalize text-primary-dark">{item.reaction?.replace(/_/g, " ") || "Resolved"}</div>
+                    <div className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString("en-IN")}</div>
                   </div>
                 </CardContent>
               </Card>
@@ -596,7 +596,6 @@ function Home() {
           </div>
         </div>
       </section>
-
       {/* CTA */}
       <section className="py-16 md:py-20">
         <div className="container-page">
