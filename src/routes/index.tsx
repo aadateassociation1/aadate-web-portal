@@ -60,12 +60,14 @@ function Home() {
   type PublicContent = { id: number; title_en: string; content_en?: string; published_at: string | null; created_at: string; parsed?: { category?: string; details?: string }; attachments?: Array<{ id: number; attachment_type: string; original_filename: string }> };
   type CommitteeMemberRecord = { id: number; full_name: string; name_mr: string | null; designation: string; designation_mr: string | null; gala_number: string | null; term_label: string | null; message: string | null; photo_url: string | null };
   type PublicReview = { id: number; rating_value: number; review_text: string | null; reviewer_type: "trader" | "customer"; reviewer_name: string; business_name: string; trader_code: string; trader_name: string; gala_number: string | null; customer_code: string | null; created_at: string; attachments?: Array<{ id: number; attachment_type: "image" | "video"; original_filename: string; mime_type: string; file_size_bytes: number }> };
+  type PublicComplaintFeedback = { id: number; reaction: string; rating: number; comment: string; category: string; created_at: string };
   type PublicPrice = { item_id: number; category: string; name_en: string; name_mr: string; min_price: number; max_price: number; modal_price: number; unit: string; change_amount: number | null; change_direction: string; published_at: string | null };
   const [updates, setUpdates] = useState<PublicContent[]>([]);
   const [notices, setNotices] = useState<PublicContent[]>([]);
   const [gallery, setGallery] = useState<PublicContent[]>([]);
   const [committee, setCommittee] = useState<CommitteeMemberRecord[]>([]);
   const [reviews, setReviews] = useState<PublicReview[]>([]);
+  const [complaintFeedback, setComplaintFeedback] = useState<PublicComplaintFeedback[]>([]);
   const [prices, setPrices] = useState<PublicPrice[]>([]);
   const [selectedNotice, setSelectedNotice] = useState<PublicContent | null>(null);
   useEffect(() => {
@@ -74,6 +76,7 @@ function Home() {
     fetch("/api/v1/public/gallery").then((r) => r.json()).then((result) => { if (result.ok) setGallery(result.items || []); }).catch(() => undefined);
     fetch("/api/v1/public/committee").then((r) => r.json()).then((result) => { if (result.ok) setCommittee(result.members || []); }).catch(() => undefined);
     fetch("/api/v1/public/ratings").then((r) => r.json()).then((result) => { if (result.ok) setReviews(result.reviews || []); }).catch(() => undefined);
+    fetch("/api/v1/public/complaint-feedback").then((r) => r.json()).then((result) => { if (result.ok) setComplaintFeedback(result.feedback || []); }).catch(() => undefined);
     fetch("/api/v1/public/market-prices").then((r) => r.json()).then((result) => { if (result.ok) setPrices(result.prices || []); }).catch(() => undefined);
   }, []);
   const ticker = updates.slice(0, 6);
@@ -555,6 +558,41 @@ function Home() {
               </Card>
             ))}
             {reviews.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground md:col-span-2 lg:col-span-3">No portal reviews reshared yet.</div>}
+          </div>
+        </div>
+      </section>
+
+      {/* Complaint feedback */}
+      <section className="bg-secondary/30 py-16 md:py-20">
+        <div className="container-page">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="max-w-2xl">
+              <span className="text-xs font-bold uppercase tracking-wider text-primary">Complaint reviews</span>
+              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Complaint Resolution Feedback</h2>
+              <p className="mt-3 text-sm text-muted-foreground">Approved public feedback about resolved complaints. Member identity and complaint details are kept private.</p>
+            </div>
+          </div>
+          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {complaintFeedback.slice(0, 6).map((item) => (
+              <Card key={item.id} className="border-border/60 bg-background shadow-sm">
+                <CardContent className="flex h-full flex-col p-6">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex text-saffron">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className={`h-4 w-4 ${star <= Number(item.rating || 0) ? "fill-current" : ""}`} />
+                      ))}
+                    </div>
+                    <Badge variant="outline">{item.category || "General"}</Badge>
+                  </div>
+                  <p className="mt-4 flex-1 text-sm leading-relaxed text-foreground/80">{item.comment}</p>
+                  <div className="mt-5 rounded-lg bg-secondary/50 p-3">
+                    <div className="font-display font-semibold leading-snug text-primary-dark">{item.reaction?.replace(/_/g, " ") || "Feedback"}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">Approved on {new Date(item.created_at).toLocaleDateString("en-IN")}</div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {complaintFeedback.length === 0 && <div className="rounded-lg border bg-background p-8 text-center text-sm text-muted-foreground md:col-span-2 lg:col-span-3">No approved complaint feedback yet.</div>}
           </div>
         </div>
       </section>

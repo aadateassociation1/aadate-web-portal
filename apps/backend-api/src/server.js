@@ -6043,6 +6043,33 @@ app.post("/api/v1/ratings", requireRoles("TRADER"), async (req, res) => {
   res.status(201).json({ ok: true, ratingId: result.insertId, status: "pending" });
 });
 
+app.get("/api/v1/public/complaint-feedback", async (_req, res) => {
+  const [feedback] = await pool.query(
+    `SELECT cf.id, cf.reaction, cf.rating, cf.comment, cf.approved_at, cf.created_at, st.description
+       FROM complaint_feedback cf
+       JOIN support_tickets st ON st.id = cf.complaint_id
+      WHERE cf.feedback_status = 'approved'
+        AND cf.comment IS NOT NULL
+        AND cf.comment <> ''
+      ORDER BY cf.approved_at DESC, cf.created_at DESC
+      LIMIT 9`,
+  );
+  res.json({
+    ok: true,
+    feedback: feedback.map((item) => {
+      const parsed = parseComplaintPayload(item);
+      return {
+        id: item.id,
+        reaction: item.reaction,
+        rating: item.rating,
+        comment: item.comment,
+        category: parsed.category || "General",
+        created_at: item.approved_at || item.created_at,
+      };
+    }),
+  });
+});
+
 app.get("/api/v1/public/ratings", async (_req, res) => {
   const [[summary]] = await pool.query(
     `SELECT COUNT(*) AS review_count, ROUND(AVG(rating_value), 2) AS average_rating
