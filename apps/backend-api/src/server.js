@@ -4189,8 +4189,8 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
   const cleanPan = String(pan || "").trim().toUpperCase();
   const cleanBloodGroup = String(bloodGroup || "").trim().toUpperCase();
   const cleanLicenceNumber = String(licenceNumber || "").trim();
-  if (cleanAadhaar && !/^\d{12}$/.test(cleanAadhaar)) {
-    res.status(400).json({ ok: false, error: "Aadhaar number must be 12 digits." });
+  if (cleanAadhaar && !isValidAadhaar(cleanAadhaar)) {
+    res.status(400).json({ ok: false, error: "Please enter a valid Aadhaar number." });
     return;
   }
   if (cleanPan && !/^[A-Z]{5}\d{4}[A-Z]$/.test(cleanPan)) {
@@ -4226,7 +4226,7 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
       taluka,
       district,
       pincode,
-      aadhaarMasked: cleanAadhaar ? maskIdentifier(cleanAadhaar) : null,
+      aadhaarMasked: cleanAadhaar ? maskAadhaar(cleanAadhaar) : null,
       aadhaarHash: cleanAadhaar ? hashIdentifier(cleanAadhaar) : null,
       panMasked: cleanPan ? maskIdentifier(cleanPan) : null,
       panHash: cleanPan ? hashIdentifier(cleanPan) : null,
@@ -4580,8 +4580,12 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
   const cleanAadhaar = String(aadhaar || "").replace(/\D/g, "");
   const cleanPan = String(pan || "").trim().toUpperCase();
 
-  if (!fullName || !/^\d{10}$/.test(cleanMobile) || !/^\d{12}$/.test(cleanAadhaar) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(cleanPan) || !addressLine1 || !villageCity || !district || !customerPhoto?.dataUrl) {
-    res.status(400).json({ ok: false, error: "fullName, valid mobile, Aadhaar, PAN, addressLine1, villageCity, district, and customer photo are required." });
+  if (!fullName || !/^\d{10}$/.test(cleanMobile) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(cleanPan) || !addressLine1 || !villageCity || !district || !customerPhoto?.dataUrl) {
+    res.status(400).json({ ok: false, error: "fullName, valid mobile, PAN, addressLine1, villageCity, district, and customer photo are required." });
+    return;
+  }
+  if (!isValidAadhaar(cleanAadhaar)) {
+    res.status(400).json({ ok: false, error: "Please enter a valid Aadhaar number." });
     return;
   }
 
@@ -4676,7 +4680,7 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
        (:customerId, 'pan', :panMasked, :panHash, :panLast4, FALSE)`,
       {
         customerId: customerResult.insertId,
-        aadhaarMasked: maskIdentifier(cleanAadhaar),
+        aadhaarMasked: maskAadhaar(cleanAadhaar),
         aadhaarHash,
         aadhaarLast4: cleanAadhaar.slice(-4),
         panMasked: maskIdentifier(cleanPan),
@@ -4729,6 +4733,42 @@ function hashIdentifier(value) {
   return crypto.createHash("sha256").update(String(value)).digest("hex");
 }
 
+const VERHOEFF_D = [
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  [1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
+  [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
+  [3, 4, 0, 1, 2, 8, 9, 5, 6, 7],
+  [4, 0, 1, 2, 3, 9, 5, 6, 7, 8],
+  [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
+  [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
+  [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
+  [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
+  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+];
+const VERHOEFF_P = [
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  [1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
+  [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
+  [8, 9, 1, 6, 0, 4, 3, 5, 2, 7],
+  [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
+  [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
+  [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
+  [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
+];
+function isValidAadhaar(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (!/^\d{12}$/.test(digits) || /^0{12}$/.test(digits) || /^1{12}$/.test(digits)) return false;
+  let checksum = 0;
+  [...digits].reverse().forEach((digit, index) => {
+    checksum = VERHOEFF_D[checksum][VERHOEFF_P[index % 8][Number(digit)]];
+  });
+  return checksum === 0;
+}
+
+function maskAadhaar(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits.length >= 4 ? `XXXX XXXX ${digits.slice(-4)}` : "XXXX XXXX XXXX";
+}
 function maskIdentifier(value) {
   const raw = String(value || "").trim().toUpperCase();
   if (raw.length <= 4) return raw;
@@ -4781,13 +4821,13 @@ app.post("/api/v1/admin/traders/:id/customers", requireRoles("MAIN_ADMIN", "USER
     !traderId ||
     !String(fullName || "").trim() ||
     !/^\d{10}$/.test(cleanMobile) ||
-    !/^\d{12}$/.test(cleanAadhaar) ||
+    !isValidAadhaar(cleanAadhaar) ||
     !/^[A-Z]{5}\d{4}[A-Z]$/.test(cleanPan) ||
     !String(addressLine1 || "").trim() ||
     !String(villageCity || "").trim() ||
     !String(district || "").trim()
   ) {
-    res.status(400).json({ ok: false, error: "Member, customer name, mobile, Aadhaar, PAN, address, city, and district are required." });
+    res.status(400).json({ ok: false, error: !isValidAadhaar(cleanAadhaar) ? "Please enter a valid Aadhaar number." : "Member, customer name, mobile, PAN, address, city, and district are required." });
     return;
   }
 
@@ -4839,6 +4879,28 @@ app.post("/api/v1/admin/traders/:id/customers", requireRoles("MAIN_ADMIN", "USER
     return;
   }
 
+  const adminAadhaarHash = hashIdentifier(cleanAadhaar);
+  const [[existingAadhaarCustomer]] = await pool.query(
+    `SELECT c.id, c.customer_code, c.full_name
+       FROM customer_identifiers ci
+       JOIN customers c ON c.id = ci.customer_id
+      WHERE ci.identifier_type = 'aadhaar'
+        AND ci.value_hash = :aadhaarHash
+        AND c.deleted_at IS NULL
+      LIMIT 1`,
+    { aadhaarHash: adminAadhaarHash },
+  );
+  if (existingAadhaarCustomer) {
+    res.status(409).json({
+      ok: false,
+      duplicateCustomer: true,
+      customerId: existingAadhaarCustomer.id,
+      customerCode: existingAadhaarCustomer.customer_code,
+      error: "This Aadhaar number is already assigned to another customer.",
+    });
+    return;
+  }
+
   const customerCode = `KYC-${Date.now().toString().slice(-8)}`;
   const connection = await pool.getConnection();
   try {
@@ -4866,8 +4928,8 @@ app.post("/api/v1/admin/traders/:id/customers", requireRoles("MAIN_ADMIN", "USER
        (:customerId, 'pan', :panMasked, :panHash, :panLast4, FALSE, NOW())`,
       {
         customerId: customerResult.insertId,
-        aadhaarMasked: maskIdentifier(cleanAadhaar),
-        aadhaarHash: hashIdentifier(cleanAadhaar),
+        aadhaarMasked: maskAadhaar(cleanAadhaar),
+        aadhaarHash: adminAadhaarHash,
         aadhaarLast4: cleanAadhaar.slice(-4),
         panMasked: maskIdentifier(cleanPan),
         panHash: hashIdentifier(cleanPan),

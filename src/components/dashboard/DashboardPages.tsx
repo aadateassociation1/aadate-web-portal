@@ -137,6 +137,37 @@ const MEMBER_POST_CATEGORIES = [
 ];
 const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
 const limitPan = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
+const VERHOEFF_D = [
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  [1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
+  [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
+  [3, 4, 0, 1, 2, 8, 9, 5, 6, 7],
+  [4, 0, 1, 2, 3, 9, 5, 6, 7, 8],
+  [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
+  [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
+  [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
+  [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
+  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+];
+const VERHOEFF_P = [
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  [1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
+  [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
+  [8, 9, 1, 6, 0, 4, 3, 5, 2, 7],
+  [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
+  [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
+  [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
+  [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
+];
+function isValidAadhaar(value: string) {
+  const digits = value.replace(/\D/g, "");
+  if (!/^\d{12}$/.test(digits) || /^0{12}$/.test(digits) || /^1{12}$/.test(digits)) return false;
+  let checksum = 0;
+  [...digits].reverse().forEach((digit, index) => {
+    checksum = VERHOEFF_D[checksum][VERHOEFF_P[index % 8][Number(digit)]];
+  });
+  return checksum === 0;
+}
 const MOBILE_CHANGE_REASONS = [
   "Lost SIM or phone",
   "Old number is inactive",
@@ -3261,8 +3292,8 @@ export function OwnerProfilePage() {
     const aadhaar = String(data.get("aadhaar") || "").replace(/\D/g, "");
     const pan = String(data.get("pan") || "").trim().toUpperCase();
     const licenceNumber = String(data.get("licenceNumber") || "").trim();
-    if (!profile?.aadhaar_masked && !/^\d{12}$/.test(aadhaar)) {
-      toast.error("Enter a valid 12 digit Aadhaar number.");
+    if (!profile?.aadhaar_masked && !isValidAadhaar(aadhaar)) {
+      toast.error("Please enter a valid Aadhaar number.");
       return;
     }
     if (!profile?.pan_masked && !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) {
@@ -3646,8 +3677,12 @@ export function OwnerKycPage() {
     const villageCity = String(data.get("villageCity") || "").trim();
     const district = String(data.get("district") || "").trim();
 
-    if (!customerName || !/^\d{10}$/.test(phone) || !/^\d{12}$/.test(aadhaar) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan) || !addressLine1 || !villageCity || !district || !customerPhoto) {
-      toast.error("Enter valid customer name, phone, Aadhaar, PAN, address details, and live customer photo");
+    if (!customerName || !/^\d{10}$/.test(phone) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan) || !addressLine1 || !villageCity || !district || !customerPhoto) {
+      toast.error("Enter valid customer name, phone, PAN, address details, and live customer photo");
+      return;
+    }
+    if (!isValidAadhaar(aadhaar)) {
+      toast.error("Please enter a valid Aadhaar number.");
       return;
     }
 
@@ -3880,7 +3915,7 @@ export function OwnerKycPage() {
               </div>
               <div>
                 <Label>Aadhaar number *</Label>
-                <Input name="aadhaar" required inputMode="numeric" maxLength={12} pattern="\d{12}" placeholder="12 digit Aadhaar" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 12); }} />
+                <Input name="aadhaar" required inputMode="numeric" maxLength={12} pattern="\d{12}" title="Please enter a valid Aadhaar number." placeholder="12 digit Aadhaar" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 12); }} />
               </div>
               <div>
                 <Label>PAN number *</Label>
