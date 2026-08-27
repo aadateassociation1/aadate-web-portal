@@ -18,6 +18,7 @@ const MOBILE_CHANGE_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "mobile-chan
 const COMPLAINT_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "complaint-documents");
 const POST_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "post-documents");
 const CONTENT_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "content-documents");
+const CUSTOMER_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "customer-documents");
 const COMMITTEE_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "committee-photos");
 const MAX_MEDIA_UPLOAD_BYTES = 5 * 1024 * 1024;
 const MAX_DOCUMENT_UPLOAD_BYTES = 5 * 1024 * 1024;
@@ -439,6 +440,33 @@ async function saveTraderDocumentFile({ traderId, documentType, originalFilename
     mimeType: mimeType || encodedMimeType,
     buffer: Buffer.from(base64, "base64"),
   });
+}
+async function saveCustomerPhotoFile({ customerId, originalFilename, mimeType, dataUrl }) {
+  const match = String(dataUrl || "").match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) throw new Error("Invalid customer photo upload payload.");
+  const [, encodedMimeType, base64] = match;
+  const safeMimeType = mimeType || encodedMimeType;
+  const buffer = Buffer.from(base64, "base64");
+  const allowedMimeTypes = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+  const safeFileName = sanitizeFileName(originalFilename || `customer-photo-${customerId}.jpg`);
+  const detectedMimeType = detectMimeType(buffer);
+  const normalizedClaimedMimeType = safeMimeType === "image/jpg" ? "image/jpeg" : safeMimeType;
+  const normalizedDetectedMimeType = detectedMimeType === "image/jpg" ? "image/jpeg" : detectedMimeType;
+  if (buffer.length <= 0 || buffer.length > MAX_MEDIA_UPLOAD_BYTES) throw new Error("Customer photo must be 5 MB or smaller.");
+  if (!allowedMimeTypes.has(safeMimeType) || !allowedMimeTypes.has(detectedMimeType) || normalizedClaimedMimeType !== normalizedDetectedMimeType) {
+    throw new Error("Customer photo must be JPG, PNG, or WebP.");
+  }
+  await fs.mkdir(CUSTOMER_UPLOAD_ROOT, { recursive: true });
+  const storageFileName = `${customerId}-profile_photo-${Date.now()}-${crypto.randomUUID()}-${safeFileName}`;
+  const storagePath = path.join(CUSTOMER_UPLOAD_ROOT, storageFileName);
+  await fs.writeFile(storagePath, buffer);
+  return {
+    storageKey: path.relative(process.cwd(), storagePath),
+    originalFilename: safeFileName,
+    mimeType: normalizedClaimedMimeType,
+    fileSizeBytes: buffer.length,
+    checksumSha256: crypto.createHash("sha256").update(buffer).digest("hex"),
+  };
 }
 
 async function saveMobileChangeDocumentFile({ requestId, documentType, originalFilename, mimeType, dataUrl }) {
@@ -4042,6 +4070,7 @@ app.get("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) => 
     `SELECT c.id, c.customer_code, c.full_name, c.mobile, c.kyc_status, c.risk_status, c.created_at,
             aadhaar.masked_value AS aadhaar_masked,
             pan.masked_value AS pan_masked,
+            photo_doc.id AS photo_document_id,
             tc.relationship_status,
             MAX(tc.linked_at) AS linked_at,
             COUNT(CASE WHEN wc.status IN ('approved','active','partially_paid','disputed') AND wc.visibility = 'market_summary' THEN wc.id END) AS active_market_warning_count,
@@ -4054,6 +4083,14 @@ app.get("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) => 
        JOIN customers c ON c.id = tc.customer_id
        LEFT JOIN customer_identifiers aadhaar ON aadhaar.customer_id = c.id AND aadhaar.identifier_type = 'aadhaar'
        LEFT JOIN customer_identifiers pan ON pan.customer_id = c.id AND pan.identifier_type = 'pan'
+       LEFT JOIN customer_documents photo_doc ON photo_doc.id = (
+         SELECT cd.id FROM customer_documents cd
+          WHERE cd.customer_id = c.id
+            AND cd.document_type = 'profile_photo'
+            AND cd.status IN ('uploaded','verified')
+          ORDER BY cd.created_at DESC, cd.id DESC
+          LIMIT 1
+       )
        LEFT JOIN warning_cases wc ON wc.customer_id = c.id
        LEFT JOIN warning_cases latest_wc ON latest_wc.id = (
          SELECT wc2.id FROM warning_cases wc2
@@ -4066,13 +4103,35 @@ app.get("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) => 
        LEFT JOIN traders latest_trader ON latest_trader.id = latest_wc.trader_id
       WHERE tc.trader_id = :traderId
       GROUP BY c.id, c.customer_code, c.full_name, c.mobile, c.kyc_status, c.risk_status, c.created_at,
-               aadhaar.masked_value, pan.masked_value, tc.relationship_status, latest_wc.id, latest_wc.trader_id, latest_wc.trader_statement, latest_trader.business_name
+               aadhaar.masked_value, pan.masked_value, photo_doc.id, tc.relationship_status, latest_wc.id, latest_wc.trader_id, latest_wc.trader_statement, latest_trader.business_name
       ORDER BY linked_at DESC`,
     { traderId },
   );
-  res.json({ ok: true, customers: rows });
+  res.json({ ok: true, customers: rows.map((row) => ({ ...row, photo_url: row.photo_document_id ? `/api/v1/trader/customer-documents/${row.photo_document_id}/download` : null })) });
 });
 
+app.get("/api/v1/trader/customer-documents/:id/download", requireRoles("TRADER"), async (req, res) => {
+  const documentId = Number(req.params.id);
+  const [[document]] = await pool.query(
+    `SELECT cd.storage_key, cd.original_filename, cd.mime_type
+       FROM customer_documents cd
+       JOIN trader_customers tc ON tc.customer_id = cd.customer_id
+      WHERE cd.id = :documentId
+        AND tc.trader_id = :traderId
+        AND cd.status IN ('uploaded','verified')
+      LIMIT 1`,
+    { documentId, traderId: req.user.trader_id || 0 },
+  );
+  if (!document) {
+    res.status(404).json({ ok: false, error: "Customer photo not found." });
+    return;
+  }
+  await sendStoredFile(res, {
+    ...document,
+    disposition: String(req.query.download || "") === "1" ? "attachment" : "inline",
+    missingMessage: "Customer photo is missing on the server.",
+  });
+});
 app.get("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => {
   if (!req.user.trader_id) {
     res.status(404).json({ ok: false, error: "Member profile not found." });
@@ -4512,6 +4571,7 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
     addressLine1,
     villageCity,
     district,
+    customerPhoto = null,
     dateOfBirth = null,
     occupationBusiness = null,
   } = req.body || {};
@@ -4520,8 +4580,8 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
   const cleanAadhaar = String(aadhaar || "").replace(/\D/g, "");
   const cleanPan = String(pan || "").trim().toUpperCase();
 
-  if (!fullName || !/^\d{10}$/.test(cleanMobile) || !/^\d{12}$/.test(cleanAadhaar) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(cleanPan) || !addressLine1 || !villageCity || !district) {
-    res.status(400).json({ ok: false, error: "fullName, valid mobile, Aadhaar, PAN, addressLine1, villageCity, and district are required." });
+  if (!fullName || !/^\d{10}$/.test(cleanMobile) || !/^\d{12}$/.test(cleanAadhaar) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(cleanPan) || !addressLine1 || !villageCity || !district || !customerPhoto?.dataUrl) {
+    res.status(400).json({ ok: false, error: "fullName, valid mobile, Aadhaar, PAN, addressLine1, villageCity, district, and customer photo are required." });
     return;
   }
 
@@ -4628,6 +4688,31 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
       `INSERT INTO trader_customers (trader_id, customer_id, relationship_status, linked_by_user_id)
        VALUES (:traderId, :customerId, 'pending', :userId)`,
       { traderId, customerId: customerResult.insertId, userId: req.user.id },
+    );
+    const savedPhoto = await saveCustomerPhotoFile({
+      customerId: customerResult.insertId,
+      originalFilename: customerPhoto.originalFilename,
+      mimeType: customerPhoto.mimeType,
+      dataUrl: customerPhoto.dataUrl,
+    });
+    await connection.query(
+      `INSERT INTO customer_documents (
+         customer_id, document_type, storage_key, original_filename, mime_type,
+         file_size_bytes, checksum_sha256, status, uploaded_by_user_id
+       )
+       VALUES (
+         :customerId, 'profile_photo', :storageKey, :originalFilename, :mimeType,
+         :fileSizeBytes, :checksumSha256, 'uploaded', :uploadedByUserId
+       )`,
+      {
+        customerId: customerResult.insertId,
+        storageKey: savedPhoto.storageKey,
+        originalFilename: savedPhoto.originalFilename,
+        mimeType: savedPhoto.mimeType,
+        fileSizeBytes: savedPhoto.fileSizeBytes,
+        checksumSha256: savedPhoto.checksumSha256,
+        uploadedByUserId: req.user.id,
+      },
     );
     await connection.commit();
     await writeAudit({ req, action: "customer_kyc.submit", module: "customers", entityType: "customers", entityId: customerResult.insertId, newValues: { customerCode, fullName, mobile: cleanMobile } });

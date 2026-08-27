@@ -1,5 +1,5 @@
 import { Link, useRouter } from "@/lib/simple-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   AlertTriangle, Bell, Camera, CheckCircle2, ClipboardList, Download, Eye, FileText,
   HelpCircle, History, ImagePlus, KeyRound, Mail, MessageSquare, Newspaper, Pencil, Phone, Plus, Search,
@@ -3474,6 +3474,8 @@ export function OwnerKycPage() {
     mobile: string;
     aadhaar_masked: string | null;
     pan_masked: string | null;
+    photo_document_id: number | null;
+    photo_url: string | null;
     kyc_status: string;
     risk_status?: string;
     active_market_warning_count?: number;
@@ -3519,6 +3521,11 @@ export function OwnerKycPage() {
   const [warningSaving, setWarningSaving] = useState(false);
   const [clearingWarningId, setClearingWarningId] = useState<number | null>(null);
   const [recordFilter, setRecordFilter] = useState<"all" | "verified" | "risk">("all");
+  const [customerPhoto, setCustomerPhoto] = useState<{ dataUrl: string; mimeType: string; originalFilename: string } | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const riskStatuses = ["warning_2", "high_risk", "blocked", "disputed"];
   const hasRiskWarning = (record: TraderKycRecord) =>
     Number(record.active_market_warning_count || 0) > 0 || riskStatuses.includes(record.risk_status || "");
@@ -3576,6 +3583,56 @@ export function OwnerKycPage() {
     }, 300);
     return () => window.clearTimeout(timer);
   }, [riskQuery]);
+  useEffect(() => {
+    return () => {
+      cameraStream?.getTracks().forEach((track) => track.stop());
+    };
+  }, [cameraStream]);
+
+  useEffect(() => {
+    if (videoRef.current && cameraStream) {
+      videoRef.current.srcObject = cameraStream;
+    }
+  }, [cameraStream]);
+
+  const stopCustomerCamera = () => {
+    cameraStream?.getTracks().forEach((track) => track.stop());
+    setCameraStream(null);
+    setCameraOpen(false);
+  };
+
+  const startCustomerCamera = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      toast.error("Camera is not supported on this device or browser.");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+      setCameraStream(stream);
+      setCameraOpen(true);
+    } catch {
+      toast.error("Camera permission denied. Please allow camera access and try again.");
+    }
+  };
+
+  const captureCustomerPhoto = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas || !video.videoWidth || !video.videoHeight) {
+      toast.error("Camera is still starting. Please try again.");
+      return;
+    }
+    const maxWidth = 960;
+    const scale = Math.min(1, maxWidth / video.videoWidth);
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.86);
+    setCustomerPhoto({ dataUrl, mimeType: "image/jpeg", originalFilename: `customer-photo-${Date.now()}.jpg` });
+    stopCustomerCamera();
+  };
 
   const addKycRecord = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -3589,8 +3646,8 @@ export function OwnerKycPage() {
     const villageCity = String(data.get("villageCity") || "").trim();
     const district = String(data.get("district") || "").trim();
 
-    if (!customerName || !/^\d{10}$/.test(phone) || !/^\d{12}$/.test(aadhaar) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan) || !addressLine1 || !villageCity || !district) {
-      toast.error("Enter valid customer name, phone, Aadhaar, PAN, and address details");
+    if (!customerName || !/^\d{10}$/.test(phone) || !/^\d{12}$/.test(aadhaar) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan) || !addressLine1 || !villageCity || !district || !customerPhoto) {
+      toast.error("Enter valid customer name, phone, Aadhaar, PAN, address details, and live customer photo");
       return;
     }
 
@@ -3600,12 +3657,14 @@ export function OwnerKycPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName: customerName, mobile: phone, aadhaar, pan, addressLine1, villageCity, district }),
+        body: JSON.stringify({ fullName: customerName, mobile: phone, aadhaar, pan, addressLine1, villageCity, district, customerPhoto }),
       });
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || "Unable to save customer KYC.");
       toast.success(result.reused ? `${result.customerName || customerName} existing KYC linked to your dashboard.` : `${customerName} KYC submitted`);
       form.reset();
+      setCustomerPhoto(null);
+      stopCustomerCamera();
       await loadTraderKyc();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to save customer KYC.");
@@ -3828,6 +3887,35 @@ export function OwnerKycPage() {
                 <Input name="pan" required maxLength={10} pattern="[A-Za-z]{5}\d{4}[A-Za-z]" placeholder="ABCDE1234F" className="uppercase" onInput={(event) => { event.currentTarget.value = limitPan(event.currentTarget.value); }} />
               </div>
               <div>
+                <Label>Customer live photo *</Label>
+                <div className="mt-2 rounded-lg border bg-secondary/30 p-3">
+                  {customerPhoto ? (
+                    <div className="grid gap-3">
+                      <img src={customerPhoto.dataUrl} alt="Captured customer" className="h-44 w-full rounded-md bg-background object-cover" />
+                      <div className="flex flex-wrap gap-2">
+                        <Button type="button" variant="outline" onClick={startCustomerCamera}><Camera className="mr-1 h-4 w-4" /> Retake photo</Button>
+                        <Button type="button" variant="ghost" onClick={() => setCustomerPhoto(null)}><Trash2 className="mr-1 h-4 w-4" /> Remove</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3">
+                      {cameraOpen ? (
+                        <>
+                          <video ref={videoRef} autoPlay playsInline muted className="h-44 w-full rounded-md bg-black object-cover" />
+                          <div className="flex flex-wrap gap-2">
+                            <Button type="button" onClick={captureCustomerPhoto} className="bg-primary"><Camera className="mr-1 h-4 w-4" /> Capture photo</Button>
+                            <Button type="button" variant="outline" onClick={stopCustomerCamera}>Cancel</Button>
+                          </div>
+                        </>
+                      ) : (
+                        <Button type="button" variant="outline" onClick={startCustomerCamera}><Camera className="mr-1 h-4 w-4" /> Open camera</Button>
+                      )}
+                      <canvas ref={canvasRef} className="hidden" />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div>
                 <Label>Address *</Label>
                 <Textarea name="addressLine1" required placeholder="Customer address" />
               </div>
@@ -3856,7 +3944,8 @@ export function OwnerKycPage() {
               {visibleRecords.map((record) => (
                 <div key={record.id} className={`rounded-lg border p-4 ${hasRiskWarning(record) ? "border-destructive/40 bg-destructive/5" : "bg-background"}`}>
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
+                    {record.photo_url ? <img src={record.photo_url} alt={record.full_name} className="h-14 w-14 shrink-0 rounded-md object-cover" /> : <div className="grid h-14 w-14 shrink-0 place-items-center rounded-md bg-secondary text-primary"><Camera className="h-5 w-5" /></div>}
+                    <div className="min-w-0 flex-1">
                       <div className="whitespace-normal break-words font-semibold text-primary-dark">{record.full_name}</div>
                       <div className="mt-1 font-mono text-xs text-muted-foreground">{record.customer_code}</div>
                     </div>
@@ -3887,9 +3976,10 @@ export function OwnerKycPage() {
               ))}
             </div>
             <div className="hidden overflow-x-auto md:block">
-              <Table className="min-w-[840px] table-fixed">
+              <Table className="min-w-[900px] table-fixed">
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[80px]">Photo</TableHead>
                     <TableHead className="w-[190px]">Customer</TableHead>
                     <TableHead className="w-[120px]">Phone</TableHead>
                     <TableHead className="w-[140px]">Aadhaar</TableHead>
@@ -3902,6 +3992,7 @@ export function OwnerKycPage() {
                 <TableBody>
                   {visibleRecords.map((record) => (
                     <TableRow key={record.id}>
+                      <TableCell className="align-top">{record.photo_url ? <img src={record.photo_url} alt={record.full_name} className="h-12 w-12 rounded-md object-cover" /> : <div className="grid h-12 w-12 place-items-center rounded-md bg-secondary text-primary"><Camera className="h-4 w-4" /></div>}</TableCell>
                       <TableCell className="align-top"><div className="whitespace-normal font-medium leading-snug text-primary-dark">{record.full_name}</div><div className="mt-1 font-mono text-xs text-muted-foreground">{record.customer_code}</div></TableCell>
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.mobile}</TableCell>
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.aadhaar_masked || "-"}</TableCell>
