@@ -87,13 +87,6 @@ function Chairman() {
 
   return (
     <SiteLayout>
-      <section className="hero-gradient text-white py-16">
-        <div className="container-page">
-          <h1 className="font-display text-3xl font-bold sm:text-5xl">Chairman &amp; Committee</h1>
-          <p className="mt-4 max-w-2xl text-white/85">Meet the leaders serving our 850+ Members.</p>
-        </div>
-      </section>
-
       <section className="py-14">
         <div className="container-page">
           <div className="max-w-2xl">

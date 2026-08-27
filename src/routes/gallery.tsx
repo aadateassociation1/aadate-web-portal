@@ -37,12 +37,6 @@ function Gallery() {
 
   return (
     <SiteLayout>
-      <section className="hero-gradient text-white py-14">
-        <div className="container-page">
-          <h1 className="font-display text-3xl font-bold sm:text-5xl">Gallery</h1>
-          <p className="mt-3 text-white/80">Moments from the market yard.</p>
-        </div>
-      </section>
       <section className="py-12">
         <div className="container-page grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => {

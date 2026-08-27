@@ -112,13 +112,6 @@ function Updates() {
 
   return (
     <SiteLayout>
-      <section className="hero-gradient text-white py-14">
-        <div className="container-page">
-          <h1 className="font-display text-3xl font-bold sm:text-5xl">Market Updates</h1>
-          <p className="mt-3 text-white/80">Daily prices, arrivals, weather and market yard announcements.</p>
-        </div>
-      </section>
-
       <section className="py-10">
         <div className="container-page">
           <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">

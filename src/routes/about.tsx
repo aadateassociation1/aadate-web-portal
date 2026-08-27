@@ -19,15 +19,6 @@ export const Route = createFileRoute("/about")({
 function About() {
   return (
     <SiteLayout>
-      <section className="hero-gradient text-white py-16 md:py-20">
-        <div className="container-page">
-          <h1 className="font-display text-3xl font-bold sm:text-5xl">About Our Association</h1>
-          <p className="mt-4 max-w-2xl text-white/85">
-            The digital face of Shri Chhatrapati Shivaji Market Yard Adte Association - connecting Members, farmers and administrators.
-          </p>
-        </div>
-      </section>
-
       <section className="py-16">
         <div className="container-page grid gap-10 lg:grid-cols-2 lg:items-center">
           <img src={marketyardImg} alt="Market yard" width={1600} height={900} loading="lazy" className="rounded-3xl shadow-xl object-cover aspect-[4/3]" />

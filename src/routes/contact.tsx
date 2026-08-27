@@ -32,13 +32,6 @@ function Contact() {
   const [sent, setSent] = useState(false);
   return (
     <SiteLayout>
-      <section className="hero-gradient text-white py-14">
-        <div className="container-page">
-          <h1 className="font-display text-3xl font-bold sm:text-5xl">Contact Us</h1>
-          <p className="mt-3 text-white/80">Reach us via phone, email or the enquiry form.</p>
-        </div>
-      </section>
-
       <section className="py-14">
         <div className="container-page grid gap-8 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-1">

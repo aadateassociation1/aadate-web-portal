@@ -180,16 +180,15 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
 
   const content = (
     <>
-      <section className={mode === "public" ? "hero-gradient py-14 text-white" : ""}>
-        <div className={mode === "public" ? "container-page" : ""}>
+      {mode !== "public" && (
+        <section>
           <h1 className="font-display text-3xl font-bold sm:text-5xl">Today's Market Prices</h1>
-          <p className={`mt-2 ${mode === "public" ? "text-white/80" : "text-muted-foreground"}`}>आजचे बाजार भाव</p>
-          <div className={`mt-4 text-sm ${mode === "public" ? "text-white/75" : "text-muted-foreground"}`}>
+          <p className="mt-2 text-muted-foreground">{"\u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930 \u092d\u093e\u0935"}</p>
+          <div className="mt-4 text-sm text-muted-foreground">
             Last Updated: {formatDate(lastPublished, true)}
           </div>
-        </div>
-      </section>
-
+        </section>
+      )}
       <section className={mode === "public" ? "py-10" : "mt-6"}>
         <div className={mode === "public" ? "container-page" : ""}>
           <CategoryTabs value={category} onChange={setCategory} />
