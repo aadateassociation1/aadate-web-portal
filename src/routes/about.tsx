@@ -68,7 +68,10 @@ function About() {
 
       <section className="py-16">
         <div className="container-page">
-          <h2 className="text-center font-display text-2xl font-bold leading-tight text-primary-dark sm:text-left sm:text-3xl">Facilities &amp; Achievements</h2>
+          <h2 className="text-center font-display text-2xl font-bold leading-tight text-primary-dark sm:text-left sm:text-3xl">
+            <span className="sm:inline">Facilities</span>
+            <span className="block sm:inline sm:ml-2">&amp; Achievements</span>
+          </h2>
           <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-4">
             {[
               { icon: Building2, title: "Cold storage", body: "500 MT capacity for perishables" },
