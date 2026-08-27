@@ -130,7 +130,7 @@ function Header() {
               </Button>
             </>
           )}
-          <Button asChild variant="outline" size="icon" className="h-11 w-11 rounded-full border-primary/20 bg-transparent text-foreground shadow-sm transition hover:border-primary/40 hover:bg-primary/10 hover:text-primary">
+          <Button asChild variant="outline" size="icon" className={`h-11 w-11 rounded-full border-primary/20 bg-transparent text-foreground shadow-sm transition hover:border-primary/40 hover:bg-primary/10 hover:text-primary ${dashLink ? "" : "xl:hidden"}`}>
             <Link to={dashLink || "/login"} aria-label={dashLink ? "Open dashboard" : "Open login"}>
               <UserCircle className="h-6 w-6" />
             </Link>
