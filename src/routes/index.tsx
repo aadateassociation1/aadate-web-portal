@@ -4,11 +4,12 @@ import { SiteLayout } from "@/components/public/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowRight, Bell, ClipboardList, Download, FileText, Newspaper, Phone,
   UserCog, MessageSquare, ShieldCheck,
-  CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye, ChevronLeft, ChevronRight,
+  CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
 import marketyardImg from "@/assets/marketyard.webp";
@@ -68,6 +69,7 @@ function Home() {
   const [committee, setCommittee] = useState<CommitteeMemberRecord[]>([]);
   const [reviews, setReviews] = useState<PublicReview[]>([]);
   const [complaintFeedback, setComplaintFeedback] = useState<PublicComplaintFeedback[]>([]);
+  const [complaintFeedbackApi, setComplaintFeedbackApi] = useState<CarouselApi>();
   const [prices, setPrices] = useState<PublicPrice[]>([]);
   const [selectedNotice, setSelectedNotice] = useState<PublicContent | null>(null);
   useEffect(() => {
@@ -79,6 +81,15 @@ function Home() {
     fetch("/api/v1/public/complaint-feedback").then((r) => r.json()).then((result) => { if (result.ok) setComplaintFeedback(result.feedback || []); }).catch(() => undefined);
     fetch("/api/v1/public/market-prices").then((r) => r.json()).then((result) => { if (result.ok) setPrices(result.prices || []); }).catch(() => undefined);
   }, []);
+  useEffect(() => {
+    if (!complaintFeedbackApi || complaintFeedback.length <= 1) {
+      return;
+    }
+
+    const timer = window.setInterval(() => complaintFeedbackApi.scrollNext(), 3500);
+    return () => window.clearInterval(timer);
+  }, [complaintFeedbackApi, complaintFeedback.length]);
+
   const ticker = updates.slice(0, 6);
   const heroSubtitle = t("hero.sub");
   const chairman = committee.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
@@ -575,35 +586,43 @@ function Home() {
             <p className="mt-2 text-sm font-medium text-muted-foreground">Resolved complaint feedback</p>
           </div>
 
-          <div className="relative mx-auto mt-9 max-w-6xl">
-            <button className="absolute left-0 top-1/2 z-10 hidden h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border bg-background text-primary shadow-sm md:flex" aria-label="Previous review" type="button">
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button className="absolute right-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border bg-background text-primary shadow-sm md:flex" aria-label="Next review" type="button">
-              <ChevronRight className="h-4 w-4" />
-            </button>
-
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {complaintFeedback.slice(0, 3).map((item) => (
-                <Card key={item.id} className="border-border/60 bg-background shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-                  <CardContent className="flex min-h-[230px] flex-col items-center p-6 text-center">
-                    <div className="text-sm font-bold text-primary-dark">{item.category || "Resolved Complaint"}</div>
-                    <div className="mt-2 flex text-saffron">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className={`h-4 w-4 ${star <= Number(item.rating || 0) ? "fill-current" : ""}`} />
-                      ))}
-                    </div>
-                    <p className="mt-5 flex-1 text-sm leading-relaxed text-muted-foreground">
-                      &quot;{item.comment}&quot;
-                    </p>
-                    <div className="mt-5 font-display text-sm font-bold capitalize text-primary">
-                      {item.reaction?.replace(/_/g, " ") || "Resolved"}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {complaintFeedback.length === 0 && <div className="rounded-lg border bg-background p-8 text-center text-sm text-muted-foreground md:col-span-2 lg:col-span-3">No approved complaint feedback yet.</div>}
-            </div>
+          <div className="mx-auto mt-9 max-w-6xl px-10">
+            {complaintFeedback.length > 0 ? (
+              <Carousel setApi={setComplaintFeedbackApi} opts={{ align: "start", loop: complaintFeedback.length > 1 }} className="w-full">
+                <CarouselContent>
+                  {complaintFeedback.map((item) => (
+                    <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
+                      <Card className="h-full overflow-hidden border-border/60 bg-background shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+                        <div className="h-1.5 bg-gradient-to-r from-primary via-lime-500 to-saffron" />
+                        <CardContent className="flex min-h-[250px] flex-col items-center p-6 text-center">
+                          <div className="rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary-dark">
+                            {item.category || "Resolved Complaint"}
+                          </div>
+                          <div className="mt-4 flex text-saffron">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star key={star} className={`h-4 w-4 ${star <= Number(item.rating || 0) ? "fill-current" : ""}`} />
+                            ))}
+                          </div>
+                          <div className="mt-5 flex h-9 w-9 items-center justify-center rounded-full bg-saffron/10 font-display text-2xl font-bold text-saffron">
+                            &quot;
+                          </div>
+                          <p className="mt-4 line-clamp-4 flex-1 text-sm leading-relaxed text-muted-foreground">
+                            {item.comment}
+                          </p>
+                          <div className="mt-5 rounded-full bg-secondary px-5 py-2 font-display text-sm font-bold capitalize text-primary">
+                            {item.reaction?.replace(/_/g, " ") || "Resolved"}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground" />
+                <CarouselNext className="right-0 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground" />
+              </Carousel>
+            ) : (
+              <div className="rounded-lg border bg-background p-8 text-center text-sm text-muted-foreground">No approved complaint feedback yet.</div>
+            )}
           </div>
         </div>
       </section>
