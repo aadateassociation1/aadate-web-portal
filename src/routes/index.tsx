@@ -577,13 +577,13 @@ function Home() {
       <section className="bg-secondary/30 py-14 md:py-16">
         <div className="container-page">
           <div className="text-center">
-            <h2 className="font-display text-3xl font-bold text-primary-dark sm:text-4xl">Reviews</h2>
+            <h2 className="font-display text-3xl font-bold text-primary-dark sm:text-4xl">Member Complaint Resolution Reviews</h2>
             <div className="mt-2 flex justify-center text-saffron">
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star key={star} className="h-4 w-4 fill-current" />
               ))}
             </div>
-            <p className="mt-2 text-sm font-medium text-muted-foreground">Resolved complaint feedback</p>
+            <p className="mt-2 text-sm font-medium text-muted-foreground">Feedback shared by members after their complaints were resolved.</p>
           </div>
 
           <div className="mx-auto mt-9 max-w-6xl px-10">
