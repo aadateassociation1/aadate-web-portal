@@ -357,30 +357,30 @@ function Home() {
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {prices.slice(0, 8).map((price) => (
               <Card key={price.item_id} className="border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <CardContent className="p-5">
+                <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <Badge variant="secondary" className="capitalize">{price.category}</Badge>
-                      <h3 className="mt-3 font-display text-xl font-bold leading-tight text-primary-dark">{price.name_en}</h3>
-                      <div className="mt-1 text-sm text-muted-foreground">{price.name_mr}</div>
+                      <h3 className="mt-2.5 font-display text-xl font-bold leading-tight text-primary-dark">{price.name_en}</h3>
+                      <div className="mt-0.5 text-sm text-muted-foreground">{price.name_mr}</div>
                     </div>
-                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
-                      <IndianRupee className="h-5 w-5" />
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
+                      <IndianRupee className="h-4.5 w-4.5" />
                     </div>
                   </div>
-                  <div className="mt-6">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Today&apos;s market range</div>
-                    <div className="mt-2 flex flex-wrap items-end gap-2">
-                      <div className="font-display text-3xl font-bold leading-none text-primary-dark">
+                  <div className="mt-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Range</div>
+                    <div className="mt-1.5 flex flex-wrap items-end gap-1.5">
+                      <div className="font-display text-[2rem] font-bold leading-none text-primary-dark">
                         {"\u20B9"}{price.min_price} - {"\u20B9"}{price.max_price}
                       </div>
-                      <span className="text-sm font-medium text-muted-foreground">/ {price.unit}</span>
+                      <span className="text-xs font-medium text-muted-foreground">/ {price.unit}</span>
                     </div>
                   </div>
-                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-border/60 pt-4 text-sm">
+                  <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/60 pt-3 text-sm">
                     <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Average price</div>
-                      <div className="mt-1 text-lg font-semibold text-primary-dark">{"\u20B9"}{price.modal_price}</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Avg price</div>
+                      <div className="mt-0.5 text-base font-semibold text-primary-dark">{"\u20B9"}{price.modal_price}</div>
                     </div>
                     <span className={price.change_direction === "up" ? "font-semibold text-success" : price.change_direction === "down" ? "font-semibold text-destructive" : "text-muted-foreground"}>
                       {price.change_amount === null ? "New" : price.change_direction === "up" ? `${"\u2191"} {"\u20B9"}${price.change_amount}` : price.change_direction === "down" ? `${"\u2193"} {"\u20B9"}${Math.abs(price.change_amount)}` : `${"\u2014"} {"\u20B9"}0`}
