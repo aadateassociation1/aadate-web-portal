@@ -94,6 +94,7 @@ function Home() {
   const heroSubtitle = t("hero.sub");
   const chairman = committee.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
   const committeeMembers = committee.filter((member) => member.id !== chairman?.id);
+  const committeeGridMembers = committeeMembers.length % 3 === 2 && chairman ? [...committeeMembers, chairman] : committeeMembers;
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
   const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
@@ -324,7 +325,7 @@ function Home() {
           <div className="mt-14">
             <h3 className="font-display text-2xl font-bold text-primary-dark">{t("section.committee")}</h3>
             <div className="mx-auto mt-6 grid max-w-6xl grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
-              {committeeMembers.slice(0, 8).map((m) => (
+              {committeeGridMembers.slice(0, 9).map((m) => (
                 <Card key={m.id} className="mx-auto w-full max-w-[19rem] overflow-hidden rounded-xl border-border/60 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                   <CardContent className="px-1.5 py-2.5 sm:px-3 sm:py-4">
                     <div className="mx-auto grid h-18 w-18 place-items-center overflow-hidden rounded-full border-4 border-white bg-secondary font-display text-base font-bold text-primary shadow-md ring-1 ring-border sm:h-32 sm:w-32 sm:text-xl">
