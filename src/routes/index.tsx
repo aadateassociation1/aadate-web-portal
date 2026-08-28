@@ -421,7 +421,7 @@ function Home() {
               <span className="text-xs font-bold uppercase tracking-wider text-primary">{t("section.updates")}</span>
               <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Fresh from the market floor</h2>
             </div>
-            <Button asChild variant="outline"><Link to="/updates">View all updates <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
+            <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/updates">View all updates <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {updates.slice(0, 6).map((u) => (
