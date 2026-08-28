@@ -565,43 +565,54 @@ function Home() {
               <p className="mt-3 text-sm text-muted-foreground">Approved feedback from Members and customers.</p>
             </div>
           </div>
-          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {reviews.slice(0, 6).map((review) => (
-              <Card key={review.id} className="border-border/60 shadow-sm">
-                <CardContent className="flex h-full flex-col p-6">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex text-saffron">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className={`h-4 w-4 ${star <= review.rating_value ? "fill-current" : ""}`} />
-                      ))}
-                    </div>
-                    <Badge variant="outline" className="capitalize">{review.reviewer_type}</Badge>
-                  </div>
-                  <p className="mt-4 flex-1 text-sm leading-relaxed text-foreground/80">{review.review_text}</p>
-                  {review.attachments && review.attachments.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {review.attachments.map((file) => (
-                        <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/public/rating-attachments/${file.id}/download`, "_blank", "noopener,noreferrer")}>
-                          <Eye className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "View image" : "View video"}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                  <div className="mt-5 rounded-lg bg-secondary/40 p-3">
-                    <div className="font-display font-semibold leading-snug text-primary-dark">{review.reviewer_name}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      {review.reviewer_type === "customer" ? `${review.customer_code || "Customer"} via ` : ""}
-                      {review.business_name || review.trader_name} - Gala {review.gala_number || "-"}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {reviews.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground md:col-span-2 lg:col-span-3">No portal reviews reshared yet.</div>}
+          <div className="mx-auto mt-10 max-w-6xl px-10">
+            {reviews.length > 0 ? (
+              <Carousel opts={{ align: "start", loop: reviews.length > 1 }} className="w-full">
+                <CarouselContent>
+                  {reviews.slice(0, 6).map((review) => (
+                    <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3">
+                      <Card className="h-full border-border/60 shadow-sm">
+                        <CardContent className="flex h-full flex-col p-6">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex text-saffron">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star key={star} className={`h-4 w-4 ${star <= review.rating_value ? "fill-current" : ""}`} />
+                              ))}
+                            </div>
+                            <Badge variant="outline" className="capitalize">{review.reviewer_type}</Badge>
+                          </div>
+                          <p className="mt-4 flex-1 text-sm leading-relaxed text-foreground/80">{review.review_text}</p>
+                          {review.attachments && review.attachments.length > 0 && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              {review.attachments.map((file) => (
+                                <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/public/rating-attachments/${file.id}/download`, "_blank", "noopener,noreferrer")}>
+                                  <Eye className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "View image" : "View video"}
+                                </Button>
+                              ))}
+                            </div>
+                          )}
+                          <div className="mt-5 rounded-lg bg-secondary/40 p-3">
+                            <div className="font-display font-semibold leading-snug text-primary-dark">{review.reviewer_name}</div>
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              {review.reviewer_type === "customer" ? `${review.customer_code || "Customer"} via ` : ""}
+                              {review.business_name || review.trader_name} - Gala {review.gala_number || "-"}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground" />
+                <CarouselNext className="right-0 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground" />
+              </Carousel>
+            ) : (
+              <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">No portal reviews reshared yet.</div>
+            )}
           </div>
+
         </div>
       </section>
-
       {/* Complaint feedback */}
       <section className="py-14 md:py-16">
         <div className="container-page">
