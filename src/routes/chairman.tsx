@@ -134,16 +134,16 @@ function Chairman() {
       <section className="bg-leaf py-14">
         <div className="container-page">
           <h2 className="font-display text-2xl font-bold text-primary-dark">Committee Members</h2>
-          <div className="mt-8 grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-3">
+          <div className="mx-auto mt-8 grid max-w-6xl grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
             {committeeMembers.map((m) => (
-              <Card key={m.id} className="overflow-hidden border-border/60 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <CardContent className="px-1.5 py-3 sm:px-4">
-                  <div className="mx-auto grid h-20 w-20 place-items-center overflow-hidden rounded-full border-4 border-white bg-secondary font-display text-lg font-bold text-primary shadow-md ring-1 ring-border sm:h-44 sm:w-44 sm:text-2xl">
+              <Card key={m.id} className="mx-auto w-full max-w-[19rem] overflow-hidden rounded-xl border-border/60 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <CardContent className="px-1.5 py-2.5 sm:px-3 sm:py-4">
+                  <div className="mx-auto grid h-18 w-18 place-items-center overflow-hidden rounded-full border-4 border-white bg-secondary font-display text-base font-bold text-primary shadow-md ring-1 ring-border sm:h-36 sm:w-36 sm:text-2xl">
                     <CommitteeAvatar member={m} />
                   </div>
-                  <h3 className="mt-2 font-display text-xs font-semibold leading-snug text-primary-dark sm:text-lg">{displayCommitteeName(m)}</h3>
+                  <h3 className="mt-2 font-display text-xs font-semibold leading-snug text-primary-dark sm:text-base">{displayCommitteeName(m)}</h3>
                   {lang === "en" && m.name_mr && <div className="mt-0.5 text-[10px] leading-tight text-muted-foreground sm:text-xs">{m.name_mr}</div>}
-                  <div className="mt-1.5 inline-flex max-w-full rounded-full bg-secondary px-1.5 py-1 text-[9px] font-semibold leading-tight text-primary sm:px-3 sm:text-xs">{displayCommitteeDesignation(m)}</div>
+                  <div className="mt-1 inline-flex max-w-full rounded-full bg-secondary px-1.5 py-1 text-[9px] font-semibold leading-tight text-primary sm:px-2.5 sm:text-[11px]">{displayCommitteeDesignation(m)}</div>
                   {m.gala_number && <div className="mt-1.5 text-xs font-medium text-muted-foreground">Gala {m.gala_number}</div>}
                 </CardContent>
               </Card>
