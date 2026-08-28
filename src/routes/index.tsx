@@ -99,15 +99,15 @@ function Home() {
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
   const chairmanCopy = lang === "mr"
     ? {
-        current: "सध्याचे अध्यक्ष",
-        role: "अध्यक्ष",
-        title: "नेतृत्व",
-        term: "कार्यकाळ",
-        name: chairman?.name_mr || "श्री. सौरभ कुंजीर",
+        current: "\u0938\u0927\u094d\u092f\u093e\u091a\u0947 \u0905\u0927\u094d\u092f\u0915\u094d\u0937",
+        role: "\u0905\u0927\u094d\u092f\u0915\u094d\u0937",
+        title: "\u0928\u0947\u0924\u0943\u0924\u094d\u0935",
+        term: "\u0915\u093e\u0930\u094d\u092f\u0915\u093e\u0933",
+        name: chairman?.name_mr || "\u0936\u094d\u0930\u0940. \u0938\u094c\u0930\u092d \u0915\u0941\u0902\u091c\u0940\u0930",
         secondaryName: "",
-        intro: "त्यांच्या नेतृत्वाखाली संघटना पारदर्शक प्रशासन, जलद तक्रार निवारण, नियमित बाजार माहिती आणि प्रत्येक व्यापारी व गाळाधारकासाठी अधिक चांगल्या डिजिटल सेवांवर लक्ष केंद्रित करत आहे.",
-        quote: "प्रत्येक व्यापाऱ्यासाठी पारदर्शक, डिजिटल आणि सेवा-केंद्रित मार्केट यार्ड उभारण्यासाठी आपण सर्वजण एकत्र काम करत आहोत.",
-        focus: ["डिजिटल सूचना प्रवेश", "सभासद-केंद्रित मदत", "बाजार अद्यतने", "पारदर्शक कार्यप्रवाह"],
+        intro: "\u0924\u094d\u092f\u093e\u0902\u091a\u094d\u092f\u093e \u0928\u0947\u0924\u0943\u0924\u094d\u0935\u093e\u0916\u093e\u0932\u0940 \u0938\u0902\u0918\u091f\u0928\u093e \u092a\u093e\u0930\u0926\u0930\u094d\u0936\u0915 \u092a\u094d\u0930\u0936\u093e\u0938\u0928, \u091c\u0932\u0926 \u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u093f\u0935\u093e\u0930\u0923, \u0928\u093f\u092f\u092e\u093f\u0924 \u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940 \u0906\u0923\u093f \u092a\u094d\u0930\u0924\u094d\u092f\u0947\u0915 \u0935\u094d\u092f\u093e\u092a\u093e\u0930\u0940 \u0935 \u0917\u093e\u0933\u093e\u0927\u093e\u0930\u0915\u093e\u0938\u093e\u0920\u0940 \u0905\u0927\u093f\u0915 \u091a\u093e\u0902\u0917\u0932\u094d\u092f\u093e \u0921\u093f\u091c\u093f\u091f\u0932 \u0938\u0947\u0935\u093e\u0902\u0935\u0930 \u0932\u0915\u094d\u0937 \u0915\u0947\u0902\u0926\u094d\u0930\u093f\u0924 \u0915\u0930\u0924 \u0906\u0939\u0947.",
+        quote: "\u092a\u094d\u0930\u0924\u094d\u092f\u0947\u0915 \u0935\u094d\u092f\u093e\u092a\u093e\u0931\u094d\u092f\u093e\u0938\u093e\u0920\u0940 \u092a\u093e\u0930\u0926\u0930\u094d\u0936\u0915, \u0921\u093f\u091c\u093f\u091f\u0932 \u0906\u0923\u093f \u0938\u0947\u0935\u093e-\u0915\u0947\u0902\u0926\u094d\u0930\u093f\u0924 \u092e\u093e\u0930\u094d\u0915\u0947\u091f \u092f\u093e\u0930\u094d\u0921 \u0909\u092d\u093e\u0930\u0923\u094d\u092f\u093e\u0938\u093e\u0920\u0940 \u0906\u092a\u0923 \u0938\u0930\u094d\u0935\u091c\u0923 \u090f\u0915\u0924\u094d\u0930 \u0915\u093e\u092e \u0915\u0930\u0924 \u0906\u0939\u094b\u0924.",
+        focus: ["\u0921\u093f\u091c\u093f\u091f\u0932 \u0938\u0942\u091a\u0928\u093e \u092a\u094d\u0930\u0935\u0947\u0936", "\u0938\u092d\u093e\u0938\u0926-\u0915\u0947\u0902\u0926\u094d\u0930\u093f\u0924 \u092e\u0926\u0924", "\u092c\u093e\u091c\u093e\u0930 \u0905\u0926\u094d\u092f\u0924\u0928\u0947", "\u092a\u093e\u0930\u0926\u0930\u094d\u0936\u0915 \u0915\u093e\u0930\u094d\u092f\u092a\u094d\u0930\u0935\u093e\u0939"],
       }
     : {
         current: "Current Chairman",
@@ -356,63 +356,34 @@ function Home() {
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {prices.slice(0, 8).map((price) => (
-              <Card
-                key={price.item_id}
-                className="group overflow-hidden rounded-[26px] border border-border/70 bg-background shadow-[0_12px_30px_rgba(0,0,0,0.05)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_44px_rgba(0,0,0,0.08)]"
-              >
-                <CardContent className="p-5 sm:p-6">
+              <Card key={price.item_id} className="border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <Badge variant="secondary" className="rounded-full bg-secondary/70 px-3 py-1 capitalize text-primary-dark">
-                        {price.category}
-                      </Badge>
-                      <h3 className="mt-4 line-clamp-1 font-display text-[1.7rem] font-bold leading-none text-primary-dark">
-                        {price.name_en}
-                      </h3>
-                      <p className="mt-2 line-clamp-1 text-sm text-muted-foreground">{price.name_mr}</p>
+                      <Badge variant="secondary" className="capitalize">{price.category}</Badge>
+                      <h3 className="mt-3 font-display text-xl font-bold leading-tight text-primary-dark">{price.name_en}</h3>
+                      <div className="mt-1 text-sm text-muted-foreground">{price.name_mr}</div>
                     </div>
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-primary-dark ring-1 ring-primary/10 transition group-hover:scale-105">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
                       <IndianRupee className="h-5 w-5" />
                     </div>
                   </div>
-
-                  <div className="mt-6 rounded-[22px] border border-primary/10 bg-gradient-to-br from-secondary/55 via-background to-background px-5 py-5">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                      Today&apos;s market range
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-end gap-x-2 gap-y-1">
-                      <div className="font-display text-4xl font-bold leading-none text-primary-dark">
+                  <div className="mt-6">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Today&apos;s market range</div>
+                    <div className="mt-2 flex flex-wrap items-end gap-2">
+                      <div className="font-display text-3xl font-bold leading-none text-primary-dark">
                         {"\u20B9"}{price.min_price} - {"\u20B9"}{price.max_price}
                       </div>
-                      <span className="pb-1 text-sm font-medium text-muted-foreground">/ {price.unit}</span>
+                      <span className="text-sm font-medium text-muted-foreground">/ {price.unit}</span>
                     </div>
                   </div>
-
-                  <div className="mt-5 flex items-end justify-between gap-3 border-t border-border/70 pt-4">
+                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-border/60 pt-4 text-sm">
                     <div>
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        Average price
-                      </div>
-                      <div className="mt-1 text-2xl font-semibold text-primary-dark">{"\u20B9"}{price.modal_price}</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Average price</div>
+                      <div className="mt-1 text-lg font-semibold text-primary-dark">{"\u20B9"}{price.modal_price}</div>
                     </div>
-                    <span
-                      className={`whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-semibold ${
-                        price.change_amount === null
-                          ? "bg-secondary text-primary-dark"
-                          : price.change_direction === "up"
-                            ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                            : price.change_direction === "down"
-                              ? "bg-red-50 text-red-700 ring-1 ring-red-200"
-                              : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {price.change_amount === null
-                        ? "Fresh entry"
-                        : price.change_direction === "up"
-                          ? `Up \u20B9${price.change_amount}`
-                          : price.change_direction === "down"
-                            ? `Down \u20B9${Math.abs(price.change_amount)}`
-                            : "Stable"}
+                    <span className={price.change_direction === "up" ? "font-semibold text-success" : price.change_direction === "down" ? "font-semibold text-destructive" : "text-muted-foreground"}>
+                      {price.change_amount === null ? "New" : price.change_direction === "up" ? `${"\u2191"} {"\u20B9"}${price.change_amount}` : price.change_direction === "down" ? `${"\u2193"} {"\u20B9"}${Math.abs(price.change_amount)}` : `${"\u2014"} {"\u20B9"}0`}
                     </span>
                   </div>
                 </CardContent>
@@ -422,6 +393,7 @@ function Home() {
           </div>
         </div>
       </section>
+
       {/* Market updates */}
       <section className="bg-leaf py-16 md:py-20">
         <div className="container-page">
