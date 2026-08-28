@@ -159,6 +159,34 @@
   }
 }
 
+
+@layer base {
+  body {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  p,
+  li,
+  td,
+  th,
+  label,
+  input,
+  select,
+  textarea {
+    font-size: inherit;
+    line-height: inherit;
+  }
+}
+
+@layer utilities {
+  .text-sm,
+  .text-base {
+    font-size: 0.95rem !important;
+    line-height: 1.5rem !important;
+  }
+}
+
 @utility container-page {
   width: 100%;
   margin-inline: auto;
