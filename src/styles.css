@@ -140,8 +140,7 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    text-align: justify;
-    text-justify: inter-word;
+    text-align: left;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
