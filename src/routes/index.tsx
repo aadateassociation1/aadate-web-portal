@@ -354,44 +354,62 @@ function Home() {
             </div>
             <Button asChild variant="outline"><Link to="/market-prices">View All Market Prices <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
-          <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {prices.slice(0, 8).map((price) => (
-              <Card key={price.item_id} className="border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <CardContent className="p-3.5">
-                  <div className="flex items-start justify-between gap-2.5">
-                    <div className="min-w-0">
-                      <Badge variant="secondary" className="px-2 py-0.5 text-[11px] capitalize">{price.category}</Badge>
-                      <h3 className="mt-2 font-display text-[1.7rem] font-bold leading-tight text-primary-dark">{price.name_en}</h3>
-                      <div className="mt-0.5 text-xs text-muted-foreground">{price.name_mr}</div>
-                    </div>
-                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-secondary text-primary">
-                      <IndianRupee className="h-4 w-4" />
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Range</div>
-                    <div className="mt-1 flex flex-wrap items-end gap-1">
-                      <div className="font-display text-[1.8rem] font-bold leading-none text-primary-dark">
-                        {"\u20B9"}{price.min_price} - {"\u20B9"}{price.max_price}
+          <div className="mt-8 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+            {prices.slice(0, 8).map((price) => {
+              const trendLabel =
+                price.change_amount === null
+                  ? "New"
+                  : price.change_direction === "up"
+                    ? `\u2191 \u20B9${price.change_amount}`
+                    : price.change_direction === "down"
+                      ? `\u2193 \u20B9${Math.abs(price.change_amount)}`
+                      : `\u2014 \u20B90`;
+
+              const trendClassName =
+                price.change_direction === "up"
+                  ? "text-success"
+                  : price.change_direction === "down"
+                    ? "text-destructive"
+                    : "text-muted-foreground";
+
+              return (
+                <Card key={price.item_id} className="rounded-xl border-border/60 shadow-sm transition hover:shadow-md">
+                  <CardContent className="p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <Badge variant="secondary" className="px-2 py-0.5 text-[10px] capitalize">{price.category}</Badge>
+                        <h3 className="mt-2 font-display text-lg font-bold leading-tight text-primary-dark">{price.name_en}</h3>
+                        <div className="mt-0.5 text-[11px] text-muted-foreground">{price.name_mr}</div>
                       </div>
-                      <span className="text-xs font-medium text-muted-foreground">/ {price.unit}</span>
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-secondary/80 text-primary">
+                        <IndianRupee className="h-3.5 w-3.5" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between gap-2.5 border-t border-border/60 pt-2.5 text-sm">
-                    <div>
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Avg price</div>
-                      <div className="mt-0.5 text-[1.05rem] font-semibold text-primary-dark">{"\u20B9"}{price.modal_price}</div>
+
+                    <div className="mt-3">
+                      <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Today</div>
+                      <div className="mt-1 flex flex-wrap items-end gap-1">
+                        <div className="font-display text-[1.55rem] font-bold leading-none text-primary-dark">
+                          {"\u20B9"}{price.min_price} - {"\u20B9"}{price.max_price}
+                        </div>
+                        <span className="text-[10px] font-medium text-muted-foreground">/ {price.unit}</span>
+                      </div>
                     </div>
-                    <span className={price.change_direction === "up" ? "font-semibold text-success" : price.change_direction === "down" ? "font-semibold text-destructive" : "text-muted-foreground"}>
-                      {price.change_amount === null ? "New" : price.change_direction === "up" ? `${"\u2191"} {"\u20B9"}${price.change_amount}` : price.change_direction === "down" ? `${"\u2193"} {"\u20B9"}${Math.abs(price.change_amount)}` : `${"\u2014"} {"\u20B9"}0`}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+
+                    <div className="mt-3 flex items-end justify-between gap-2 border-t border-border/60 pt-2">
+                      <div>
+                        <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Avg</div>
+                        <div className="mt-0.5 text-sm font-semibold text-primary-dark">{"\u20B9"}{price.modal_price}</div>
+                      </div>
+                      <span className={`whitespace-nowrap text-[11px] font-medium ${trendClassName}`}>{trendLabel}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
             {prices.length === 0 && <div className="rounded-lg border bg-background p-8 text-center text-sm text-muted-foreground sm:col-span-2 lg:col-span-4">Today's market prices have not been published yet. Please check again shortly.</div>}
           </div>
-        </div>
+          </div>
       </section>
 
       {/* Market updates */}
