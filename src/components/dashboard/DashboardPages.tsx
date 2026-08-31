@@ -1,4 +1,4 @@
-﻿import { Link, useRouter } from "@/lib/simple-router";
+import { Link, useRouter } from "@/lib/simple-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   AlertTriangle, Bell, Camera, CheckCircle2, ClipboardList, Download, Eye, FileText,
@@ -138,6 +138,10 @@ const MEMBER_POST_CATEGORIES = [
 ];
 const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
 const limitPan = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
+const normalizePan = (value: string) => limitPan(String(value || "").replace(/\\s+/g, ""));
+const isValidPan = (value: string) => /^[A-Z]{5}\\d{4}[A-Z]$/.test(normalizePan(value));
+const getPanFormatErrorMessage = (lang: "en" | "mr") => lang === "mr" ? "कृपया वैध PAN क्रमांक टाका." : "Please enter a valid PAN number.";
+const getPanDuplicateMessage = (lang: "en" | "mr") => lang === "mr" ? "हा PAN क्रमांक आधीच दुसऱ्या ग्राहकासाठी नोंदणीकृत आहे." : "This PAN number is already registered with another customer.";
 const VERHOEFF_D = [
   [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
   [1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
@@ -2465,7 +2469,7 @@ export function AdminMobileRequestsPage() {
                 {requests.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="break-all font-mono text-[11px] leading-tight">{r.request_code}</TableCell>
-                    <TableCell>{r.trader_name}<div className="text-xs text-muted-foreground">Gala {r.gala_number || "-"} Ã‚Â· {r.trader_code}</div></TableCell>
+                    <TableCell>{r.trader_name}<div className="text-xs text-muted-foreground">Gala {r.gala_number || "-"} ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· {r.trader_code}</div></TableCell>
                     <TableCell className="whitespace-normal break-all font-mono text-xs">{r.old_mobile}</TableCell>
                     <TableCell className="whitespace-normal break-all font-mono text-xs">{r.new_mobile}</TableCell>
                     <TableCell className="whitespace-normal text-sm leading-snug">{r.reason}</TableCell>
@@ -3682,6 +3686,9 @@ export function OwnerKycPage() {
   const [editCustomerPhoto, setEditCustomerPhoto] = useState<{ dataUrl: string; mimeType: string; originalFilename: string } | null>(null);
   const [editCameraOpen, setEditCameraOpen] = useState(false);
   const [editCameraStream, setEditCameraStream] = useState<MediaStream | null>(null);
+  const { lang } = useI18n();
+  const isMr = lang === "mr";
+  const [addPanValue, setAddPanValue] = useState("");
   const editVideoRef = useRef<HTMLVideoElement | null>(null);
   const editCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const riskStatuses = ["warning_2", "high_risk", "blocked", "disputed"];
@@ -3842,7 +3849,7 @@ export function OwnerKycPage() {
     const customerName = String(data.get("customerName") || "").trim();
     const phone = String(data.get("phone") || "").replace(/\D/g, "");
     const aadhaar = String(data.get("aadhaar") || "").replace(/\D/g, "");
-    const pan = String(data.get("pan") || "").trim().toUpperCase();
+    const pan = normalizePan(String(data.get("pan") || ""));
     const addressLine1 = String(data.get("addressLine1") || "").trim();
     const villageCity = String(data.get("villageCity") || "").trim();
     const district = String(data.get("district") || "").trim();
@@ -3857,8 +3864,8 @@ export function OwnerKycPage() {
       toast.error("Please enter a valid Aadhaar number.");
       return;
     }
-    if (pan && !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) {
-      toast.error("Enter a valid PAN number.");
+    if (pan && !isValidPan(pan)) {
+      toast.error(getPanFormatErrorMessage(lang));
       return;
     }
 
@@ -3881,13 +3888,14 @@ export function OwnerKycPage() {
           customerPhoto: editCustomerPhoto,
         }),
       });
-      const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.error || "Unable to update customer KYC.");
+      const result = await readApiResponse(response);
+      if (!result?.ok) throw new Error(result?.message || result?.error || "Unable to update customer KYC.");
       toast.success(`${customerName} KYC updated`);
       closeEditCustomerDialog();
       await loadTraderKyc();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to update customer KYC.");
+      const message = error instanceof Error ? error.message : "Unable to update customer KYC.";
+      toast.error(message === "This PAN number is already registered with another customer." ? getPanDuplicateMessage(lang) : message);
     } finally {
       setEditSaving(false);
     }
@@ -3992,6 +4000,28 @@ export function OwnerKycPage() {
     }
   };
 
+  const runCustomerMarketAction = async (record: { id: number; full_name: string }, actionType: "blocked" | "suspended" | "removed" | "restored") => {
+    const reason = window.prompt(`${actionType.charAt(0).toUpperCase()}${actionType.slice(1)} ${record.full_name}. Reason visible to all Members?`)?.trim() || "";
+    if (reason.length < 5) {
+      toast.error("Reason is required.");
+      return;
+    }
+    try {
+      const response = await fetch(`/api/v1/trader/customers/${record.id}/market-action`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actionType, reason }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Could not update customer market status.");
+      toast.success(`${record.full_name} ${actionType} update sent to all Members.`);
+      await loadTraderKyc();
+      if (riskQuery.trim().length >= 2) await searchSharedCustomers(riskQuery.trim());
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update customer market status.");
+    }
+  };
   return (
     <DashLayout kind="owner">
       <PageTitle title="Customer KYC" subtitle="Search shared customer KYC first, link existing customers, and flag market-wide payment risks." />
@@ -4023,10 +4053,11 @@ export function OwnerKycPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <div className="whitespace-normal break-words font-display font-semibold text-primary-dark">{customer.full_name}</div>
-                        <StatusBadge status={customer.kyc_status} />
+                        <StatusBadge status={getVisibleCustomerStatus(customer)} />
                         {isHighRisk && <Badge className="bg-destructive text-white"><AlertTriangle className="mr-1 h-3.5 w-3.5" /> Red alert</Badge>}
                       </div>
                       <div className="mt-1 text-sm text-muted-foreground">{customer.customer_code} - {customer.mobile} - {[customer.address_line1, customer.village_city, customer.district].filter(Boolean).join(", ")}</div>
+                      {isMarketRestricted(customer) && <div className="mt-3 rounded-md border border-warning/30 bg-warning/5 p-3 text-sm"><div className="font-semibold text-primary-dark">Visible to all Members: {String(customer.market_action_type || "").replace("_", " ")}</div><div className="mt-1 text-muted-foreground">{customer.market_action_reason || "Reason not provided."}</div>{customer.market_action_by && <div className="mt-1 text-xs text-muted-foreground">Updated by {customer.market_action_by}{customer.market_action_at ? ` on ${new Date(customer.market_action_at).toLocaleDateString("en-IN")}` : ""}</div>}</div>}
                       {isHighRisk && (
                         <div className="mt-3 rounded-md border border-destructive/30 bg-background p-3 text-sm">
                           <div className="font-semibold text-destructive">Unpaid warning: Rs. {Number(customer.verified_market_outstanding || 0).toLocaleString("en-IN")} across {customer.active_market_warning_count} market alert(s)</div>
@@ -4036,8 +4067,8 @@ export function OwnerKycPage() {
                       )}
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
-                      <Button size="sm" variant="outline" disabled={Boolean(customer.linked_to_me)} onClick={() => linkExistingCustomer(customer)}>
-                        {customer.linked_to_me ? "Already linked" : "Link KYC"}
+                      <Button size="sm" variant="outline" disabled={Boolean(customer.linked_to_me) || isMarketRestricted(customer)} onClick={() => linkExistingCustomer(customer)}>
+                        {customer.linked_to_me ? "Already linked" : isMarketRestricted(customer) ? "Restricted" : "Link KYC"}
                       </Button>
                       <Button size="sm" variant="destructive" onClick={() => setWarningCustomer(customer)}>
                         Give warning
@@ -4169,13 +4200,43 @@ export function OwnerKycPage() {
                       <div className="whitespace-normal break-words font-semibold text-primary-dark">{record.full_name}</div>
                       <div className="mt-1 font-mono text-xs text-muted-foreground">{record.customer_code}</div>
                     </div>
-                    <span className="shrink-0"><StatusBadge status={record.kyc_status} /></span>
+                    <span className="shrink-0"><StatusBadge status={getVisibleCustomerStatus(record)} /></span>
                   </div>
                   <div className="mt-3 grid gap-2 text-sm">
                     <div className="flex justify-between gap-3"><span className="text-muted-foreground">Phone</span><span className="font-mono">{record.mobile}</span></div>
                     <div className="flex justify-between gap-3"><span className="text-muted-foreground">Aadhaar</span><span className="font-mono">{record.aadhaar_masked || "-"}</span></div>
                     <div className="flex justify-between gap-3"><span className="text-muted-foreground">PAN</span><span className="font-mono">{record.pan_masked || "-"}</span></div>
                     <div className="flex justify-between gap-3"><span className="text-muted-foreground">Date</span><span>{new Date(record.created_at).toLocaleDateString("en-IN")}</span></div>
+                  </div>
+                  {isMarketRestricted(record) && (
+                    <div className="mt-3 rounded-md border border-warning/30 bg-warning/5 p-3 text-sm">
+                      <div className="font-semibold capitalize text-primary-dark">{String(record.market_action_type || "").replace("_", " ")}</div>
+                      <div className="mt-1 text-muted-foreground">{record.market_action_reason || "Reason not provided."}</div>
+                      {record.market_action_by && (
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          Updated by {record.market_action_by}{record.market_action_at ? ` on ${new Date(record.market_action_at).toLocaleDateString("en-IN")}` : ""}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {isMarketRestricted(record) ? (
+                      <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "restored")}>
+                        Restore
+                      </Button>
+                    ) : (
+                      <>
+                        <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "blocked")}>
+                          Block
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "suspended")}>
+                          Suspend
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => void runCustomerMarketAction(record, "removed")}>
+                          Remove
+                        </Button>
+                      </>
+                    )}
                   </div>
                   {hasRiskWarning(record) && Boolean(record.can_clear_latest_warning) && (
                     <Button
@@ -4202,6 +4263,7 @@ export function OwnerKycPage() {
                     <TableHead className="w-[115px]">PAN</TableHead>
                     <TableHead className="w-[110px]">Status</TableHead>
                     <TableHead className="w-[110px]">Date</TableHead>
+                    <TableHead className="w-[240px]">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -4212,8 +4274,32 @@ export function OwnerKycPage() {
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.mobile}</TableCell>
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.aadhaar_masked || "-"}</TableCell>
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.pan_masked || "-"}</TableCell>
-                      <TableCell className="align-top"><span className="inline-flex whitespace-nowrap"><StatusBadge status={record.kyc_status} /></span></TableCell>
+                      <TableCell className="align-top">
+                        <span className="inline-flex whitespace-nowrap"><StatusBadge status={getVisibleCustomerStatus(record)} /></span>
+                        {isMarketRestricted(record) && <div className="mt-2 text-xs leading-relaxed text-muted-foreground">{record.market_action_reason || "Reason not provided."}</div>}
+                      </TableCell>
                       <TableCell className="whitespace-nowrap align-top">{new Date(record.created_at).toLocaleDateString("en-IN")}</TableCell>
+                      <TableCell className="align-top">
+                        <div className="flex flex-wrap gap-2">
+                          {isMarketRestricted(record) ? (
+                            <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "restored")}>
+                              Restore
+                            </Button>
+                          ) : (
+                            <>
+                              <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "blocked")}>
+                                Block
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "suspended")}>
+                                Suspend
+                              </Button>
+                              <Button size="sm" variant="destructive" onClick={() => void runCustomerMarketAction(record, "removed")}>
+                                Remove
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -5882,6 +5968,8 @@ export function AdminChangePasswordPage() {
     </DashLayout>
   );
 }
+
+
 
 
 
