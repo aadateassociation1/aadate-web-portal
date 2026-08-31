@@ -95,6 +95,8 @@ function Home() {
   const chairman = committee.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
   const committeeMembers = committee.filter((member) => member.id !== chairman?.id);
   const committeeGridMembers = committeeMembers.length % 3 === 2 && chairman ? [...committeeMembers, chairman] : committeeMembers;
+  const fruitPrices = prices.filter((price) => price.category === "fruit");
+  const vegetablePrices = prices.filter((price) => price.category === "vegetable");
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
   const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
@@ -133,6 +135,59 @@ function Home() {
       />
     );
   };
+  const renderPriceCard = (price: PublicPrice) => {
+    const trendLabel =
+      price.change_amount === null
+        ? "New"
+        : price.change_direction === "up"
+          ? `\u2191 \u20B9${price.change_amount}`
+          : price.change_direction === "down"
+            ? `\u2193 \u20B9${Math.abs(price.change_amount)}`
+            : `\u2014 \u20B90`;
+
+    const trendClassName =
+      price.change_direction === "up"
+        ? "text-success"
+        : price.change_direction === "down"
+          ? "text-destructive"
+          : "text-muted-foreground";
+
+    return (
+      <Card key={price.item_id} className="rounded-xl border-border/60 shadow-sm transition hover:shadow-md">
+        <CardContent className="p-2 sm:p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <Badge variant="secondary" className="px-1.5 py-0 text-[8px] capitalize sm:px-2 sm:py-0.5 sm:text-[10px]">{price.category}</Badge>
+              <h3 className="mt-1 font-display text-[0.95rem] font-bold leading-tight text-primary-dark sm:mt-2 sm:text-lg">{price.name_en}</h3>
+              <div className="mt-0.5 line-clamp-1 text-[9px] text-muted-foreground sm:text-[11px]">{price.name_mr}</div>
+            </div>
+            <div className="grid h-6 w-6 shrink-0 place-items-center rounded-xl bg-secondary/80 text-primary sm:h-8 sm:w-8">
+              <IndianRupee className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+            </div>
+          </div>
+
+          <div className="mt-2 sm:mt-3">
+            <div className="text-[8px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:text-[9px]">Today</div>
+            <div className="mt-0.5 flex flex-wrap items-end gap-1">
+              <div className="font-display text-[1.1rem] font-bold leading-none text-primary-dark sm:text-[1.55rem]">
+                {"\u20B9"}{price.min_price} - {"\u20B9"}{price.max_price}
+              </div>
+              <span className="text-[8px] font-medium text-muted-foreground sm:text-[10px]">/ {price.unit}</span>
+            </div>
+          </div>
+
+          <div className="mt-2 flex items-end justify-between gap-2 border-t border-border/60 pt-1.5 sm:mt-3 sm:pt-2">
+            <div>
+              <div className="text-[8px] font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-[9px]">Avg</div>
+              <div className="mt-0.5 text-[12px] font-semibold text-primary-dark sm:text-sm">{"\u20B9"}{price.modal_price}</div>
+            </div>
+            <span className={`whitespace-nowrap text-[10px] font-medium sm:text-[11px] ${trendClassName}`}>{trendLabel}</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   const downloadNotice = (notice: PublicContent) => {
     const attachment = notice.attachments?.[0];
     if (attachment) {
@@ -686,3 +741,4 @@ function Home() {
     </SiteLayout>
   );
 }
+
