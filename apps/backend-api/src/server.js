@@ -1577,7 +1577,7 @@ async function ensurePlatformExtensions() {
       id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
       customer_id BIGINT UNSIGNED NOT NULL,
       trader_id BIGINT UNSIGNED NOT NULL,
-      action_type ENUM(''blocked'',''suspended'',''removed'',''restored'') NOT NULL,
+      action_type ENUM('blocked','suspended','removed','restored') NOT NULL,
       reason VARCHAR(500) NOT NULL,
       created_by_user_id BIGINT UNSIGNED NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -7182,6 +7182,7 @@ ensurePlatformExtensions()
     console.error("Failed to initialize backend extensions", error);
     process.exit(1);
   });
+
 
 
 
