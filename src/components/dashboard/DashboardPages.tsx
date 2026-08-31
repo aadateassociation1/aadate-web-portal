@@ -4112,10 +4112,6 @@ export function OwnerKycPage() {
                     <div className="flex justify-between gap-3"><span className="text-muted-foreground">PAN</span><span className="font-mono">{record.pan_masked || "-"}</span></div>
                     <div className="flex justify-between gap-3"><span className="text-muted-foreground">Date</span><span>{new Date(record.created_at).toLocaleDateString("en-IN")}</span></div>
                   </div>
-                  <Button size="sm" variant={hasRiskWarning(record) ? "destructive" : "outline"} className="mt-4 w-full whitespace-nowrap" onClick={() => showRecordAction(record)}>
-                    {hasRiskWarning(record) ? <AlertTriangle className="mr-1 h-3.5 w-3.5" /> : <Eye className="mr-1 h-3.5 w-3.5" />}
-                    {hasRiskWarning(record) ? "View Risk Alert" : "View KYC"}
-                  </Button>
                   {hasRiskWarning(record) && Boolean(record.can_clear_latest_warning) && (
                     <Button
                       size="sm"
@@ -4141,7 +4137,6 @@ export function OwnerKycPage() {
                     <TableHead className="w-[115px]">PAN</TableHead>
                     <TableHead className="w-[110px]">Status</TableHead>
                     <TableHead className="w-[110px]">Date</TableHead>
-                    <TableHead className="w-[120px] text-center">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -4154,28 +4149,6 @@ export function OwnerKycPage() {
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.pan_masked || "-"}</TableCell>
                       <TableCell className="align-top"><span className="inline-flex whitespace-nowrap"><StatusBadge status={record.kyc_status} /></span></TableCell>
                       <TableCell className="whitespace-nowrap align-top">{new Date(record.created_at).toLocaleDateString("en-IN")}</TableCell>
-                      <TableCell className="text-center align-top">
-                        {hasRiskWarning(record) ? (
-                          <div className="flex justify-center gap-2">
-                            <Button size="sm" variant="destructive" className="h-8 whitespace-nowrap" onClick={() => showRecordAction(record)}>
-                              <AlertTriangle className="mr-1 h-3.5 w-3.5" /> Risk
-                            </Button>
-                            {Boolean(record.can_clear_latest_warning) && (
-                              <Button
-                                size="sm"
-                                className="h-8 whitespace-nowrap bg-success px-3 text-white hover:bg-success/90"
-                                disabled={clearingWarningId === record.latest_warning_id}
-                                onClick={() => clearMarketWarning(record.latest_warning_id, record.full_name)}
-                              >
-                                <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-                                Clear
-                              </Button>
-                            )}
-                          </div>
-                        ) : (
-                          <Button size="sm" variant="ghost" onClick={() => showRecordAction(record)}><Eye className="h-4 w-4" /></Button>
-                        )}
-                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
