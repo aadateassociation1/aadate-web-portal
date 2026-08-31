@@ -1,4 +1,4 @@
-import { Link, useRouter } from "@/lib/simple-router";
+﻿import { Link, useRouter } from "@/lib/simple-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   AlertTriangle, Bell, Camera, CheckCircle2, ClipboardList, Download, Eye, FileText,
@@ -2465,7 +2465,7 @@ export function AdminMobileRequestsPage() {
                 {requests.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="break-all font-mono text-[11px] leading-tight">{r.request_code}</TableCell>
-                    <TableCell>{r.trader_name}<div className="text-xs text-muted-foreground">Gala {r.gala_number || "-"} Â· {r.trader_code}</div></TableCell>
+                    <TableCell>{r.trader_name}<div className="text-xs text-muted-foreground">Gala {r.gala_number || "-"} Ã‚Â· {r.trader_code}</div></TableCell>
                     <TableCell className="whitespace-normal break-all font-mono text-xs">{r.old_mobile}</TableCell>
                     <TableCell className="whitespace-normal break-all font-mono text-xs">{r.new_mobile}</TableCell>
                     <TableCell className="whitespace-normal text-sm leading-snug">{r.reason}</TableCell>
@@ -3672,11 +3672,18 @@ export function OwnerKycPage() {
   const [warningSaving, setWarningSaving] = useState(false);
   const [clearingWarningId, setClearingWarningId] = useState<number | null>(null);
   const [recordFilter, setRecordFilter] = useState<"all" | "verified" | "risk">("all");
-  const [customerPhoto, setCustomerPhoto] = useState<{ dataUrl: string; mimeType: string; originalFilename: string } | null>(null);
+    const [customerPhoto, setCustomerPhoto] = useState<{ dataUrl: string; mimeType: string; originalFilename: string } | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState<TraderKycRecord | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editCustomerPhoto, setEditCustomerPhoto] = useState<{ dataUrl: string; mimeType: string; originalFilename: string } | null>(null);
+  const [editCameraOpen, setEditCameraOpen] = useState(false);
+  const [editCameraStream, setEditCameraStream] = useState<MediaStream | null>(null);
+  const editVideoRef = useRef<HTMLVideoElement | null>(null);
+  const editCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const riskStatuses = ["warning_2", "high_risk", "blocked", "disputed"];
   const hasRiskWarning = (record: TraderKycRecord) =>
     Number(record.active_market_warning_count || 0) > 0 || riskStatuses.includes(record.risk_status || "");
@@ -3825,6 +3832,64 @@ export function OwnerKycPage() {
       toast.error(error instanceof Error ? error.message : "Unable to save customer KYC.");
     } finally {
       setSaving(false);
+    }
+  };
+
+      const updateKycRecord = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editingCustomer) return;
+    const data = new FormData(event.currentTarget);
+    const customerName = String(data.get("customerName") || "").trim();
+    const phone = String(data.get("phone") || "").replace(/\D/g, "");
+    const aadhaar = String(data.get("aadhaar") || "").replace(/\D/g, "");
+    const pan = String(data.get("pan") || "").trim().toUpperCase();
+    const addressLine1 = String(data.get("addressLine1") || "").trim();
+    const villageCity = String(data.get("villageCity") || "").trim();
+    const district = String(data.get("district") || "").trim();
+    const dateOfBirth = String(data.get("dateOfBirth") || "").trim();
+    const occupationBusiness = String(data.get("occupationBusiness") || "").trim();
+
+    if (!customerName || !/^\d{10}$/.test(phone) || !addressLine1 || !villageCity || !district) {
+      toast.error("Enter valid customer name, phone, and address details.");
+      return;
+    }
+    if (aadhaar && !isValidAadhaar(aadhaar)) {
+      toast.error("Please enter a valid Aadhaar number.");
+      return;
+    }
+    if (pan && !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) {
+      toast.error("Enter a valid PAN number.");
+      return;
+    }
+
+    setEditSaving(true);
+    try {
+      const response = await fetch(`/api/v1/trader/customers/${editingCustomer.id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: customerName,
+          mobile: phone,
+          aadhaar: aadhaar || null,
+          pan: pan || null,
+          addressLine1,
+          villageCity,
+          district,
+          dateOfBirth: dateOfBirth || null,
+          occupationBusiness: occupationBusiness || null,
+          customerPhoto: editCustomerPhoto,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Unable to update customer KYC.");
+      toast.success(`${customerName} KYC updated`);
+      closeEditCustomerDialog();
+      await loadTraderKyc();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update customer KYC.");
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -5817,6 +5882,12 @@ export function AdminChangePasswordPage() {
     </DashLayout>
   );
 }
+
+
+
+
+
+
 
 
 

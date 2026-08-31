@@ -1,4 +1,4 @@
-import cors from "cors";
+﻿import cors from "cors";
 import crypto from "node:crypto";
 import express from "express";
 import fs from "node:fs/promises";
@@ -1708,7 +1708,7 @@ async function ensurePlatformExtensions() {
     await pool.query(
       `INSERT INTO committee_members (full_name, name_mr, designation, gala_number, term_label, message, display_order, status)
        VALUES
-       ('Shri. Sourabh Kunjir', 'श्री. सौरभ कुंजीर', 'Chairman', NULL, '2026-2031', 'Together we are building a transparent, digital and service-focused market yard for every member.', 1, 'active'),
+       ('Shri. Sourabh Kunjir', 'à¤¶à¥à¤°à¥€. à¤¸à¥Œà¤°à¤­ à¤•à¥à¤‚à¤œà¥€à¤°', 'Chairman', NULL, '2026-2031', 'Together we are building a transparent, digital and service-focused market yard for every member.', 1, 'active'),
        ('Shri. Ashok Deshmukh', NULL, 'Lobby Chairman', NULL, '2026-2031', 'Our lobby team coordinates member needs, daily market operations and association support.', 2, 'active')`,
     );
   }
@@ -1788,45 +1788,45 @@ async function ensureMarketPriceTables() {
   await pool.query(
     `INSERT INTO market_items (category, name_en, name_mr, default_unit, display_order, is_active)
      VALUES
-     ('vegetable','Tomato','टोमॅटो','Kg',1,1),
-     ('vegetable','Onion','कांदा','Kg',2,1),
-     ('vegetable','Potato','बटाटा','Kg',3,1),
-     ('vegetable','Brinjal','वांगी','Kg',4,1),
-     ('vegetable','Cabbage','कोबी','Kg',5,1),
-     ('vegetable','Cauliflower','फ्लॉवर','Kg',6,1),
-     ('vegetable','Green Chilli','हिरवी मिरची','Kg',7,1),
-     ('vegetable','Capsicum','ढोबळी मिरची','Kg',8,1),
-     ('vegetable','Lady Finger','भेंडी','Kg',9,1),
-     ('vegetable','Cucumber','काकडी','Kg',10,1),
-     ('vegetable','Carrot','गाजर','Kg',11,1),
-     ('vegetable','Beetroot','बीट','Kg',12,1),
-     ('vegetable','Bitter Gourd','कारले','Kg',13,1),
-     ('vegetable','Bottle Gourd','दुधी भोपळा','Kg',14,1),
-     ('vegetable','Ridge Gourd','दोडका','Kg',15,1),
-     ('vegetable','Pumpkin','भोपळा','Kg',16,1),
-     ('vegetable','Green Peas','मटार','Kg',17,1),
-     ('vegetable','Spinach','पालक','Bunch',18,1),
-     ('vegetable','Coriander','कोथिंबीर','Bunch',19,1),
-     ('vegetable','Fenugreek','मेथी','Bunch',20,1),
-     ('vegetable','Drumstick','शेवगा','Kg',21,1),
-     ('vegetable','Garlic','लसूण','Kg',22,1),
-     ('vegetable','Ginger','आले','Kg',23,1),
-     ('vegetable','Sweet Corn','स्वीट कॉर्न','Piece',24,1),
-     ('fruit','Apple','सफरचंद','Kg',101,1),
-     ('fruit','Banana','केळी','Dozen',102,1),
-     ('fruit','Orange','संत्री','Kg',103,1),
-     ('fruit','Pomegranate','डाळिंब','Kg',104,1),
-     ('fruit','Grapes','द्राक्षे','Kg',105,1),
-     ('fruit','Papaya','पपई','Kg',106,1),
-     ('fruit','Watermelon','कलिंगड','Kg',107,1),
-     ('fruit','Muskmelon','खरबूज','Kg',108,1),
-     ('fruit','Guava','पेरू','Kg',109,1),
-     ('fruit','Pineapple','अननस','Piece',110,1),
-     ('fruit','Mango','आंबा','Kg',111,1),
-     ('fruit','Sweet Lime','मोसंबी','Kg',112,1),
-     ('fruit','Chikoo','चिकू','Kg',113,1),
-     ('fruit','Custard Apple','सीताफळ','Kg',114,1),
-     ('fruit','Coconut','नारळ','Piece',115,1)`
+     ('vegetable','Tomato','à¤Ÿà¥‹à¤®à¥…à¤Ÿà¥‹','Kg',1,1),
+     ('vegetable','Onion','à¤•à¤¾à¤‚à¤¦à¤¾','Kg',2,1),
+     ('vegetable','Potato','à¤¬à¤Ÿà¤¾à¤Ÿà¤¾','Kg',3,1),
+     ('vegetable','Brinjal','à¤µà¤¾à¤‚à¤—à¥€','Kg',4,1),
+     ('vegetable','Cabbage','à¤•à¥‹à¤¬à¥€','Kg',5,1),
+     ('vegetable','Cauliflower','à¤«à¥à¤²à¥‰à¤µà¤°','Kg',6,1),
+     ('vegetable','Green Chilli','à¤¹à¤¿à¤°à¤µà¥€ à¤®à¤¿à¤°à¤šà¥€','Kg',7,1),
+     ('vegetable','Capsicum','à¤¢à¥‹à¤¬à¤³à¥€ à¤®à¤¿à¤°à¤šà¥€','Kg',8,1),
+     ('vegetable','Lady Finger','à¤­à¥‡à¤‚à¤¡à¥€','Kg',9,1),
+     ('vegetable','Cucumber','à¤•à¤¾à¤•à¤¡à¥€','Kg',10,1),
+     ('vegetable','Carrot','à¤—à¤¾à¤œà¤°','Kg',11,1),
+     ('vegetable','Beetroot','à¤¬à¥€à¤Ÿ','Kg',12,1),
+     ('vegetable','Bitter Gourd','à¤•à¤¾à¤°à¤²à¥‡','Kg',13,1),
+     ('vegetable','Bottle Gourd','à¤¦à¥à¤§à¥€ à¤­à¥‹à¤ªà¤³à¤¾','Kg',14,1),
+     ('vegetable','Ridge Gourd','à¤¦à¥‹à¤¡à¤•à¤¾','Kg',15,1),
+     ('vegetable','Pumpkin','à¤­à¥‹à¤ªà¤³à¤¾','Kg',16,1),
+     ('vegetable','Green Peas','à¤®à¤Ÿà¤¾à¤°','Kg',17,1),
+     ('vegetable','Spinach','à¤ªà¤¾à¤²à¤•','Bunch',18,1),
+     ('vegetable','Coriander','à¤•à¥‹à¤¥à¤¿à¤‚à¤¬à¥€à¤°','Bunch',19,1),
+     ('vegetable','Fenugreek','à¤®à¥‡à¤¥à¥€','Bunch',20,1),
+     ('vegetable','Drumstick','à¤¶à¥‡à¤µà¤—à¤¾','Kg',21,1),
+     ('vegetable','Garlic','à¤²à¤¸à¥‚à¤£','Kg',22,1),
+     ('vegetable','Ginger','à¤†à¤²à¥‡','Kg',23,1),
+     ('vegetable','Sweet Corn','à¤¸à¥à¤µà¥€à¤Ÿ à¤•à¥‰à¤°à¥à¤¨','Piece',24,1),
+     ('fruit','Apple','à¤¸à¤«à¤°à¤šà¤‚à¤¦','Kg',101,1),
+     ('fruit','Banana','à¤•à¥‡à¤³à¥€','Dozen',102,1),
+     ('fruit','Orange','à¤¸à¤‚à¤¤à¥à¤°à¥€','Kg',103,1),
+     ('fruit','Pomegranate','à¤¡à¤¾à¤³à¤¿à¤‚à¤¬','Kg',104,1),
+     ('fruit','Grapes','à¤¦à¥à¤°à¤¾à¤•à¥à¤·à¥‡','Kg',105,1),
+     ('fruit','Papaya','à¤ªà¤ªà¤ˆ','Kg',106,1),
+     ('fruit','Watermelon','à¤•à¤²à¤¿à¤‚à¤—à¤¡','Kg',107,1),
+     ('fruit','Muskmelon','à¤–à¤°à¤¬à¥‚à¤œ','Kg',108,1),
+     ('fruit','Guava','à¤ªà¥‡à¤°à¥‚','Kg',109,1),
+     ('fruit','Pineapple','à¤…à¤¨à¤¨à¤¸','Piece',110,1),
+     ('fruit','Mango','à¤†à¤‚à¤¬à¤¾','Kg',111,1),
+     ('fruit','Sweet Lime','à¤®à¥‹à¤¸à¤‚à¤¬à¥€','Kg',112,1),
+     ('fruit','Chikoo','à¤šà¤¿à¤•à¥‚','Kg',113,1),
+     ('fruit','Custard Apple','à¤¸à¥€à¤¤à¤¾à¤«à¤³','Kg',114,1),
+     ('fruit','Coconut','à¤¨à¤¾à¤°à¤³','Piece',115,1)`
   );
 }
 
@@ -4788,6 +4788,276 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
   }
 });
 
+app.put("/api/v1/trader/customers/:id", requireRoles("TRADER"), async (req, res) => {
+  const customerId = Number(req.params.id);
+  const {
+    fullName,
+    mobile,
+    aadhaar = null,
+    pan = null,
+    addressLine1,
+    villageCity,
+    district,
+    customerPhoto = null,
+    dateOfBirth = null,
+    occupationBusiness = null,
+  } = req.body || {};
+
+  const traderId = req.user.trader_id;
+  const cleanFullName = String(fullName || "").trim();
+  const normalizedFullName = cleanFullName.toLowerCase();
+  const cleanMobile = String(mobile || "").replace(/\D/g, "");
+  const cleanAadhaar = String(aadhaar || "").replace(/\D/g, "");
+  const cleanPan = String(pan || "").trim().toUpperCase();
+  const cleanAddressLine1 = String(addressLine1 || "").trim();
+  const cleanVillageCity = String(villageCity || "").trim();
+  const cleanDistrict = String(district || "").trim();
+  const cleanDateOfBirth = dateOfBirth ? String(dateOfBirth).trim() : null;
+  const cleanOccupationBusiness = occupationBusiness ? String(occupationBusiness).trim() : null;
+
+  if (!traderId) {
+    res.status(403).json({ ok: false, error: "Logged-in member profile is missing." });
+    return;
+  }
+  if (!customerId) {
+    res.status(400).json({ ok: false, error: "Valid customer is required." });
+    return;
+  }
+  if (!cleanFullName || !/^\d{10}$/.test(cleanMobile) || !cleanAddressLine1 || !cleanVillageCity || !cleanDistrict) {
+    res.status(400).json({ ok: false, error: "fullName, valid mobile, addressLine1, villageCity, and district are required." });
+    return;
+  }
+  if (cleanAadhaar && !isValidAadhaar(cleanAadhaar)) {
+    res.status(400).json({ ok: false, error: "Please enter a valid Aadhaar number." });
+    return;
+  }
+  if (cleanPan && !/^[A-Z]{5}\d{4}[A-Z]$/.test(cleanPan)) {
+    res.status(400).json({ ok: false, error: "PAN must be in ABCDE1234F format." });
+    return;
+  }
+
+  const [[traderProfile]] = await pool.query(
+    `SELECT u.full_name, u.mobile
+       FROM traders t
+       JOIN users u ON u.id = t.user_id
+      WHERE t.id = :traderId
+      LIMIT 1`,
+    { traderId },
+  );
+  if (traderProfile && (cleanMobile === String(traderProfile.mobile || "") || normalizedFullName === String(traderProfile.full_name || "").trim().toLowerCase())) {
+    res.status(400).json({ ok: false, error: "Member cannot be added as their own customer. Add only real customer details." });
+    return;
+  }
+
+  const [[existingCustomer]] = await pool.query(
+    `SELECT c.id, c.customer_code, c.full_name, c.mobile, c.address_line1, c.village_city, c.district,
+            c.date_of_birth, c.occupation_business, aadhaar.masked_value AS aadhaar_masked, pan.masked_value AS pan_masked
+       FROM customers c
+       JOIN trader_customers tc ON tc.customer_id = c.id
+       LEFT JOIN customer_identifiers aadhaar ON aadhaar.customer_id = c.id AND aadhaar.identifier_type = 'aadhaar'
+       LEFT JOIN customer_identifiers pan ON pan.customer_id = c.id AND pan.identifier_type = 'pan'
+      WHERE tc.trader_id = :traderId
+        AND c.id = :customerId
+        AND c.deleted_at IS NULL
+      LIMIT 1`,
+    { traderId, customerId },
+  );
+  if (!existingCustomer) {
+    res.status(404).json({ ok: false, error: "Customer KYC not found." });
+    return;
+  }  const [[sameMemberCustomer]] = await pool.query(
+    `SELECT c.id, c.customer_code, c.full_name
+       FROM customers c
+       JOIN trader_customers tc ON tc.customer_id = c.id
+      WHERE tc.trader_id = :traderId
+        AND c.deleted_at IS NULL
+        AND c.id <> :customerId
+        AND c.mobile = :mobile
+        AND LOWER(TRIM(c.full_name)) = :fullName
+      LIMIT 1`,
+    { traderId, customerId, mobile: cleanMobile, fullName: normalizedFullName },
+  );
+  if (sameMemberCustomer) {
+    res.status(409).json({
+      ok: false,
+      duplicateCustomer: true,
+      customerId: sameMemberCustomer.id,
+      customerCode: sameMemberCustomer.customer_code,
+      error: `${sameMemberCustomer.full_name} with this phone number already exists in your Customer KYC records.`,
+    });
+    return;
+  }
+
+  if (cleanAadhaar) {
+    const aadhaarHash = hashIdentifier(cleanAadhaar);
+    const [[aadhaarDuplicate]] = await pool.query(
+      `SELECT c.id
+         FROM customer_identifiers ci
+         JOIN customers c ON c.id = ci.customer_id
+        WHERE ci.identifier_type = 'aadhaar'
+          AND ci.value_hash = :valueHash
+          AND ci.customer_id <> :customerId
+          AND c.deleted_at IS NULL
+        LIMIT 1`,
+      { valueHash: aadhaarHash, customerId },
+    );
+    if (aadhaarDuplicate) {
+      res.status(409).json({ ok: false, error: "This Aadhaar number is already assigned to another customer." });
+      return;
+    }
+  }
+
+  if (cleanPan) {
+    const panHash = hashIdentifier(cleanPan);
+    const [[panDuplicate]] = await pool.query(
+      `SELECT c.id
+         FROM customer_identifiers ci
+         JOIN customers c ON c.id = ci.customer_id
+        WHERE ci.identifier_type = 'pan'
+          AND ci.value_hash = :valueHash
+          AND ci.customer_id <> :customerId
+          AND c.deleted_at IS NULL
+        LIMIT 1`,
+      { valueHash: panHash, customerId },
+    );
+    if (panDuplicate) {
+      res.status(409).json({ ok: false, error: "This PAN number is already assigned to another customer." });
+      return;
+    }
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    await connection.query(
+      `UPDATE customers
+          SET full_name = :fullName,
+              mobile = :mobile,
+              date_of_birth = :dateOfBirth,
+              occupation_business = :occupationBusiness,
+              address_line1 = :addressLine1,
+              village_city = :villageCity,
+              district = :district
+        WHERE id = :customerId`,
+      {
+        customerId,
+        fullName: cleanFullName,
+        mobile: cleanMobile,
+        dateOfBirth: cleanDateOfBirth,
+        occupationBusiness: cleanOccupationBusiness,
+        addressLine1: cleanAddressLine1,
+        villageCity: cleanVillageCity,
+        district: cleanDistrict,
+      },
+    );    if (cleanAadhaar) {
+      const aadhaarHash = hashIdentifier(cleanAadhaar);
+      const [[aadhaarRow]] = await connection.query(
+        "SELECT id FROM customer_identifiers WHERE customer_id = :customerId AND identifier_type = 'aadhaar' LIMIT 1",
+        { customerId },
+      );
+      const aadhaarPayload = { customerId, maskedValue: maskAadhaar(cleanAadhaar), valueHash: aadhaarHash, lastFour: cleanAadhaar.slice(-4) };
+      if (aadhaarRow) {
+        await connection.query(
+          `UPDATE customer_identifiers SET masked_value = :maskedValue, value_hash = :valueHash, last_four = :lastFour, is_primary = TRUE WHERE id = :id`,
+          { id: aadhaarRow.id, ...aadhaarPayload },
+        );
+      } else {
+        await connection.query(
+          `INSERT INTO customer_identifiers (customer_id, identifier_type, masked_value, value_hash, last_four, is_primary) VALUES (:customerId, 'aadhaar', :maskedValue, :valueHash, :lastFour, TRUE)`,
+          aadhaarPayload,
+        );
+      }
+    }
+
+    if (cleanPan) {
+      const panHash = hashIdentifier(cleanPan);
+      const [[panRow]] = await connection.query(
+        "SELECT id FROM customer_identifiers WHERE customer_id = :customerId AND identifier_type = 'pan' LIMIT 1",
+        { customerId },
+      );
+      const panPayload = { customerId, maskedValue: maskIdentifier(cleanPan), valueHash: panHash, lastFour: cleanPan.slice(-4) };
+      if (panRow) {
+        await connection.query(
+          `UPDATE customer_identifiers SET masked_value = :maskedValue, value_hash = :valueHash, last_four = :lastFour, is_primary = FALSE WHERE id = :id`,
+          { id: panRow.id, ...panPayload },
+        );
+      } else {
+        await connection.query(
+          `INSERT INTO customer_identifiers (customer_id, identifier_type, masked_value, value_hash, last_four, is_primary) VALUES (:customerId, 'pan', :maskedValue, :valueHash, :lastFour, FALSE)`,
+          panPayload,
+        );
+      }
+    }
+
+    if (customerPhoto?.dataUrl) {
+      const savedPhoto = await saveCustomerPhotoFile({
+        customerId,
+        originalFilename: customerPhoto.originalFilename,
+        mimeType: customerPhoto.mimeType,
+        dataUrl: customerPhoto.dataUrl,
+      });
+      await connection.query(
+        `INSERT INTO customer_documents (
+           customer_id, document_type, storage_key, original_filename, mime_type,
+           file_size_bytes, checksum_sha256, status, uploaded_by_user_id
+         )
+         VALUES (
+           :customerId, 'profile_photo', :storageKey, :originalFilename, :mimeType,
+           :fileSizeBytes, :checksumSha256, 'uploaded', :uploadedByUserId
+         )`,
+        {
+          customerId,
+          storageKey: savedPhoto.storageKey,
+          originalFilename: savedPhoto.originalFilename,
+          mimeType: savedPhoto.mimeType,
+          fileSizeBytes: savedPhoto.fileSizeBytes,
+          checksumSha256: savedPhoto.checksumSha256,
+          uploadedByUserId: req.user.id,
+        },
+      );
+    }
+
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+
+  await writeAudit({
+    req,
+    action: "customer_kyc.update",
+    module: "customers",
+    entityType: "customers",
+    entityId: customerId,
+    oldValues: {
+      fullName: existingCustomer.full_name,
+      mobile: existingCustomer.mobile,
+      aadhaar: existingCustomer.aadhaar_masked || null,
+      pan: existingCustomer.pan_masked || null,
+      addressLine1: existingCustomer.address_line1,
+      villageCity: existingCustomer.village_city,
+      district: existingCustomer.district,
+      dateOfBirth: existingCustomer.date_of_birth,
+      occupationBusiness: existingCustomer.occupation_business,
+    },
+    newValues: {
+      fullName: cleanFullName,
+      mobile: cleanMobile,
+      aadhaar: cleanAadhaar ? maskAadhaar(cleanAadhaar) : undefined,
+      pan: cleanPan ? maskIdentifier(cleanPan) : undefined,
+      addressLine1: cleanAddressLine1,
+      villageCity: cleanVillageCity,
+      district: cleanDistrict,
+      dateOfBirth: cleanDateOfBirth,
+      occupationBusiness: cleanOccupationBusiness,
+      customerPhotoUpdated: Boolean(customerPhoto?.dataUrl),
+    },
+  });
+
+  res.json({ ok: true, customerId });
+});
 function hashIdentifier(value) {
   return crypto.createHash("sha256").update(String(value)).digest("hex");
 }
@@ -6700,4 +6970,6 @@ ensurePlatformExtensions()
     console.error("Failed to initialize backend extensions", error);
     process.exit(1);
   });
+
+
 
