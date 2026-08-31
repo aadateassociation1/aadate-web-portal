@@ -13,9 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 
 const CATEGORIES = [
-  { value: "all", label: "All Items", mr: "सर्व" },
-  { value: "vegetable", label: "Vegetables", mr: "भाजीपाला" },
-  { value: "fruit", label: "Fruits", mr: "फळे" },
+  { value: "all", label: "All Items", mr: "\u0938\u0930\u094d\u0935" },
+  { value: "vegetable", label: "Vegetables", mr: "\u092d\u093e\u091c\u0940\u092a\u093e\u0932\u093e" },
+  { value: "fruit", label: "Fruits", mr: "\u092b\u0933\u0947" },
 ];
 const UNITS = ["Kg", "Quintal", "Dozen", "Piece", "Bunch", "Bundle", "Crate", "Box", "Tray"];
 
@@ -83,7 +83,7 @@ function formatDate(value: string | null | undefined, withTime = false) {
 }
 
 function currency(value: number | null | undefined) {
-  return value === null || value === undefined ? "-" : `₹${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+  return value === null || value === undefined ? "-" : `\u20B9${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
 
 function categoryLabel(value: string) {
@@ -121,7 +121,7 @@ function changeView(row: MarketPriceRow) {
   if (row.change_amount === null) return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> New</span>;
   if (row.change_direction === "up") return <span className="inline-flex items-center gap-1 font-semibold text-success"><ArrowUp className="h-4 w-4" /> {currency(row.change_amount)} {row.change_percent !== null ? `(${row.change_percent}%)` : ""}</span>;
   if (row.change_direction === "down") return <span className="inline-flex items-center gap-1 font-semibold text-destructive"><ArrowDown className="h-4 w-4" /> {currency(Math.abs(row.change_amount))} {row.change_percent !== null ? `(${row.change_percent}%)` : ""}</span>;
-  return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> ₹0</span>;
+  return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> {"\u20B9"}0</span>;
 }
 
 function CategoryTabs({ value, onChange }: { value: string; onChange: (value: string) => void }) {
@@ -235,20 +235,20 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
               <div className="mt-5 overflow-hidden rounded-lg border md:hidden">
                 <div className="grid grid-cols-[minmax(0,1.3fr)_0.7fr_0.7fr_0.7fr_auto] items-center gap-2 border-b bg-secondary/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   <span>Commodity</span>
-                  <span className="text-right">Min</span>
-                  <span className="text-right">Max</span>
-                  <span className="text-right">Avg</span>
-                  <span className="text-right">View</span>
+                  <span className="text-left">Min</span>
+                  <span className="text-left">Max</span>
+                  <span className="text-left">Avg</span>
+                  <span className="text-left">View</span>
                 </div>
                 {filtered.map((row) => {
                   const changeLabel =
                     row.change_amount === null
                       ? "New"
                       : row.change_direction === "up"
-                        ? `↑ ${currency(row.change_amount)}`
+                        ? `\u2191 ${currency(row.change_amount)}`
                         : row.change_direction === "down"
-                          ? `↓ ${currency(Math.abs(row.change_amount))}`
-                          : "� ?0";
+                          ? `\u2193 ${currency(Math.abs(row.change_amount))}`
+                          : `\u2014 \u20B90`;
 
                   const changeClassName =
                     row.change_amount === null
@@ -476,7 +476,7 @@ export function AdminMarketPricesPage() {
         <div>
           <h1 className="font-display text-2xl font-bold text-primary-dark">Daily Market Prices</h1>
           <p className="mt-1 text-sm text-muted-foreground">Manage today's vegetable and fruit market prices</p>
-          <p className="text-sm font-semibold text-primary">दैनिक बाजार भाव</p>
+          <p className="text-sm font-semibold text-primary">{"\u0926\u0948\u0928\u093f\u0915 \u092c\u093e\u091c\u093e\u0930 \u092d\u093e\u0935"}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => window.open(`/api/v1/admin/market-prices/export?date=${date}`, "_blank")}><Download className="mr-2 h-4 w-4" /> Export Today's Prices</Button>
