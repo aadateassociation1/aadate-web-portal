@@ -266,10 +266,10 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                           <div className="truncate font-display text-[13px] font-semibold text-primary-dark">{row.name_en}</div>
                           <div className="truncate text-[11px] text-muted-foreground">{row.name_mr}</div>
                         </div>
-                        <div className="text-right text-[12px] font-semibold text-primary-dark">{currency(row.min_price)}</div>
-                        <div className="text-right text-[12px] font-semibold text-primary-dark">{currency(row.max_price)}</div>
-                        <div className="text-right text-[12px] font-bold text-primary-dark">{currency(row.modal_price)}</div>
-                        <div className="text-right text-[11px] font-medium text-muted-foreground">{row.unit}</div>
+                        <div className="text-left text-[12px] font-semibold text-primary-dark">{currency(row.min_price)}</div>
+                        <div className="text-left text-[12px] font-semibold text-primary-dark">{currency(row.max_price)}</div>
+                        <div className="text-left text-[12px] font-bold text-primary-dark">{currency(row.modal_price)}</div>
+                        <div className="text-left text-[11px] font-medium text-muted-foreground">{row.unit}</div>
                       </div>
                       <div className="mt-2 flex items-center justify-between gap-2 border-t border-dashed pt-2 text-[10px]">
                         <span className={`truncate font-medium ${changeClassName}`}>{changeLabel}</span>
