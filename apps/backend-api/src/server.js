@@ -794,11 +794,32 @@ function isWebPushConfigured() {
   return webPushReady;
 }
 
-async function sendPushToSubscriptions({ subscriptions, payload, notificationId = null }) {
+async function getUnreadNotificationCounts(userIds = []) {
+  const uniqueUserIds = [...new Set(userIds.map((value) => Number(value || 0)).filter(Boolean))];
+  if (uniqueUserIds.length === 0) return new Map();
+
+  const [rows] = await pool.query(
+    `SELECT user_id, COUNT(*) AS count
+       FROM notifications
+      WHERE user_id IN (:userIds)
+        AND channel = 'in_app'
+        AND read_at IS NULL
+        AND delivery_status <> 'read'
+      GROUP BY user_id`,
+    { userIds: uniqueUserIds },
+  );
+
+  return new Map(rows.map((row) => [Number(row.user_id), Number(row.count || 0)]));
+}
+
+async function sendPushToSubscriptions({ subscriptions, payload, payloadForSubscription, notificationId = null }) {
   if (!isWebPushConfigured() || subscriptions.length === 0) return { sent: 0, failed: 0, skipped: !isWebPushConfigured() };
   let sent = 0;
   let failed = 0;
   await Promise.all(subscriptions.map(async (subscription) => {
+    const pushPayload = typeof payloadForSubscription === "function"
+      ? payloadForSubscription(subscription)
+      : payload;
     try {
       await webPush.sendNotification(
         {
@@ -808,7 +829,7 @@ async function sendPushToSubscriptions({ subscriptions, payload, notificationId 
             auth: subscription.auth_key,
           },
         },
-        JSON.stringify(payload),
+        JSON.stringify(pushPayload),
       );
       sent += 1;
       await pool.query(
@@ -845,15 +866,16 @@ async function sendPushToSubscriptions({ subscriptions, payload, notificationId 
   }));
   return { sent, failed, skipped: false };
 }
-
 async function sendPushToUser({ userId, title, body, url, type, entityId = null, priority = "normal", notificationId = null }) {
   const [subscriptions] = await pool.query(
-    `SELECT id, endpoint, p256dh_key, auth_key
+    `SELECT id, user_id, endpoint, p256dh_key, auth_key
        FROM push_subscriptions
       WHERE user_id = :userId
         AND is_active = 1`,
     { userId },
   );
+  const unreadCounts = await getUnreadNotificationCounts([userId]);
+  const badgeCount = unreadCounts.get(Number(userId)) || 0;
   return sendPushToSubscriptions({
     subscriptions,
     notificationId,
@@ -864,14 +886,15 @@ async function sendPushToUser({ userId, title, body, url, type, entityId = null,
       type: type || "notification",
       entityId,
       priority,
+      badgeCount,
+      unreadCount: badgeCount,
       sound: "/sounds/notification-alert.mp3",
     },
   });
 }
-
 async function sendPushToAllMembers({ title, body, url, type, entityId, priority = "normal", notificationId = null, shareAudience = "all", shareCategoryId = null }) {
   const [subscriptions] = await pool.query(
-    `SELECT ps.id, ps.endpoint, ps.p256dh_key, ps.auth_key
+    `SELECT ps.id, ps.user_id, ps.endpoint, ps.p256dh_key, ps.auth_key
        FROM push_subscriptions ps
        JOIN users u ON u.id = ps.user_id
        JOIN roles r ON r.id = u.role_id
@@ -894,21 +917,26 @@ async function sendPushToAllMembers({ title, body, url, type, entityId, priority
         )`,
     { shareAudience, shareCategoryId },
   );
+  const unreadCounts = await getUnreadNotificationCounts(subscriptions.map((subscription) => subscription.user_id));
   return sendPushToSubscriptions({
     subscriptions,
     notificationId,
-    payload: {
-      title: String(title || "Market Yard").slice(0, 120),
-      body: String(body || "A new update is available.").slice(0, 180),
-      url: url || "/member/notifications",
-      type: type || "notification",
-      entityId: entityId || null,
-      priority,
-      sound: "/sounds/notification-alert.mp3",
+    payloadForSubscription: (subscription) => {
+      const badgeCount = unreadCounts.get(Number(subscription.user_id)) || 0;
+      return {
+        title: String(title || "Market Yard").slice(0, 120),
+        body: String(body || "A new update is available.").slice(0, 180),
+        url: url || "/member/notifications",
+        type: type || "notification",
+        entityId: entityId || null,
+        priority,
+        badgeCount,
+        unreadCount: badgeCount,
+        sound: "/sounds/notification-alert.mp3",
+      };
     },
   });
 }
-
 function getPostNotificationMeta(postType) {
   if (postType === "notice" || postType === "circular") {
     return {
