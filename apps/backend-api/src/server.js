@@ -1573,7 +1573,6 @@ async function ensurePlatformExtensions() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   `);
   await pool.query(`
-  await pool.query(`
     CREATE TABLE IF NOT EXISTS customer_market_actions (
       id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
       customer_id BIGINT UNSIGNED NOT NULL,
@@ -1588,7 +1587,9 @@ async function ensurePlatformExtensions() {
       CONSTRAINT fk_customer_market_actions_trader FOREIGN KEY (trader_id) REFERENCES traders(id) ON DELETE CASCADE,
       CONSTRAINT fk_customer_market_actions_user FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-  `);    CREATE TABLE IF NOT EXISTS mobile_change_requests (
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS mobile_change_requests (
       id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
       request_code VARCHAR(30) NOT NULL UNIQUE,
       trader_id BIGINT UNSIGNED NOT NULL,
@@ -7181,6 +7182,7 @@ ensurePlatformExtensions()
     console.error("Failed to initialize backend extensions", error);
     process.exit(1);
   });
+
 
 
 
