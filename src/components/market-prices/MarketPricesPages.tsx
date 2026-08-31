@@ -238,7 +238,7 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                   <span className="text-left">Min</span>
                   <span className="text-left">Max</span>
                   <span className="text-left">Avg</span>
-                  <span className="text-left">View</span>
+                  <span className="text-left">Unit</span>
                 </div>
                 {filtered.map((row) => {
                   const changeLabel =
@@ -269,16 +269,11 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                         <div className="text-right text-[12px] font-semibold text-primary-dark">{currency(row.min_price)}</div>
                         <div className="text-right text-[12px] font-semibold text-primary-dark">{currency(row.max_price)}</div>
                         <div className="text-right text-[12px] font-bold text-primary-dark">{currency(row.modal_price)}</div>
-                        <div className="flex justify-end">
-                          <Button size="sm" className="h-7 rounded-md bg-saffron px-2 text-[10px] text-saffron-foreground hover:bg-saffron/90" onClick={() => openHistory(row)}>
-                            <Eye className="mr-1 h-3 w-3" /> View
-                          </Button>
-                        </div>
+                        <div className="text-right text-[11px] font-medium text-muted-foreground">{row.unit}</div>
                       </div>
                       <div className="mt-2 flex items-center justify-between gap-2 border-t border-dashed pt-2 text-[10px]">
                         <span className={`truncate font-medium ${changeClassName}`}>{changeLabel}</span>
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <span className="shrink-0">{row.unit}</span>
                           <span className="shrink-0">{categoryLabel(row.category)}</span>
                         </div>
                       </div>
