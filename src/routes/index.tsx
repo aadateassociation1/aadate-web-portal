@@ -95,8 +95,23 @@ function Home() {
   const chairman = committee.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
   const committeeMembers = committee.filter((member) => member.id !== chairman?.id);
   const committeeGridMembers = committeeMembers.length % 3 === 2 && chairman ? [...committeeMembers, chairman] : committeeMembers;
-  const fruitPrices = prices.filter((price) => price.category === "fruit");
-  const vegetablePrices = prices.filter((price) => price.category === "vegetable");
+  const featuredPriceMatchers = [
+    { key: "onion", matches: ["onion", "kanda", "?????"] },
+    { key: "banana", matches: ["banana", "keli", "????", "????"] },
+    { key: "potato", matches: ["potato", "batata", "?????"] },
+    { key: "garlic", matches: ["garlic", "lasun", "????"] },
+  ];
+  const matchesFeaturedPrice = (price: PublicPrice, terms: string[]) => {
+    const haystack = `${price.name_en} ${price.name_mr}`.toLowerCase();
+    return terms.some((term) => haystack.includes(term.toLowerCase()));
+  };
+  const featuredPrices = featuredPriceMatchers
+    .map((item) => prices.find((price) => matchesFeaturedPrice(price, item.matches)))
+    .filter((price): price is PublicPrice => Boolean(price));
+  const fallbackPrices = prices.filter((price) => !featuredPrices.some((featured) => featured.item_id === price.item_id));
+  const homepagePrices = [...featuredPrices, ...fallbackPrices].slice(0, 4);
+  const fruitPrices = homepagePrices.filter((price) => price.category === "fruit");
+  const vegetablePrices = homepagePrices.filter((price) => price.category === "vegetable");
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
   const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
@@ -411,7 +426,7 @@ function Home() {
             <Button asChild variant="outline" size="sm" className="h-8 px-3 text-[11px] sm:h-10 sm:px-4 sm:text-sm"><Link to="/market-prices">View All Market Prices <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-8 sm:gap-3 lg:grid-cols-4">
-            {prices.slice(0, 8).map((price) => {
+            {homepagePrices.map((price) => {
               const trendLabel =
                 price.change_amount === null
                   ? "New"
@@ -741,4 +756,5 @@ function Home() {
     </SiteLayout>
   );
 }
+
 
