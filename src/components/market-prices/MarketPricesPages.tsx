@@ -231,7 +231,7 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                 </table>
               </div>
               <div className="mt-5 overflow-hidden rounded-lg border md:hidden">
-                <div className="grid grid-cols-[minmax(0,1.25fr)_44px_44px_44px_38px] items-center gap-1.5 border-b bg-secondary/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                <div className="grid grid-cols-[minmax(0,1.15fr)_46px_46px_46px_52px] items-center gap-1.5 border-b bg-secondary/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   <span>Commodity</span>
                   <span className="text-left">Min</span>
                   <span className="text-left">Max</span>
@@ -259,21 +259,19 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
 
                   return (
                     <div key={row.item_id} className="border-t px-3 py-2.5 first:border-t-0">
-                      <div className="grid grid-cols-[minmax(0,1.25fr)_44px_44px_44px_38px] items-center gap-1.5">
+                      <div className="grid grid-cols-[minmax(0,1.15fr)_46px_46px_46px_52px] items-center gap-1.5">
                         <div className="min-w-0">
                           <div className="truncate font-display text-[13px] font-semibold text-primary-dark">{row.name_en}</div>
                           <div className="truncate text-[11px] text-muted-foreground">{row.name_mr}</div>
+                          <div className="mt-0.5 text-[10px] text-muted-foreground">{categoryLabel(row.category)}</div>
                         </div>
                         <div className="text-left text-[12px] font-semibold text-primary-dark">{currency(row.min_price)}</div>
                         <div className="text-left text-[12px] font-semibold text-primary-dark">{currency(row.max_price)}</div>
                         <div className="text-left text-[12px] font-bold text-primary-dark">{currency(row.modal_price)}</div>
                         <div className="text-left text-[11px] font-medium text-muted-foreground">{row.unit}</div>
                       </div>
-                      <div className="mt-2 flex items-center justify-between gap-2 border-t border-dashed pt-2 text-[10px]">
+                      <div className="mt-2 flex items-center justify-start gap-2 border-t border-dashed pt-2 text-[10px]">
                         <span className={`truncate font-medium ${changeClassName}`}>{changeLabel}</span>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <span className="shrink-0">{categoryLabel(row.category)}</span>
-                        </div>
                       </div>
                     </div>
                   );
