@@ -345,17 +345,17 @@ function Home() {
       </section>
 
       {/* Daily market prices */}
-      <section className="py-16 md:py-20">
+      <section className="py-10 sm:py-14 md:py-20">
         <div className="container-page">
-          <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4">
             <div className="max-w-2xl">
               <span className="text-xs font-bold uppercase tracking-wider text-primary">{"\u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930 \u092d\u093e\u0935"}</span>
-              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Daily Market Prices</h2>
-              <p className="mt-3 text-sm text-muted-foreground">Latest published vegetable and fruit rates from the market yard.</p>
+              <h2 className="mt-1.5 font-display text-[1.85rem] font-bold leading-none text-primary-dark sm:mt-3 sm:text-4xl">Daily Market Prices</h2>
+              <p className="mt-1.5 max-w-md text-[12px] leading-4.5 text-muted-foreground sm:mt-3 sm:text-sm sm:leading-6">Latest published vegetable and fruit rates from the market yard.</p>
             </div>
-            <Button asChild variant="outline"><Link to="/market-prices">View All Market Prices <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
+            <Button asChild variant="outline" size="sm" className="h-8 px-3 text-[11px] sm:h-10 sm:px-4 sm:text-sm"><Link to="/market-prices">View All Market Prices <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
-          <div className="mt-8 grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-8 sm:gap-3 lg:grid-cols-4">
             {prices.slice(0, 8).map((price) => {
               const trendLabel =
                 price.change_amount === null
@@ -375,34 +375,34 @@ function Home() {
 
               return (
                 <Card key={price.item_id} className="rounded-xl border-border/60 shadow-sm transition hover:shadow-md">
-                  <CardContent className="p-3">
+                  <CardContent className="p-2 sm:p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <Badge variant="secondary" className="px-2 py-0.5 text-[10px] capitalize">{price.category}</Badge>
-                        <h3 className="mt-2 font-display text-lg font-bold leading-tight text-primary-dark">{price.name_en}</h3>
-                        <div className="mt-0.5 text-[11px] text-muted-foreground">{price.name_mr}</div>
+                        <Badge variant="secondary" className="px-1.5 py-0 text-[8px] capitalize sm:px-2 sm:py-0.5 sm:text-[10px]">{price.category}</Badge>
+                        <h3 className="mt-1 font-display text-[0.95rem] font-bold leading-tight text-primary-dark sm:mt-2 sm:text-lg">{price.name_en}</h3>
+                        <div className="mt-0.5 line-clamp-1 text-[9px] text-muted-foreground sm:text-[11px]">{price.name_mr}</div>
                       </div>
-                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-secondary/80 text-primary">
-                        <IndianRupee className="h-3.5 w-3.5" />
+                      <div className="grid h-6 w-6 shrink-0 place-items-center rounded-xl bg-secondary/80 text-primary sm:h-8 sm:w-8">
+                        <IndianRupee className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       </div>
                     </div>
 
-                    <div className="mt-3">
-                      <div className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Today</div>
-                      <div className="mt-1 flex flex-wrap items-end gap-1">
-                        <div className="font-display text-[1.55rem] font-bold leading-none text-primary-dark">
+                    <div className="mt-2 sm:mt-3">
+                      <div className="text-[8px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:text-[9px]">Today</div>
+                      <div className="mt-0.5 flex flex-wrap items-end gap-1">
+                        <div className="font-display text-[1.1rem] font-bold leading-none text-primary-dark sm:text-[1.55rem]">
                           {"\u20B9"}{price.min_price} - {"\u20B9"}{price.max_price}
                         </div>
-                        <span className="text-[10px] font-medium text-muted-foreground">/ {price.unit}</span>
+                        <span className="text-[8px] font-medium text-muted-foreground sm:text-[10px]">/ {price.unit}</span>
                       </div>
                     </div>
 
-                    <div className="mt-3 flex items-end justify-between gap-2 border-t border-border/60 pt-2">
+                    <div className="mt-2 flex items-end justify-between gap-2 border-t border-border/60 pt-1.5 sm:mt-3 sm:pt-2">
                       <div>
-                        <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Avg</div>
-                        <div className="mt-0.5 text-sm font-semibold text-primary-dark">{"\u20B9"}{price.modal_price}</div>
+                        <div className="text-[8px] font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-[9px]">Avg</div>
+                        <div className="mt-0.5 text-[12px] font-semibold text-primary-dark sm:text-sm">{"\u20B9"}{price.modal_price}</div>
                       </div>
-                      <span className={`whitespace-nowrap text-[11px] font-medium ${trendClassName}`}>{trendLabel}</span>
+                      <span className={`whitespace-nowrap text-[10px] font-medium sm:text-[11px] ${trendClassName}`}>{trendLabel}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -686,4 +686,3 @@ function Home() {
     </SiteLayout>
   );
 }
-
