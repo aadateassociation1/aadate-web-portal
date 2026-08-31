@@ -1,4 +1,4 @@
-const CACHE_NAME = "vpp-market-yard-v7";
+const CACHE_NAME = "vpp-market-yard-v8";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -57,6 +57,7 @@ self.addEventListener("push", (event) => {
   }
 
   const title = data.title || "Market Yard";
+  const badgeCount = Number(data.badgeCount ?? data.unreadCount ?? data.notificationCount ?? 0);
   const options = {
     body: data.body || "A new update is available.",
     icon: "/icons/favicon.png",
@@ -82,7 +83,21 @@ self.addEventListener("push", (event) => {
     ],
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil((async () => {
+    if (self.navigator && "setAppBadge" in self.navigator) {
+      try {
+        if (badgeCount > 0) {
+          await self.navigator.setAppBadge(badgeCount);
+        } else {
+          await self.navigator.setAppBadge();
+        }
+      } catch {
+        // Ignore unsupported badge update failures.
+      }
+    }
+
+    await self.registration.showNotification(title, options);
+  })());
 });
 
 self.addEventListener("notificationclick", (event) => {

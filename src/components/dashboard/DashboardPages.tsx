@@ -10,6 +10,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { toast } from "sonner";
+import { syncAppBadgeCount } from "@/lib/app-badge";
 import { DashLayout } from "@/components/dashboard/DashLayout";
 import {
   AlertDialog,
@@ -5617,8 +5618,11 @@ export function OwnerNotificationsPage() {
     const response = await fetch("/api/v1/trader/notifications", { credentials: "include" });
     const result = await response.json();
     if (!response.ok || !result.ok) throw new Error(result.error || "Could not load notifications.");
-    setNotifications(result.notifications || []);
-    setUnreadCount(Number(result.unreadCount || 0));
+    const nextNotifications = result.notifications || [];
+    const nextUnreadCount = Number(result.unreadCount || 0);
+    setNotifications(nextNotifications);
+    setUnreadCount(nextUnreadCount);
+    syncAppBadgeCount(nextUnreadCount).catch(() => undefined);
   };
 
   useEffect(() => {

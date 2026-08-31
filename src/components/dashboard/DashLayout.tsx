@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { canUseWebPush, enableWebPush, getPushStatus } from "@/lib/push-notifications";
+import { syncAppBadgeCount } from "@/lib/app-badge";
 
 const OWNER_NAV = [
   { to: "/member", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -141,6 +142,7 @@ export function DashLayout({ kind, children }: Props) {
           }
           previousMemberUnreadCount.current = nextCount;
           setMemberUnreadCount(nextCount);
+          syncAppBadgeCount(nextCount).catch(() => undefined);
         })
         .catch(() => undefined);
     };
@@ -151,6 +153,11 @@ export function DashLayout({ kind, children }: Props) {
       window.clearInterval(timer);
     };
   }, [kind, loading, user, router]);
+
+  useEffect(() => {
+    if (kind !== "owner" || loading || !user || user.role !== "owner") return;
+    syncAppBadgeCount(memberUnreadCount).catch(() => undefined);
+  }, [kind, loading, memberUnreadCount, user]);
 
   useEffect(() => {
     if (kind !== "owner" || loading || !user || user.role !== "owner" || !canUseWebPush()) return;
