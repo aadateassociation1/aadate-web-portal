@@ -5575,7 +5575,14 @@ app.patch("/api/v1/admin/mobile-change-requests/:id/decision", requireRoles("MAI
     res.status(400).json({ ok: false, error: "Valid request id, decision, and rejection reason are required." });
     return;
   }
-  const [[request]] = await pool.query("SELECT * FROM mobile_change_requests WHERE id = :requestId LIMIT 1", { requestId });
+  const [[request]] = await pool.query(
+    `SELECT mcr.*, t.user_id
+       FROM mobile_change_requests mcr
+       JOIN traders t ON t.id = mcr.trader_id
+      WHERE mcr.id = :requestId
+      LIMIT 1`,
+    { requestId },
+  );
   if (!request) {
     res.status(404).json({ ok: false, error: "Mobile change request not found." });
     return;
@@ -5585,7 +5592,14 @@ app.patch("/api/v1/admin/mobile-change-requests/:id/decision", requireRoles("MAI
     return;
   }
 
+  const notificationTitle = nextStatus === "approved" ? "Mobile number change approved" : "Mobile number change rejected";
+  const notificationMessage = nextStatus === "approved"
+    ? `Your mobile number change request has been approved. Your registered number is now ${request.new_mobile}.`
+    : `Your mobile number change request has been rejected. ${remarks || "Please check the admin remarks for details."}`;
+  const notificationPriority = nextStatus === "approved" ? "high" : "normal";
+
   const connection = await pool.getConnection();
+  let notificationId = null;
   try {
     await connection.beginTransaction();
     await connection.query(
@@ -5610,7 +5624,29 @@ app.patch("/api/v1/admin/mobile-change-requests/:id/decision", requireRoles("MAI
         { traderId: request.trader_id },
       );
     }
+    const [notificationResult] = await connection.query(
+      `INSERT INTO notifications (user_id, notification_type, title, message, related_entity_type, related_entity_id, action_url, priority, channel, delivery_status, sent_at)
+       VALUES (:userId, 'mobile_change_status', :title, :message, 'mobile_change_requests', :requestId, '/member/profile', :priority, 'in_app', 'sent', NOW())`,
+      {
+        userId: request.user_id,
+        title: notificationTitle,
+        message: notificationMessage,
+        requestId,
+        priority: notificationPriority,
+      },
+    );
+    notificationId = notificationResult.insertId || null;
     await connection.commit();
+    await sendPushToUser({
+      userId: request.user_id,
+      title: notificationTitle,
+      body: notificationMessage,
+      url: "/member/profile",
+      type: "mobile_change_status",
+      entityId: requestId,
+      priority: notificationPriority,
+      notificationId,
+    });
     await writeAudit({ req, action: `mobile_change.${decision}`, module: "mobile_change_requests", entityType: "mobile_change_requests", entityId: requestId, oldValues: { status: request.status, mobile: request.old_mobile }, newValues: { status: nextStatus, mobile: nextStatus === "approved" ? request.new_mobile : request.old_mobile, remarks } });
     res.json({ ok: true, requestId, status: nextStatus });
   } catch (error) {
@@ -6028,6 +6064,33 @@ app.patch("/api/v1/admin/complaints/:id/status", requireRoles("MAIN_ADMIN", "USE
      VALUES (:complaintId, :oldStatus, :status, :remarks, :userId)`,
     { complaintId, oldStatus: before.status, status, remarks: remarks || `Status updated to ${status}`, userId: req.user.id },
   );
+  if (before.status !== status) {
+    const statusLabel = status.replace(/_/g, " ");
+    const complaintMessage = remarks
+      ? `Your complaint ${before.ticket_number} is now ${statusLabel}. ${remarks}`
+      : `Your complaint ${before.ticket_number} is now ${statusLabel}.`;
+    const complaintPriority = ["resolved", "closed"].includes(status) ? "high" : "normal";
+    const [notificationResult] = await pool.query(
+      `INSERT INTO notifications (user_id, notification_type, title, message, related_entity_type, related_entity_id, action_url, priority, channel, delivery_status, sent_at)
+       VALUES (:userId, 'complaint_status', 'Complaint status updated', :message, 'support_tickets', :complaintId, '/member/complaints', :priority, 'in_app', 'sent', NOW())`,
+      {
+        userId: before.created_by_user_id,
+        message: complaintMessage,
+        complaintId,
+        priority: complaintPriority,
+      },
+    );
+    await sendPushToUser({
+      userId: before.created_by_user_id,
+      title: "Complaint status updated",
+      body: complaintMessage,
+      url: "/member/complaints",
+      type: "complaint_status",
+      entityId: complaintId,
+      priority: complaintPriority,
+      notificationId: notificationResult.insertId || null,
+    });
+  }
   if (["resolved", "closed"].includes(status) && !["resolved", "closed"].includes(before.status)) {
     const [feedbackInsert] = await pool.query(
       `INSERT IGNORE INTO complaint_feedback (complaint_id, member_user_id, feedback_status, reopen_request_status, requested_at)
