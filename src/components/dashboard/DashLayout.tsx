@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { canUseWebPush, enableWebPush, getPushStatus } from "@/lib/push-notifications";
 import { syncAppBadgeCount } from "@/lib/app-badge";
+import { installNotificationSoundUnlock, playNotificationTone } from "@/lib/notification-sound";
 
 const OWNER_NAV = [
   { to: "/member", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -130,6 +131,7 @@ export function DashLayout({ kind, children }: Props) {
           if (!active || !result.ok) return;
           const nextCount = Number(result.unreadCount || 0);
           if (previousMemberUnreadCount.current !== null && nextCount > previousMemberUnreadCount.current) {
+            playNotificationTone();
             toast.warning("New notification", {
               description: "Open Notifications to view the latest member update.",
               action: {
@@ -153,6 +155,24 @@ export function DashLayout({ kind, children }: Props) {
       window.clearInterval(timer);
     };
   }, [kind, loading, user, router]);
+
+  useEffect(() => {
+    if (kind !== "owner") return;
+    return installNotificationSoundUnlock();
+  }, [kind]);
+
+  useEffect(() => {
+    if (kind !== "owner" || !("serviceWorker" in navigator)) return;
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type === "push-notification-received") {
+        playNotificationTone();
+      }
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => {
+      navigator.serviceWorker.removeEventListener("message", onMessage);
+    };
+  }, [kind]);
 
   useEffect(() => {
     if (kind !== "owner" || loading || !user || user.role !== "owner") return;

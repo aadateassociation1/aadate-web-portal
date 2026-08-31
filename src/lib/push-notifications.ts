@@ -1,19 +1,33 @@
+function sanitizePushKey(value: string) {
+  return String(value || "").trim().replace(/^['"]+|['"]+$/g, "").replace(/\s+/g, "");
+}
+
 function urlBase64ToUint8Array(value: string) {
-  const padding = "=".repeat((4 - (value.length % 4)) % 4);
-  const base64 = `${value}${padding}`.replace(/-/g, "+").replace(/_/g, "/");
+  const cleanValue = sanitizePushKey(value);
+  const padding = "=".repeat((4 - (cleanValue.length % 4)) % 4);
+  const base64 = `${cleanValue}${padding}`.replace(/-/g, "+").replace(/_/g, "/");
   const rawData = window.atob(base64);
   return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 }
 
-function getValidApplicationServerKey(value: string) {
+async function getValidApplicationServerKey(value: string) {
   try {
-    const key = urlBase64ToUint8Array(String(value || "").trim());
+    const key = urlBase64ToUint8Array(value);
     if (key.length !== 65 || key[0] !== 4) {
       throw new Error("Invalid VAPID public key.");
     }
+    if (window.crypto?.subtle) {
+      await window.crypto.subtle.importKey(
+        "raw",
+        key,
+        { name: "ECDH", namedCurve: "P-256" },
+        false,
+        [],
+      );
+    }
     return key;
   } catch {
-    throw new Error("Phone notifications server key is invalid. Please update VAPID_PUBLIC_KEY on the VPS and restart the API.");
+    throw new Error("Phone notifications server key is invalid. Update VAPID_PUBLIC_KEY on the VPS, restart the API, and refresh this app.");
   }
 }
 
@@ -62,7 +76,7 @@ export async function enableWebPush() {
   const existing = await registration.pushManager.getSubscription();
   const subscription = existing || await registration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: getValidApplicationServerKey(keyPayload.publicKey),
+    applicationServerKey: await getValidApplicationServerKey(keyPayload.publicKey),
   });
 
   const response = await fetch("/api/v1/push/subscribe", {

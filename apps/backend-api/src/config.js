@@ -2,6 +2,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+function sanitizeEnvValue(value) {
+  return String(value || "").trim().replace(/^['"]+|['"]+$/g, "");
+}
+
 export const config = {
   port: Number(process.env.BACKEND_PORT || process.env.PORT || 4008),
   corsOrigins: (process.env.CORS_ORIGIN || "http://127.0.0.1:8080,http://127.0.0.1:8083,http://127.0.0.1:8090,http://127.0.0.1:8091,http://127.0.0.1:8092")
@@ -38,8 +42,8 @@ export const config = {
     apiKey: process.env.GOOGLE_TRANSLATE_API_KEY || "",
   },
   vapid: {
-    publicKey: process.env.VAPID_PUBLIC_KEY || "",
-    privateKey: process.env.VAPID_PRIVATE_KEY || "",
-    subject: process.env.VAPID_SUBJECT || "mailto:admin@digitalaadate.org",
+    publicKey: sanitizeEnvValue(process.env.VAPID_PUBLIC_KEY),
+    privateKey: sanitizeEnvValue(process.env.VAPID_PRIVATE_KEY),
+    subject: sanitizeEnvValue(process.env.VAPID_SUBJECT) || "mailto:admin@digitalaadate.org",
   },
 };

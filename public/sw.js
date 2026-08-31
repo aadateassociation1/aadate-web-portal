@@ -97,6 +97,11 @@ self.addEventListener("push", (event) => {
     }
 
     await self.registration.showNotification(title, options);
+
+    const clientList = await clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const client of clientList) {
+      client.postMessage({ type: "push-notification-received", payload: data, badgeCount });
+    }
   })());
 });
 
