@@ -211,7 +211,6 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                       <th className="p-3 text-right">Avg</th>
                       <th className="p-3">Change</th>
                       <th className="p-3">Unit</th>
-                      <th className="p-3 text-right">History</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -226,7 +225,6 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                         <td className="p-3 text-right font-bold text-primary-dark">{currency(row.modal_price)}</td>
                         <td className="p-3">{changeView(row)}</td>
                         <td className="p-3">{row.unit}</td>
-                        <td className="p-3 text-right"><Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button></td>
                       </tr>
                     ))}
                   </tbody>
