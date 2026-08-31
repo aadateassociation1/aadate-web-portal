@@ -2,6 +2,27 @@ function sanitizePushKey(value: string) {
   return String(value || "").trim().replace(/^['"]+|['"]+$/g, "").replace(/\s+/g, "");
 }
 
+function isIosDevice() {
+  const ua = window.navigator.userAgent || "";
+  return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function isStandaloneWebApp() {
+  return window.matchMedia?.("(display-mode: standalone)")?.matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+}
+
+function hasPushPrimitives() {
+  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+}
+
+function getWebPushSupportError() {
+  if (!hasPushPrimitives()) return "This browser does not support web push notifications.";
+  if (isIosDevice() && !isStandaloneWebApp()) {
+    return "On iPhone, install this portal to the Home Screen first, then open the app and enable notifications there.";
+  }
+  return null;
+}
+
 function urlBase64ToUint8Array(value: string) {
   const cleanValue = sanitizePushKey(value);
   const padding = "=".repeat((4 - (cleanValue.length % 4)) % 4);
@@ -46,7 +67,11 @@ async function readApiResponse(response: Response) {
 }
 
 export function canUseWebPush() {
-  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  return getWebPushSupportError() === null;
+}
+
+export function getWebPushSupportMessage() {
+  return getWebPushSupportError();
 }
 
 export async function getPushStatus() {
@@ -57,7 +82,8 @@ export async function getPushStatus() {
 }
 
 export async function enableWebPush() {
-  if (!canUseWebPush()) throw new Error("This browser does not support web push notifications.");
+  const supportError = getWebPushSupportError();
+  if (supportError) throw new Error(supportError);
 
   const keyResponse = await fetch("/api/v1/push/public-key", { credentials: "include" });
   const keyPayload = await readApiResponse(keyResponse);
@@ -89,7 +115,8 @@ export async function enableWebPush() {
 }
 
 export async function sendTestWebPush() {
-  if (!canUseWebPush()) throw new Error("This browser does not support web push notifications.");
+  const supportError = getWebPushSupportError();
+  if (supportError) throw new Error(supportError);
   const response = await fetch("/api/v1/push/test", {
     method: "POST",
     credentials: "include",
