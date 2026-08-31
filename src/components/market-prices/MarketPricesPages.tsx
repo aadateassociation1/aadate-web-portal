@@ -233,34 +233,58 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                 </table>
               </div>
               <div className="mt-5 overflow-hidden rounded-lg border md:hidden">
-                <div className="grid grid-cols-[minmax(0,1.5fr)_0.7fr_0.7fr_0.7fr_auto] gap-2 border-b bg-secondary/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                <div className="grid grid-cols-[minmax(0,1.3fr)_0.7fr_0.7fr_0.7fr_auto] items-center gap-2 border-b bg-secondary/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   <span>Commodity</span>
                   <span className="text-right">Min</span>
                   <span className="text-right">Max</span>
                   <span className="text-right">Avg</span>
                   <span className="text-right">View</span>
                 </div>
-                {filtered.map((row) => (
-                  <div key={row.item_id} className="grid grid-cols-[minmax(0,1.5fr)_0.7fr_0.7fr_0.7fr_auto] gap-2 border-t px-3 py-3 first:border-t-0">
-                    <div className="min-w-0">
-                      <div className="truncate font-display text-[13px] font-semibold text-primary-dark">{row.name_en}</div>
-                      <div className="truncate text-[11px] text-muted-foreground">{row.name_mr}</div>
-                      <div className="mt-0.5 text-[10px] text-muted-foreground">{categoryLabel(row.category)}</div>
+                {filtered.map((row) => {
+                  const changeLabel =
+                    row.change_amount === null
+                      ? "New"
+                      : row.change_direction === "up"
+                        ? `↑ ${currency(row.change_amount)}`
+                        : row.change_direction === "down"
+                          ? `↓ ${currency(Math.abs(row.change_amount))}`
+                          : "� ?0";
+
+                  const changeClassName =
+                    row.change_amount === null
+                      ? "text-muted-foreground"
+                      : row.change_direction === "up"
+                        ? "text-success"
+                        : row.change_direction === "down"
+                          ? "text-destructive"
+                          : "text-muted-foreground";
+
+                  return (
+                    <div key={row.item_id} className="border-t px-3 py-2.5 first:border-t-0">
+                      <div className="grid grid-cols-[minmax(0,1.3fr)_0.7fr_0.7fr_0.7fr_auto] items-center gap-2">
+                        <div className="min-w-0">
+                          <div className="truncate font-display text-[13px] font-semibold text-primary-dark">{row.name_en}</div>
+                          <div className="truncate text-[11px] text-muted-foreground">{row.name_mr}</div>
+                        </div>
+                        <div className="text-right text-[12px] font-semibold text-primary-dark">{currency(row.min_price)}</div>
+                        <div className="text-right text-[12px] font-semibold text-primary-dark">{currency(row.max_price)}</div>
+                        <div className="text-right text-[12px] font-bold text-primary-dark">{currency(row.modal_price)}</div>
+                        <div className="flex justify-end">
+                          <Button size="sm" className="h-7 rounded-md bg-saffron px-2 text-[10px] text-saffron-foreground hover:bg-saffron/90" onClick={() => openHistory(row)}>
+                            <Eye className="mr-1 h-3 w-3" /> View
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between gap-2 border-t border-dashed pt-2 text-[10px]">
+                        <span className={`truncate font-medium ${changeClassName}`}>{changeLabel}</span>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <span className="shrink-0">{row.unit}</span>
+                          <span className="shrink-0">{categoryLabel(row.category)}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right text-[12px] font-semibold text-primary-dark">{currency(row.min_price)}</div>
-                    <div className="text-right text-[12px] font-semibold text-primary-dark">{currency(row.max_price)}</div>
-                    <div className="text-right text-[12px] font-bold text-primary-dark">{currency(row.modal_price)}</div>
-                    <div className="flex justify-end">
-                      <Button size="sm" className="h-8 bg-saffron px-2.5 text-[11px] text-saffron-foreground hover:bg-saffron/90" onClick={() => openHistory(row)}>
-                        <Eye className="mr-1 h-3.5 w-3.5" /> View
-                      </Button>
-                    </div>
-                    <div className="col-span-5 mt-2 flex items-center justify-between border-t border-dashed pt-2 text-[11px]">
-                      <div className="min-w-0 truncate">{changeView(row)}</div>
-                      <span className="ml-2 shrink-0 text-muted-foreground">{row.unit}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               {filtered.length === 0 && (
                 <div className="rounded-lg border p-8 text-center text-muted-foreground">
@@ -587,4 +611,5 @@ export function AdminMarketPricesPage() {
     </DashLayout>
   );
 }
+
 
