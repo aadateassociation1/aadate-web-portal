@@ -233,7 +233,7 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                 </table>
               </div>
               <div className="mt-5 overflow-hidden rounded-lg border md:hidden">
-                <div className="grid grid-cols-[minmax(0,1.3fr)_0.7fr_0.7fr_0.7fr_auto] items-center gap-2 border-b bg-secondary/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                <div className="grid grid-cols-[minmax(0,1.25fr)_44px_44px_44px_38px] items-center gap-1.5 border-b bg-secondary/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   <span>Commodity</span>
                   <span className="text-left">Min</span>
                   <span className="text-left">Max</span>
@@ -261,7 +261,7 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
 
                   return (
                     <div key={row.item_id} className="border-t px-3 py-2.5 first:border-t-0">
-                      <div className="grid grid-cols-[minmax(0,1.3fr)_0.7fr_0.7fr_0.7fr_auto] items-center gap-2">
+                      <div className="grid grid-cols-[minmax(0,1.25fr)_44px_44px_44px_38px] items-center gap-1.5">
                         <div className="min-w-0">
                           <div className="truncate font-display text-[13px] font-semibold text-primary-dark">{row.name_en}</div>
                           <div className="truncate text-[11px] text-muted-foreground">{row.name_mr}</div>
