@@ -14,7 +14,8 @@ const ASSOCIATION_REGISTRATION = "Registration No.: Maharashtra-1026/2013";
 const ASSOCIATION_PTR = "P.T.R. No.: F. 41841 / Pune";
 const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shree Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
 const ASSOCIATION_EMAIL = "aadateassociation1@gmail.com";
-const ASSOCIATION_MAP_URL = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d121086.05561617303!2d73.71149379726565!3d18.486411300000007!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c022bfffffff%3A0xdca80b98f93f015e!2sShree%20Chatrapati%20Shivaji%20Market%20Yard%20Adate%20Assoc!5e0!3m2!1sen!2sin!4v1788258576279!5m2!1sen!2sin";
+const ASSOCIATION_MAP_EMBED_URL = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d121086.05561617303!2d73.71149379726565!3d18.486411300000007!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c022bfffffff%3A0xdca80b98f93f015e!2sShree%20Chatrapati%20Shivaji%20Market%20Yard%20Adate%20Assoc!5e0!3m2!1sen!2sin!4v1788258576279!5m2!1sen!2sin";
+const ASSOCIATION_MAP_LINK_URL = "https://www.google.com/maps/search/?api=1&query=Shree%20Chatrapati%20Shivaji%20Market%20Yard%20Adate%20Assoc%2C%20First%20Floor%2C%20Pan%20Bazar%20Building%2C%20Gultekdi%2C%20Pune%20411037";
 const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
 
 export const Route = createFileRoute("/contact")({
@@ -37,7 +38,7 @@ function Contact() {
         <div className="container-page grid gap-8 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-1">
             {[
-              { icon: MapPin, title: "Office Address", body: ASSOCIATION_ADDRESS, mapUrl: ASSOCIATION_MAP_URL },
+              { icon: MapPin, title: "Office Address", body: ASSOCIATION_ADDRESS, mapUrl: ASSOCIATION_MAP_LINK_URL },
               { icon: Phone, title: "Registration No.", body: ASSOCIATION_REGISTRATION },
               { icon: AlertCircle, title: "P.T.R. No.", body: ASSOCIATION_PTR },
               { icon: Mail, title: "Email", body: ASSOCIATION_EMAIL },
@@ -81,7 +82,7 @@ function Contact() {
 
             <Card className="border-border/60 overflow-hidden">
               <iframe
-                src={ASSOCIATION_MAP_URL}
+                src={ASSOCIATION_MAP_EMBED_URL}
                 title="Shree Chhatrapati Shivaji Market Yard Adte Association location"
                 className="aspect-[16/9] w-full border-0"
                 allowFullScreen
