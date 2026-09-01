@@ -3,7 +3,7 @@ import { SiteLayout } from "@/components/public/SiteLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Building2, Eye, MapPin, Phone, Star, Store } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -184,18 +184,19 @@ function PublicTraderProfile() {
         </div>
       </section>
       <Dialog open={!!selectedReviewImage} onOpenChange={(open) => !open && setSelectedReviewImage(null)}>
-        <DialogContent className="max-w-4xl p-4 sm:p-6">
+        <DialogContent className="max-w-5xl gap-0 overflow-hidden p-0">
           {selectedReviewImage && (
             <>
-              <DialogHeader className="pr-8">
-                <DialogTitle className="text-base text-primary-dark">{selectedReviewImage.original_filename || "Review image"}</DialogTitle>
-                <DialogDescription>Portal review image preview</DialogDescription>
+              <DialogHeader className="border-b bg-background px-4 py-3 pr-12 text-left">
+                <DialogTitle className="text-base text-primary-dark">Review image</DialogTitle>
               </DialogHeader>
-              <img
-                src={`/api/v1/public/rating-attachments/${selectedReviewImage.id}/download`}
-                alt={selectedReviewImage.original_filename || "Review image"}
-                className="max-h-[78vh] w-full rounded-lg bg-secondary/30 object-contain"
-              />
+              <div className="bg-secondary/25 p-3 sm:p-4">
+                <img
+                  src={`/api/v1/public/rating-attachments/${selectedReviewImage.id}/download`}
+                  alt={selectedReviewImage.original_filename || "Review image"}
+                  className="mx-auto max-h-[82vh] w-full rounded-md object-contain"
+                />
+              </div>
             </>
           )}
         </DialogContent>
