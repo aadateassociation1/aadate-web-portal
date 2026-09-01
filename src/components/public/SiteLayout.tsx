@@ -27,6 +27,7 @@ const ASSOCIATION_REGISTRATION = "Registration No.: Maharashtra-1026/2013";
 const ASSOCIATION_PTR = "P.T.R. No.: F. 41841 / Pune";
 const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shri Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
 const ASSOCIATION_EMAIL = "aadateassociation1@gmail.com";
+const ASSOCIATION_MAP_URL = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d121086.05561617303!2d73.71149379726565!3d18.486411300000007!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c022bfffffff%3A0xdca80b98f93f015e!2sShree%20Chatrapati%20Shivaji%20Market%20Yard%20Adate%20Assoc!5e0!3m2!1sen!2sin!4v1788258576279!5m2!1sen!2sin";
 
 function LangSwitcher({ tone = "dark" }: { tone?: "dark" | "light" }) {
   const { lang, setLang } = useI18n();
@@ -219,7 +220,7 @@ function Footer() {
         <div>
           <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider text-saffron">Contact</h4>
           <ul className="space-y-3 text-sm text-white/70">
-            <li className="flex gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> {ASSOCIATION_ADDRESS}</li>
+            <li className="flex gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> <a href={ASSOCIATION_MAP_URL} target="_blank" rel="noreferrer" className="hover:text-white hover:underline">{ASSOCIATION_ADDRESS}</a></li>
             <li className="flex gap-2"><Mail className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> {ASSOCIATION_EMAIL}</li>
             <li className="flex gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> {ASSOCIATION_REGISTRATION}</li>
             <li className="flex gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-saffron" /> {ASSOCIATION_PTR}</li>

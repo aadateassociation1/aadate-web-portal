@@ -14,6 +14,7 @@ const ASSOCIATION_REGISTRATION = "Registration No.: Maharashtra-1026/2013";
 const ASSOCIATION_PTR = "P.T.R. No.: F. 41841 / Pune";
 const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shri Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
 const ASSOCIATION_EMAIL = "aadateassociation1@gmail.com";
+const ASSOCIATION_MAP_URL = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d121086.05561617303!2d73.71149379726565!3d18.486411300000007!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c022bfffffff%3A0xdca80b98f93f015e!2sShree%20Chatrapati%20Shivaji%20Market%20Yard%20Adate%20Assoc!5e0!3m2!1sen!2sin!4v1788258576279!5m2!1sen!2sin";
 const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
 
 export const Route = createFileRoute("/contact")({
@@ -36,7 +37,7 @@ function Contact() {
         <div className="container-page grid gap-8 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-1">
             {[
-              { icon: MapPin, title: "Office Address", body: ASSOCIATION_ADDRESS },
+              { icon: MapPin, title: "Office Address", body: ASSOCIATION_ADDRESS, mapUrl: ASSOCIATION_MAP_URL },
               { icon: Phone, title: "Registration No.", body: ASSOCIATION_REGISTRATION },
               { icon: AlertCircle, title: "P.T.R. No.", body: ASSOCIATION_PTR },
               { icon: Mail, title: "Email", body: ASSOCIATION_EMAIL },
@@ -49,7 +50,7 @@ function Contact() {
                   </div>
                   <div className="min-w-0">
                     <div className="font-display font-semibold text-primary-dark">{c.title}</div>
-                    <div className="text-sm text-muted-foreground">{c.body}</div>
+                    <div className="text-sm text-muted-foreground">{"mapUrl" in c && c.mapUrl ? <a href={c.mapUrl} target="_blank" rel="noreferrer" className="hover:text-primary hover:underline">{c.body}</a> : c.body}</div>
                   </div>
                 </CardContent>
               </Card>
@@ -79,13 +80,14 @@ function Contact() {
             </Card>
 
             <Card className="border-border/60 overflow-hidden">
-              <div className="aspect-[16/9] bg-secondary grid place-items-center text-muted-foreground">
-                <div className="text-center">
-                  <MapPin className="mx-auto h-10 w-10 text-primary" />
-                  <div className="mt-2 font-semibold text-primary-dark">Google Map placeholder</div>
-                  <div className="text-xs">Gultekdi, Pune - 411037</div>
-                </div>
-              </div>
+              <iframe
+                src={ASSOCIATION_MAP_URL}
+                title="Shri Chhatrapati Shivaji Market Yard Adte Association location"
+                className="aspect-[16/9] w-full border-0"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
             </Card>
           </div>
         </div>
