@@ -1969,8 +1969,8 @@ export function AdminGalleryPage() {
                 const videos = (item.attachments || []).filter((file) => file.attachment_type === "video");
                 return (
                 <div key={item.id} className="overflow-hidden rounded-lg border bg-background">
-                  <div className="relative grid h-40 place-items-center bg-secondary">
-                    {image ? <img src={`/api/v1/public/content-attachments/${image.id}/download`} className="h-full w-full object-cover" /> : <div className="relative grid h-16 w-16 place-items-center rounded-2xl bg-background text-primary shadow-md">{videos.length ? <Video className="h-7 w-7" /> : <Camera className="h-7 w-7" />}</div>}
+                  <div className="relative grid aspect-[4/3] place-items-center overflow-hidden bg-secondary/30">
+                    {image ? <img src={`/api/v1/public/content-attachments/${image.id}/download`} className="h-full w-full object-contain" /> : <div className="relative grid h-16 w-16 place-items-center rounded-2xl bg-background text-primary shadow-md">{videos.length ? <Video className="h-7 w-7" /> : <Camera className="h-7 w-7" />}</div>}
                     <Badge className="absolute left-3 top-3 bg-primary text-white">{videos.length ? "Video" : "Images"}</Badge>
                     {index === 0 && <Badge className="absolute right-3 top-3 bg-saffron text-primary-dark">Latest</Badge>}
                   </div>
