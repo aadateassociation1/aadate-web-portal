@@ -126,6 +126,7 @@ function Home() {
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
   const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
+  const displayChairmanName = (name?: string | null) => name && /sourabh\s+kunjir/i.test(name) ? "Shri. Sourabh Shekhar Kunjir" : name || "Shri. Sourabh Shekhar Kunjir";
   const chairmanCopy = lang === "mr"
     ? {
         current: "\u0938\u0927\u094d\u092f\u093e\u091a\u0947 \u0905\u0927\u094d\u092f\u0915\u094d\u0937",
@@ -143,7 +144,7 @@ function Home() {
         role: "Chairman",
         title: "Leadership",
         term: "Term",
-        name: chairman?.full_name || "Shri. Sourabh Kunjir",
+        name: displayChairmanName(chairman?.full_name),
         secondaryName: chairman?.name_mr || "",
         intro: "Under his leadership, the association is focused on transparent administration, faster complaint resolution, regular market communication, and better digital services for every trader and gala owner.",
         quote: chairman?.message || "Together, we are building a transparent, digital and service-focused market yard for every trader.",
@@ -370,7 +371,7 @@ function Home() {
                   <div className="relative min-h-[420px] bg-secondary sm:min-h-[500px] lg:min-h-[560px]">
                     <img
                       src={chairman?.photo_url || sourabhKunjirImg}
-                      alt={chairman?.full_name || "Shri. Sourabh Kunjir"}
+                      alt={displayChairmanName(chairman?.full_name)}
                       className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
                     />
                     <div className="absolute left-5 top-5">
