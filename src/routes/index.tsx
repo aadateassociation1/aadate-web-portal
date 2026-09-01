@@ -69,6 +69,7 @@ function Home() {
   const [gallery, setGallery] = useState<PublicContent[]>([]);
   const [committee, setCommittee] = useState<CommitteeMemberRecord[]>([]);
   const [reviews, setReviews] = useState<PublicReview[]>([]);
+  const [reviewApi, setReviewApi] = useState<CarouselApi>();
   const [complaintFeedback, setComplaintFeedback] = useState<PublicComplaintFeedback[]>([]);
   const [complaintFeedbackApi, setComplaintFeedbackApi] = useState<CarouselApi>();
   const [prices, setPrices] = useState<PublicPrice[]>([]);
@@ -83,6 +84,14 @@ function Home() {
     fetch("/api/v1/public/complaint-feedback").then((r) => r.json()).then((result) => { if (result.ok) setComplaintFeedback(result.feedback || []); }).catch(() => undefined);
     fetch("/api/v1/public/market-prices").then((r) => r.json()).then((result) => { if (result.ok) setPrices(result.prices || []); }).catch(() => undefined);
   }, []);
+  useEffect(() => {
+    if (!reviewApi || reviews.length <= 1) {
+      return;
+    }
+
+    const timer = window.setInterval(() => reviewApi.scrollNext(), 3500);
+    return () => window.clearInterval(timer);
+  }, [reviewApi, reviews.length]);
   useEffect(() => {
     if (!complaintFeedbackApi || complaintFeedback.length <= 1) {
       return;
@@ -637,9 +646,9 @@ function Home() {
               <p className="mt-3 text-sm text-muted-foreground">Approved feedback from Members and customers.</p>
             </div>
           </div>
-          <div className="mx-auto mt-10 max-w-6xl px-10">
+          <div className="mx-auto mt-10 max-w-6xl px-14 sm:px-16 lg:px-20">
             {reviews.length > 0 ? (
-              <Carousel opts={{ align: "start", loop: reviews.length > 1 }} className="w-full">
+              <Carousel setApi={setReviewApi} opts={{ align: "start", loop: reviews.length > 1 }} className="w-full">
                 <CarouselContent>
                   {reviews.slice(0, 6).map((review) => (
                     <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3">
@@ -683,8 +692,8 @@ function Home() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-0 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground" />
-                <CarouselNext className="right-0 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground" />
+                <CarouselPrevious className="-left-12 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-left-14 lg:-left-16" />
+                <CarouselNext className="-right-12 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-right-14 lg:-right-16" />
               </Carousel>
             ) : (
               <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">No portal reviews reshared yet.</div>
@@ -706,7 +715,7 @@ function Home() {
             <p className="mt-2 text-sm font-medium text-muted-foreground">Feedback shared by members after their complaints were resolved.</p>
           </div>
 
-          <div className="mx-auto mt-9 max-w-6xl px-10">
+          <div className="mx-auto mt-9 max-w-6xl px-14 sm:px-16 lg:px-20">
             {complaintFeedback.length > 0 ? (
               <Carousel setApi={setComplaintFeedbackApi} opts={{ align: "start", loop: complaintFeedback.length > 1 }} className="w-full">
                 <CarouselContent>
@@ -733,8 +742,8 @@ function Home() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-0 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground" />
-                <CarouselNext className="right-0 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground" />
+                <CarouselPrevious className="-left-12 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-left-14 lg:-left-16" />
+                <CarouselNext className="-right-12 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-right-14 lg:-right-16" />
               </Carousel>
             ) : (
               <div className="rounded-lg border bg-background p-8 text-center text-sm text-muted-foreground">No approved complaint feedback yet.</div>
