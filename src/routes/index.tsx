@@ -653,7 +653,7 @@ function Home() {
                   {reviews.slice(0, 6).map((review) => (
                     <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3">
                       <Card className="h-full border-border/60 shadow-sm">
-                        <CardContent className="flex h-full flex-col p-6">
+                        <CardContent className="flex h-full flex-col p-5">
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex text-saffron">
                               {[1, 2, 3, 4, 5].map((star) => (
@@ -662,9 +662,9 @@ function Home() {
                             </div>
                             <Badge variant="outline" className="capitalize">{review.reviewer_type}</Badge>
                           </div>
-                          <p className="mt-4 flex-1 text-sm leading-relaxed text-foreground/80">{review.review_text}</p>
+                          <p className="mt-3 line-clamp-7 flex-1 text-sm leading-relaxed text-foreground/80">{review.review_text}</p>
                           {review.attachments && review.attachments.length > 0 && (
-                            <div className="mt-4 flex flex-wrap gap-2">
+                            <div className="mt-3 flex flex-wrap gap-2">
                               {review.attachments.map((file) => {
                                 const attachmentUrl = `/api/v1/public/rating-attachments/${file.id}/download`;
                                 return (
@@ -680,7 +680,7 @@ function Home() {
                               })}
                             </div>
                           )}
-                          <div className="mt-5 rounded-lg bg-secondary/40 p-3">
+                          <div className="mt-4 rounded-lg bg-secondary/40 p-3">
                             <div className="font-display font-semibold leading-snug text-primary-dark">{review.reviewer_name}</div>
                             <div className="mt-1 text-xs text-muted-foreground">
                               {review.reviewer_type === "customer" ? `${review.customer_code || "Customer"} via ` : ""}
