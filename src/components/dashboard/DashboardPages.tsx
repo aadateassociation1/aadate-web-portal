@@ -1731,6 +1731,9 @@ function PublicPostEditDialog({
       toast.error("Select Member category.");
       return;
     }
+    const safeTitle = kind === "gallery" ? title.trim() || post.title_en || "Gallery item" : title.trim();
+    const safeCategory = category.trim() || (kind === "gallery" ? "Images" : "General");
+    const safeDetails = kind === "gallery" ? details.trim() || "Gallery" : details.trim();
     setSaving(true);
     try {
       const response = await fetch(`/api/v1/admin/posts/${post.id}`, {
@@ -1739,9 +1742,9 @@ function PublicPostEditDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           postType: publicPostType(kind),
-          titleEn: title,
-          category,
-          contentEn: details,
+          titleEn: safeTitle,
+          category: safeCategory,
+          contentEn: safeDetails,
           status: "published",
           shareAudience: audience,
           shareCategoryId: audience === "category" ? Number(categoryId) : null,
@@ -1767,9 +1770,9 @@ function PublicPostEditDialog({
           <DialogDescription>Changes appear on the public website immediately after saving.</DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={submit}>
-          <div><Label>Title</Label><Input value={title} onChange={(event) => setTitle(event.target.value)} required /></div>
+          <div><Label>Title</Label><Input value={title} onChange={(event) => setTitle(event.target.value)} required={kind !== "gallery"} /></div>
           <div><Label>{kind === "gallery" ? "Section / media type" : "Category"}</Label><Input value={category} onChange={(event) => setCategory(event.target.value)} required /></div>
-          <div><Label>{kind === "gallery" ? "Section / event details" : "Description"}</Label><Textarea value={details} onChange={(event) => setDetails(event.target.value)} rows={5} required /></div>
+          <div><Label>{kind === "gallery" ? "Section / event details" : "Description"}</Label><Textarea value={details} onChange={(event) => setDetails(event.target.value)} rows={5} required={kind !== "gallery"} /></div>
           {kind !== "gallery" && (
             <PostAudienceFields audience={audience} setAudience={setAudience} categoryId={categoryId} setCategoryId={setCategoryId} categories={categories} />
           )}
@@ -1783,7 +1786,7 @@ function PublicPostEditDialog({
   );
 }
 
-async function deletePublicPost(post: DashboardPost, onDeleted: () => void) {
+async function deletePublicPost(post: DashboardPost, onDeleted: () => void | Promise<void>) {
   if (!window.confirm(`Delete "${post.title_en}" from the public website?`)) return;
   try {
     const response = await fetch(`/api/v1/admin/posts/${post.id}`, {
@@ -1793,7 +1796,7 @@ async function deletePublicPost(post: DashboardPost, onDeleted: () => void) {
     const result = await response.json();
     if (!response.ok || !result.ok) throw new Error(result.error || "Delete failed");
     toast.success("Website content deleted");
-    onDeleted();
+    await onDeleted();
   } catch (error) {
     toast.error(error instanceof Error ? error.message : "Delete failed");
   }
@@ -1990,6 +1993,7 @@ export function AdminGalleryPage() {
           </CardContent>
         </Card>
       </div>
+      <PublicPostEditDialog post={editing} kind="gallery" onClose={() => setEditing(null)} onSaved={loadGallery} />
     </DashLayout>
   );
 }
