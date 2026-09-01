@@ -1855,18 +1855,21 @@ export function AdminGalleryPage() {
     const title = String(data.get("title") || "").trim();
     const section = String(data.get("section") || "").trim();
 
-    if (!title || !section || files.length === 0) {
-      toast.error("Add title, section, and at least one image or video");
+    if (files.length === 0) {
+      toast.error("Add at least one image or video");
       return;
     }
 
     try {
       const attachments = await Promise.all(files.slice(0, 8).map(fileToUploadPayload));
+      const fallbackTitle = files[0]?.name?.replace(/\.[^/.]+$/, "") || (mediaType === "image" ? "Gallery image" : "Gallery video");
+      const galleryTitle = title || fallbackTitle;
+      const gallerySection = section || "Gallery";
       const response = await fetch("/api/v1/admin/posts", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postType: "gallery", titleEn: title, contentEn: section, category: mediaType === "image" ? "Images" : "Videos", attachments, status: "published" }),
+        body: JSON.stringify({ postType: "gallery", titleEn: galleryTitle, contentEn: gallerySection, category: mediaType === "image" ? "Images" : "Videos", attachments, status: "published" }),
       });
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || "Gallery publish failed");
@@ -1897,12 +1900,12 @@ export function AdminGalleryPage() {
             <p className="mt-1 text-sm text-muted-foreground">Upload images or videos and publish them to the public gallery page.</p>
             <form className="mt-5 space-y-4" onSubmit={publishGalleryItem}>
               <div>
-                <Label>Gallery title *</Label>
-                <Input name="title" required placeholder="e.g. Annual meeting photos" />
+                <Label>Gallery title</Label>
+                <Input name="title" placeholder="e.g. Annual meeting photos" />
               </div>
               <div>
-                <Label>Section / event *</Label>
-                <Input name="section" required placeholder="e.g. Association Hall" />
+                <Label>Section / event</Label>
+                <Input name="section" placeholder="e.g. Association Hall" />
               </div>
               <div>
                 <Label>Media type *</Label>
