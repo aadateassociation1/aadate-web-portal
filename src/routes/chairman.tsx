@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/public/SiteLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PAST_CHAIRMEN } from "@/lib/mock";
 import sourabhKunjirImg from "@/assets/sourabh Kunjir.png";
 import { useI18n } from "@/lib/i18n";
 
@@ -150,30 +149,6 @@ function Chairman() {
               </Card>
             ))}
             {members.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground sm:col-span-2 lg:col-span-3">No committee members published yet.</div>}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-14">
-        <div className="container-page">
-          <h2 className="font-display text-2xl font-bold text-primary-dark">Past Chairmen</h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {PAST_CHAIRMEN.map((p) => (
-              <Card key={p.name} className="border-border/60">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-secondary font-display text-lg font-bold text-primary">
-                      {p.name.split(" ").slice(-1)[0][0]}
-                    </div>
-                    <div>
-                      <div className="font-display font-semibold text-primary-dark">{p.name}</div>
-                      <div className="text-xs text-primary font-medium">{p.period}</div>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm text-muted-foreground">{p.contribution}</p>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </div>
       </section>
