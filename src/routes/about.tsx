@@ -24,10 +24,10 @@ function About() {
           <img src={marketyardImg} alt="Market yard" width={1600} height={900} loading="lazy" className="rounded-3xl shadow-xl object-cover aspect-[4/3]" />
           <div>
             <h2 className="font-display text-3xl font-bold text-primary-dark">Our Story</h2>
-            <p className="mt-4 text-muted-foreground leading-relaxed">
+            <p className="mt-4 text-justify leading-relaxed text-muted-foreground [hyphens:auto]">
               Shri Chhatrapati Shivaji Market Yard Adte Association serves Members and commission agents operating from the Market Yard at Gultekdi, Pune. The association office is located on the first floor of Pan Bazar Building, Shri Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.
             </p>
-            <p className="mt-4 text-muted-foreground leading-relaxed">
+            <p className="mt-4 text-justify leading-relaxed text-muted-foreground [hyphens:auto]">
               With the launch of this digital portal in 2026, every Member now has 24/7 access to market updates, official notices, complaint filing and administration in both English and Marathi.
             </p>
             <div className="mt-6 grid grid-cols-3 gap-4">
