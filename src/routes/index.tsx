@@ -646,7 +646,7 @@ function Home() {
               <p className="mt-3 text-sm text-muted-foreground">Approved feedback from Members and customers.</p>
             </div>
           </div>
-          <div className="mx-auto mt-10 max-w-6xl px-14 sm:px-16 lg:px-20">
+          <div className="mx-auto mt-10 max-w-6xl px-8 sm:px-16 lg:px-20">
             {reviews.length > 0 ? (
               <Carousel setApi={setReviewApi} opts={{ align: "start", loop: reviews.length > 1 }} className="w-full">
                 <CarouselContent>
@@ -692,8 +692,8 @@ function Home() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="-left-12 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-left-14 lg:-left-16" />
-                <CarouselNext className="-right-12 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-right-14 lg:-right-16" />
+                <CarouselPrevious className="-left-8 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-left-14 lg:-left-16" />
+                <CarouselNext className="-right-8 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-right-14 lg:-right-16" />
               </Carousel>
             ) : (
               <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">No portal reviews reshared yet.</div>
@@ -715,7 +715,7 @@ function Home() {
             <p className="mt-2 text-sm font-medium text-muted-foreground">Feedback shared by members after their complaints were resolved.</p>
           </div>
 
-          <div className="mx-auto mt-9 max-w-6xl px-14 sm:px-16 lg:px-20">
+          <div className="mx-auto mt-9 max-w-6xl px-8 sm:px-16 lg:px-20">
             {complaintFeedback.length > 0 ? (
               <Carousel setApi={setComplaintFeedbackApi} opts={{ align: "start", loop: complaintFeedback.length > 1 }} className="w-full">
                 <CarouselContent>
@@ -742,8 +742,8 @@ function Home() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="-left-12 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-left-14 lg:-left-16" />
-                <CarouselNext className="-right-12 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-right-14 lg:-right-16" />
+                <CarouselPrevious className="-left-8 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-left-14 lg:-left-16" />
+                <CarouselNext className="-right-8 border-primary/20 bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground sm:-right-14 lg:-right-16" />
               </Carousel>
             ) : (
               <div className="rounded-lg border bg-background p-8 text-center text-sm text-muted-foreground">No approved complaint feedback yet.</div>
