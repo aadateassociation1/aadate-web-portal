@@ -51,13 +51,14 @@ function Chairman() {
   const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
   const displayChairmanName = (name?: string | null) => name && /sourabh\s+kunjir/i.test(name) ? "Shri. Sourabh Shekhar Kunjir" : name || "Shri. Sourabh Shekhar Kunjir";
+  const displayChairmanNameMr = (name?: string | null, englishName?: string | null) => englishName && /sourabh\s+kunjir/i.test(englishName) ? "\u0936\u094d\u0930\u0940. \u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930" : name || "\u0936\u094d\u0930\u0940. \u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930";
   const chairmanCopy = lang === "mr"
     ? {
         current: "सध्याचे अध्यक्ष",
         role: "अध्यक्ष",
         title: "नेतृत्व",
         term: "कार्यकाळ",
-        name: chairman?.name_mr || "श्री. सौरभ कुंजीर",
+        name: displayChairmanNameMr(chairman?.name_mr, chairman?.full_name),
         secondaryName: "",
         intro: "त्यांच्या नेतृत्वाखाली संघटना पारदर्शक प्रशासन, जलद तक्रार निवारण, नियमित बाजार माहिती आणि प्रत्येक व्यापारी व गाळाधारकासाठी अधिक चांगल्या डिजिटल सेवांवर लक्ष केंद्रित करत आहे.",
         quote: "प्रत्येक व्यापाऱ्यासाठी पारदर्शक, डिजिटल आणि सेवा-केंद्रित मार्केट यार्ड उभारण्यासाठी आपण सर्वजण एकत्र काम करत आहोत.",
