@@ -245,7 +245,26 @@ function normalizeTranslationLanguage(value, fallback) {
   return lang;
 }
 
-async function translateWithGoogle({ text, sourceLang = "en", targetLang = "mr", requireProvider = false }) {
+const ALLOWED_TRANSLATION_PURPOSES = new Set(["public_content", "market_update", "notice", "gallery", "committee", "static_label"]);
+const BLOCKED_TRANSLATION_PURPOSES = new Set(["complaint", "kyc", "member_private", "mobile_change", "document", "password", "otp"]);
+
+function normalizeTranslationPurpose(value) {
+  const purpose = String(value || "").trim().toLowerCase();
+  if (BLOCKED_TRANSLATION_PURPOSES.has(purpose)) throw new Error("Private member, complaint, KYC and document data cannot be sent to external translation.");
+  if (!ALLOWED_TRANSLATION_PURPOSES.has(purpose)) throw new Error("Translation purpose must be public_content, market_update, notice, gallery, committee, or static_label.");
+  return purpose;
+}
+
+function translationLanguageName(lang) {
+  return lang === "mr" ? "Marathi" : "English";
+}
+
+function extractGeminiText(result) {
+  const parts = result?.candidates?.[0]?.content?.parts || [];
+  return parts.map((part) => part?.text || "").join(" ").trim();
+}
+
+async function translateWithGemini({ text, sourceLang = "en", targetLang = "mr", requireProvider = false }) {
   const source = normalizeTranslationLanguage(sourceLang, "en");
   const target = normalizeTranslationLanguage(targetLang, "mr");
   const cleanText = String(text || "").trim();
@@ -253,7 +272,7 @@ async function translateWithGoogle({ text, sourceLang = "en", targetLang = "mr",
 
   const sourceHash = crypto.createHash("sha256").update(`${source}:${target}:${cleanText}`).digest("hex");
   const [[cached]] = await pool.query(
-    `SELECT target_text
+    `SELECT target_text, provider
        FROM translation_cache
       WHERE source_lang = :source
         AND target_lang = :target
@@ -261,48 +280,58 @@ async function translateWithGoogle({ text, sourceLang = "en", targetLang = "mr",
       LIMIT 1`,
     { source, target, sourceHash },
   );
-  if (cached?.target_text) return { translatedText: cached.target_text, provider: "google", cached: true };
+  if (cached?.target_text) return { translatedText: cached.target_text, provider: cached.provider || "cache", cached: true };
 
-  if (!config.googleTranslate.apiKey) {
-    if (requireProvider) throw new Error("GOOGLE_TRANSLATE_API_KEY is not configured.");
+  if (!config.gemini.apiKey) {
+    if (requireProvider) throw new Error("GEMINI_API_KEY is not configured.");
     return { translatedText: cleanText, provider: "none", cached: false };
   }
 
-  const body = new URLSearchParams({
-    q: cleanText,
-    source,
-    target,
-    format: "text",
-  });
-  const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(config.googleTranslate.apiKey)}`, {
+  const sourceName = translationLanguageName(source);
+  const targetName = translationLanguageName(target);
+  const prompt = [
+    `Translate the following ${sourceName} text to ${targetName}.`,
+    "Keep names, phone numbers, registration numbers, URLs, addresses, market item names, and proper nouns unchanged unless they have a standard spelling in the target language.",
+    "Return only the translated text. Do not add explanations, quotes, bullets, markdown, or extra labels.",
+    "",
+    cleanText,
+  ].join("\n");
+
+  const model = String(config.gemini.model || "gemini-2.0-flash").replace(/^models\//, "");
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": config.gemini.apiKey,
+    },
+    body: JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0, candidateCount: 1 },
+    }),
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = result?.error?.message || "Google Translate request failed.";
+    const message = result?.error?.message || "Gemini translation request failed.";
     throw new Error(message);
   }
 
-  const translatedText = decodeHtmlEntities(result?.data?.translations?.[0]?.translatedText || cleanText).trim();
+  const translatedText = decodeHtmlEntities(extractGeminiText(result) || cleanText).trim();
   await pool.query(
     `INSERT INTO translation_cache (source_lang, target_lang, source_hash, source_text, target_text, provider)
-     VALUES (:source, :target, :sourceHash, :sourceText, :targetText, 'google')
+     VALUES (:source, :target, :sourceHash, :sourceText, :targetText, 'gemini')
      ON DUPLICATE KEY UPDATE
        target_text = VALUES(target_text),
        provider = VALUES(provider),
        updated_at = CURRENT_TIMESTAMP`,
     { source, target, sourceHash, sourceText: cleanText, targetText: translatedText },
   );
-  return { translatedText, provider: "google", cached: false };
+  return { translatedText, provider: "gemini", cached: false };
 }
-
-async function tryTranslateWithGoogle(options) {
+async function tryTranslateWithGemini(options) {
   try {
-    return await translateWithGoogle(options);
+    return await translateWithGemini(options);
   } catch (error) {
-    console.warn("Optional Google translation skipped", error instanceof Error ? error.message : String(error));
+    console.warn("Optional Gemini translation skipped", error instanceof Error ? error.message : String(error));
     return { translatedText: String(options?.text || "").trim(), provider: "none", cached: false };
   }
 }
@@ -310,19 +339,19 @@ async function tryTranslateWithGoogle(options) {
 async function translatePostContentToMarathi({ titleEn, category, details, titleMr = null, contentMr = null }) {
   let translatedTitle = String(titleMr || "").trim() || null;
   if (!translatedTitle) {
-    const result = await tryTranslateWithGoogle({ text: titleEn, sourceLang: "en", targetLang: "mr" });
-    translatedTitle = result.provider === "google" ? result.translatedText : null;
+    const result = await tryTranslateWithGemini({ text: titleEn, sourceLang: "en", targetLang: "mr" });
+    translatedTitle = result.provider !== "none" ? result.translatedText : null;
   }
   let translatedContent = contentMr;
   if (!String(translatedContent || "").trim()) {
     const [translatedCategory, translatedDetails] = await Promise.all([
-      tryTranslateWithGoogle({ text: category || "General", sourceLang: "en", targetLang: "mr" }),
-      tryTranslateWithGoogle({ text: details || "", sourceLang: "en", targetLang: "mr" }),
+      tryTranslateWithGemini({ text: category || "General", sourceLang: "en", targetLang: "mr" }),
+      tryTranslateWithGemini({ text: details || "", sourceLang: "en", targetLang: "mr" }),
     ]);
-    translatedContent = translatedCategory.provider === "google" || translatedDetails.provider === "google"
+    translatedContent = translatedCategory.provider !== "none" || translatedDetails.provider !== "none"
       ? JSON.stringify({
-          category: translatedCategory.provider === "google" ? translatedCategory.translatedText : category,
-          details: translatedDetails.provider === "google" ? translatedDetails.translatedText : details,
+          category: translatedCategory.provider !== "none" ? translatedCategory.translatedText : category,
+          details: translatedDetails.provider !== "none" ? translatedDetails.translatedText : details,
         })
       : null;
   }
@@ -1333,7 +1362,7 @@ async function ensurePlatformExtensions() {
       source_hash CHAR(64) NOT NULL,
       source_text TEXT NOT NULL,
       target_text TEXT NOT NULL,
-      provider VARCHAR(40) NOT NULL DEFAULT 'google',
+      provider VARCHAR(40) NOT NULL DEFAULT 'gemini',
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       UNIQUE KEY uq_translation_cache_pair_hash (source_lang, target_lang, source_hash),
@@ -2622,20 +2651,27 @@ app.post("/api/v1/push/unsubscribe", requireRoles("MAIN_ADMIN", "USER_ADMIN", "T
 });
 
 app.post("/api/v1/admin/translate", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
-  const text = String(req.body?.text || "").trim();
-  const sourceLang = normalizeTranslationLanguage(req.body?.sourceLang || "en", "en");
-  const targetLang = normalizeTranslationLanguage(req.body?.targetLang || "mr", "mr");
-  if (!text) {
-    res.status(400).json({ ok: false, error: "Text is required." });
-    return;
-  }
-  if (text.length > 10000) {
-    res.status(400).json({ ok: false, error: "Translate up to 10,000 characters at a time." });
-    return;
-  }
+  try {
+    const text = String(req.body?.text || "").trim();
+    const sourceLang = normalizeTranslationLanguage(req.body?.sourceLang || "en", "en");
+    const targetLang = normalizeTranslationLanguage(req.body?.targetLang || "mr", "mr");
+    if (!text) {
+      res.status(400).json({ ok: false, error: "Text is required." });
+      return;
+    }
+    if (text.length > 10000) {
+      res.status(400).json({ ok: false, error: "Translate up to 10,000 characters at a time." });
+      return;
+    }
 
-  const result = await translateWithGoogle({ text, sourceLang, targetLang, requireProvider: true });
-  res.json({ ok: true, ...result, sourceLang, targetLang });
+    normalizeTranslationPurpose(req.body?.purpose);
+    const result = await translateWithGemini({ text, sourceLang, targetLang, requireProvider: true });
+    res.json({ ok: true, ...result, sourceLang, targetLang });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Translation failed.";
+    const status = message.includes("GEMINI_API_KEY") || message.includes("Gemini translation request failed") ? 502 : 400;
+    res.status(status).json({ ok: false, error: message });
+  }
 });
 
 app.get("/api/v1/trader/notifications", requireRoles("TRADER"), async (req, res) => {

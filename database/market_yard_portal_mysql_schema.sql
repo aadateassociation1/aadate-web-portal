@@ -853,7 +853,7 @@ CREATE TABLE translation_cache (
     source_hash CHAR(64) NOT NULL,
     source_text TEXT NOT NULL,
     target_text TEXT NOT NULL,
-    provider VARCHAR(40) NOT NULL DEFAULT 'google',
+    provider VARCHAR(40) NOT NULL DEFAULT 'gemini',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_translation_cache_pair_hash (source_lang, target_lang, source_hash),

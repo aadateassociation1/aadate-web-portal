@@ -38,8 +38,9 @@ export const config = {
     apiKey: process.env.AISENSY_API_KEY || "",
     campaignName: process.env.AISENSY_CAMPAIGN_NAME || "",
   },
-  googleTranslate: {
-    apiKey: process.env.GOOGLE_TRANSLATE_API_KEY || "",
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY || "",
+    model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
   },
   vapid: {
     publicKey: sanitizeEnvValue(process.env.VAPID_PUBLIC_KEY),
