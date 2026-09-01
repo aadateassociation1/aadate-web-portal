@@ -175,7 +175,7 @@ function Header() {
 function Footer() {
   const { t, lang } = useI18n();
   const ideationPrefix = lang === "mr" ? "\u0938\u0902\u0915\u0932\u094d\u092a\u0928\u093e" : "Ideation by";
-  const chairmanLine = "Chaiman of Shri Chhatrapati Shivaji Market Yard Adte Association";
+  const chairmanLine = "Chairman of Shri Chhatrapati Shivaji Market Yard Adte Association";
   return (
     <footer className="mt-16 bg-primary-dark text-white/90">
       <div className="container-page grid gap-10 py-14 md:grid-cols-4">
