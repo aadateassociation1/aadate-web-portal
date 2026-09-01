@@ -60,7 +60,8 @@ function Home() {
   const { t, lang } = useI18n();
   type PublicContent = { id: number; title_en: string; content_en?: string; published_at: string | null; created_at: string; parsed?: { category?: string; details?: string }; attachments?: Array<{ id: number; attachment_type: string; original_filename: string }> };
   type CommitteeMemberRecord = { id: number; full_name: string; name_mr: string | null; designation: string; designation_mr: string | null; gala_number: string | null; term_label: string | null; message: string | null; photo_url: string | null };
-  type PublicReview = { id: number; rating_value: number; review_text: string | null; reviewer_type: "trader" | "customer"; reviewer_name: string; business_name: string; trader_code: string; trader_name: string; gala_number: string | null; customer_code: string | null; created_at: string; attachments?: Array<{ id: number; attachment_type: "image" | "video"; original_filename: string; mime_type: string; file_size_bytes: number }> };
+  type RatingAttachment = { id: number; attachment_type: "image" | "video"; original_filename: string; mime_type: string; file_size_bytes: number };
+  type PublicReview = { id: number; rating_value: number; review_text: string | null; reviewer_type: "trader" | "customer"; reviewer_name: string; business_name: string; trader_code: string; trader_name: string; gala_number: string | null; customer_code: string | null; created_at: string; attachments?: RatingAttachment[] };
   type PublicComplaintFeedback = { id: number; reaction: string; rating: number; comment: string; category: string; created_at: string };
   type PublicPrice = { item_id: number; category: string; name_en: string; name_mr: string; min_price: number; max_price: number; modal_price: number; unit: string; change_amount: number | null; change_direction: string; published_at: string | null };
   const [updates, setUpdates] = useState<PublicContent[]>([]);
@@ -72,6 +73,7 @@ function Home() {
   const [complaintFeedbackApi, setComplaintFeedbackApi] = useState<CarouselApi>();
   const [prices, setPrices] = useState<PublicPrice[]>([]);
   const [selectedNotice, setSelectedNotice] = useState<PublicContent | null>(null);
+  const [selectedReviewImage, setSelectedReviewImage] = useState<RatingAttachment | null>(null);
   useEffect(() => {
     fetch("/api/v1/public/posts").then((r) => r.json()).then((result) => { if (result.ok) setUpdates(result.posts || []); }).catch(() => undefined);
     fetch("/api/v1/public/notices").then((r) => r.json()).then((result) => { if (result.ok) setNotices(result.notices || []); }).catch(() => undefined);
@@ -654,11 +656,19 @@ function Home() {
                           <p className="mt-4 flex-1 text-sm leading-relaxed text-foreground/80">{review.review_text}</p>
                           {review.attachments && review.attachments.length > 0 && (
                             <div className="mt-4 flex flex-wrap gap-2">
-                              {review.attachments.map((file) => (
-                                <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/public/rating-attachments/${file.id}/download`, "_blank", "noopener,noreferrer")}>
-                                  <Eye className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "View image" : "View video"}
-                                </Button>
-                              ))}
+                              {review.attachments.map((file) => {
+                                const attachmentUrl = `/api/v1/public/rating-attachments/${file.id}/download`;
+                                return (
+                                  <Button
+                                    key={file.id}
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => file.attachment_type === "image" ? setSelectedReviewImage(file) : window.open(attachmentUrl, "_blank", "noopener,noreferrer")}
+                                  >
+                                    <Eye className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "View image" : "View video"}
+                                  </Button>
+                                );
+                              })}
                             </div>
                           )}
                           <div className="mt-5 rounded-lg bg-secondary/40 p-3">
@@ -753,6 +763,23 @@ function Home() {
           </div>
         </div>
       </section>
+      <Dialog open={!!selectedReviewImage} onOpenChange={(open) => !open && setSelectedReviewImage(null)}>
+        <DialogContent className="max-w-4xl p-4 sm:p-6">
+          {selectedReviewImage && (
+            <>
+              <DialogHeader className="pr-8">
+                <DialogTitle className="text-base text-primary-dark">{selectedReviewImage.original_filename || "Review image"}</DialogTitle>
+                <DialogDescription>Portal feedback image preview</DialogDescription>
+              </DialogHeader>
+              <img
+                src={`/api/v1/public/rating-attachments/${selectedReviewImage.id}/download`}
+                alt={selectedReviewImage.original_filename || "Review image"}
+                className="max-h-[78vh] w-full rounded-lg bg-secondary/30 object-contain"
+              />
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </SiteLayout>
   );
 }

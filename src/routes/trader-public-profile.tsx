@@ -3,6 +3,7 @@ import { SiteLayout } from "@/components/public/SiteLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Building2, Eye, MapPin, Phone, Star, Store } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -29,12 +30,14 @@ type TraderProfile = {
   district: string;
 };
 
+type ReviewAttachment = { id: number; attachment_type: "image" | "video"; original_filename: string };
+
 type Review = {
   rating_value: number;
   review_text: string | null;
   created_at: string;
   reviewer_name: string | null;
-  attachments?: Array<{ id: number; attachment_type: "image" | "video"; original_filename: string }>;
+  attachments?: ReviewAttachment[];
 };
 
 type RatingSummary = {
@@ -59,6 +62,7 @@ function PublicTraderProfile() {
   const [summary, setSummary] = useState<RatingSummary>({ review_count: 0, average_rating: null });
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedReviewImage, setSelectedReviewImage] = useState<ReviewAttachment | null>(null);
   const { lang } = useI18n();
 
   const loadProfile = async () => {
@@ -142,11 +146,19 @@ function PublicTraderProfile() {
                           {review.review_text && <p className="mt-3 text-sm text-foreground/80">{review.review_text}</p>}
                           {review.attachments && review.attachments.length > 0 && (
                             <div className="mt-3 flex flex-wrap gap-2">
-                              {review.attachments.map((file) => (
-                                <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/public/rating-attachments/${file.id}/download`, "_blank", "noopener,noreferrer")}>
-                                  <Eye className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "View image" : "View video"}
-                                </Button>
-                              ))}
+                              {review.attachments.map((file) => {
+                                const attachmentUrl = `/api/v1/public/rating-attachments/${file.id}/download`;
+                                return (
+                                  <Button
+                                    key={file.id}
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => file.attachment_type === "image" ? setSelectedReviewImage(file) : window.open(attachmentUrl, "_blank", "noopener,noreferrer")}
+                                  >
+                                    <Eye className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "View image" : "View video"}
+                                  </Button>
+                                );
+                              })}
                             </div>
                           )}
                           <div className="mt-2 text-xs text-muted-foreground">By {review.reviewer_name || "Portal user"}</div>
@@ -171,6 +183,23 @@ function PublicTraderProfile() {
           )}
         </div>
       </section>
+      <Dialog open={!!selectedReviewImage} onOpenChange={(open) => !open && setSelectedReviewImage(null)}>
+        <DialogContent className="max-w-4xl p-4 sm:p-6">
+          {selectedReviewImage && (
+            <>
+              <DialogHeader className="pr-8">
+                <DialogTitle className="text-base text-primary-dark">{selectedReviewImage.original_filename || "Review image"}</DialogTitle>
+                <DialogDescription>Portal review image preview</DialogDescription>
+              </DialogHeader>
+              <img
+                src={`/api/v1/public/rating-attachments/${selectedReviewImage.id}/download`}
+                alt={selectedReviewImage.original_filename || "Review image"}
+                className="max-h-[78vh] w-full rounded-lg bg-secondary/30 object-contain"
+              />
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </SiteLayout>
   );
 }
