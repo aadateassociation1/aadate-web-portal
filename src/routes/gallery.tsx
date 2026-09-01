@@ -6,9 +6,9 @@ import { Camera, Play } from "lucide-react";
 export const Route = createFileRoute("/gallery")({
   head: () => ({
     meta: [
-      { title: "Photo & Video Gallery - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { title: "Photo & Video Gallery - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { name: "description", content: "Photographs and videos of market yard events, meetings and activities." },
-      { property: "og:title", content: "Gallery - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { property: "og:title", content: "Gallery - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { property: "og:description", content: "Moments from the market yard." },
     ],
   }),

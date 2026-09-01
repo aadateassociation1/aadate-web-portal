@@ -11,7 +11,7 @@ import { toast } from "sonner";
 const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
 
 export const Route = createFileRoute("/forgot-password")({
-  head: () => ({ meta: [{ title: "Forgot Password - Shri Chhatrapati Shivaji Market Yard Adte Association Portal" }] }),
+  head: () => ({ meta: [{ title: "Forgot Password - Shree Chhatrapati Shivaji Market Yard Adte Association Portal" }] }),
   component: ForgotPasswordPage,
 });
 

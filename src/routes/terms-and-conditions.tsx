@@ -7,7 +7,7 @@ import { AlertTriangle, CheckCircle2, FileCheck2, Mail, ShieldCheck, UserCog } f
 export const Route = createFileRoute("/terms-and-conditions")({
   head: () => ({
     meta: [
-      { title: "Terms & Conditions - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { title: "Terms & Conditions - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { name: "description", content: "Terms for using the Market Yard digital portal, member dashboards, complaints, notices, and public content." },
     ],
   }),
@@ -30,7 +30,7 @@ function TermsAndConditions() {
             <span className="text-xs font-bold uppercase tracking-wider text-primary">Portal terms</span>
             <h1 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Terms & Conditions</h1>
             <p className="mt-4 text-justify leading-relaxed text-muted-foreground [hyphens:auto]">
-              By using the Shri Chhatrapati Shivaji Market Yard Adte Association digital portal, members, customers, and authorised administrators agree to use the platform responsibly for association services and official communication.
+              By using the Shree Chhatrapati Shivaji Market Yard Adte Association digital portal, members, customers, and authorised administrators agree to use the platform responsibly for association services and official communication.
             </p>
           </div>
         </div>

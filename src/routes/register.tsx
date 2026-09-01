@@ -11,7 +11,7 @@ import { CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/register")({
-  head: () => ({ meta: [{ title: "Member Registration - Shri Chhatrapati Shivaji Market Yard Adte Association Portal" }, { name: "description", content: "Member registration form." }] }),
+  head: () => ({ meta: [{ title: "Member Registration - Shree Chhatrapati Shivaji Market Yard Adte Association Portal" }, { name: "description", content: "Member registration form." }] }),
   component: Register,
 });
 

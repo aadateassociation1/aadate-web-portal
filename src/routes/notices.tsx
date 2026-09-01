@@ -18,9 +18,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/notices")({
   head: () => ({
     meta: [
-      { title: "Notices & Documents - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { title: "Notices & Documents - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { name: "description", content: "Official notices, circulars and downloadable documents for Members." },
-      { property: "og:title", content: "Notices & Documents - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { property: "og:title", content: "Notices & Documents - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { property: "og:description", content: "Access all official notices and market yard documents." },
     ],
   }),
@@ -76,7 +76,7 @@ function Notices() {
     }
     const fileName = notice.attachment.replace(/\.pdf$/i, ".txt");
     const report = [
-      "Shri Chhatrapati Shivaji Market Yard Adte Association",
+      "Shree Chhatrapati Shivaji Market Yard Adte Association",
       "Official Notice",
       "",
       `Notice No: ${notice.number}`,

@@ -7,9 +7,9 @@ import marketyardImg from "@/assets/marketyard.webp";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About Us - Shri Chhatrapati Shivaji Market Yard Adte Association" },
-      { name: "description", content: "History, mission, vision and objectives of Shri Chhatrapati Shivaji Market Yard Adte Association." },
-      { property: "og:title", content: "About Us - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { title: "About Us - Shree Chhatrapati Shivaji Market Yard Adte Association" },
+      { name: "description", content: "History, mission, vision and objectives of Shree Chhatrapati Shivaji Market Yard Adte Association." },
+      { property: "og:title", content: "About Us - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { property: "og:description", content: "Serving 850+ Members with transparent digital administration since 2009." },
     ],
   }),
@@ -25,7 +25,7 @@ function About() {
           <div>
             <h2 className="font-display text-3xl font-bold text-primary-dark">Our Story</h2>
             <p className="mt-4 text-justify leading-relaxed text-muted-foreground [hyphens:auto]">
-              Shri Chhatrapati Shivaji Market Yard Adte Association serves Members and commission agents operating from the Market Yard at Gultekdi, Pune. The association office is located on the first floor of Pan Bazar Building, Shri Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.
+              Shree Chhatrapati Shivaji Market Yard Adte Association serves Members and commission agents operating from the Market Yard at Gultekdi, Pune. The association office is located on the first floor of Pan Bazar Building, Shree Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.
             </p>
             <p className="mt-4 text-justify leading-relaxed text-muted-foreground [hyphens:auto]">
               With the launch of this digital portal in 2026, every Member now has 24/7 access to market updates, official notices, complaint filing and administration in both English and Marathi.

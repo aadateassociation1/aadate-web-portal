@@ -11,7 +11,7 @@ import type { UserRole } from "@/lib/mock";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Login - Shri Chhatrapati Shivaji Market Yard Adte Association Portal" }, { name: "description", content: "Sign in to the Shri Chhatrapati Shivaji Market Yard Adte Association portal as Member or admin." }] }),
+  head: () => ({ meta: [{ title: "Login - Shree Chhatrapati Shivaji Market Yard Adte Association Portal" }, { name: "description", content: "Sign in to the Shree Chhatrapati Shivaji Market Yard Adte Association portal as Member or admin." }] }),
   component: LoginPage,
 });
 

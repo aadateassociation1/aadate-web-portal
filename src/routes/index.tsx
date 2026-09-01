@@ -19,10 +19,10 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Shri Chhatrapati Shivaji Market Yard Adte Association - Digital Portal" },
+      { title: "Shree Chhatrapati Shivaji Market Yard Adte Association - Digital Portal" },
       { name: "description", content: "Connecting 850+ Members with market yard administration. Market updates, notices, complaints, official documents." },
-      { property: "og:title", content: "Shri Chhatrapati Shivaji Market Yard Adte Association - Digital Portal" },
-      { property: "og:description", content: "Secure digital platform for Members of Shri Chhatrapati Shivaji Market Yard Adte Association." },
+      { property: "og:title", content: "Shree Chhatrapati Shivaji Market Yard Adte Association - Digital Portal" },
+      { property: "og:description", content: "Secure digital platform for Members of Shree Chhatrapati Shivaji Market Yard Adte Association." },
     ],
   }),
   component: Home,
@@ -223,7 +223,7 @@ function Home() {
       return;
     }
     const report = [
-      "Shri Chhatrapati Shivaji Market Yard Adte Association",
+      "Shree Chhatrapati Shivaji Market Yard Adte Association",
       "Official Notice",
       "",
       `Title: ${notice.title_en}`,
@@ -310,7 +310,7 @@ function Home() {
               Serving Maharashtra's farmers &amp; Members since 2009
             </h2>
             <p className="mt-5 text-muted-foreground leading-relaxed">
-              Shri Chhatrapati Shivaji Market Yard Adte Association represents Members
+              Shree Chhatrapati Shivaji Market Yard Adte Association represents Members
               operating from the Market Yard at Gultekdi, Pune. Our digital
               transformation initiative delivers transparent administration, faster complaint resolution
               and instant access to notices - all in Marathi and English.

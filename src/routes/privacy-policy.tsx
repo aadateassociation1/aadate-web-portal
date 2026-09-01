@@ -7,7 +7,7 @@ import { Database, FileText, LockKeyhole, Mail, ShieldCheck, UserCheck } from "l
 export const Route = createFileRoute("/privacy-policy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { title: "Privacy Policy - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { name: "description", content: "Privacy practices for the Market Yard digital portal, member records, complaints, notices, and gallery content." },
     ],
   }),
@@ -30,7 +30,7 @@ function PrivacyPolicy() {
             <span className="text-xs font-bold uppercase tracking-wider text-primary">Portal policy</span>
             <h1 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Privacy Policy</h1>
             <p className="mt-4 text-justify leading-relaxed text-muted-foreground [hyphens:auto]">
-              Shri Chhatrapati Shivaji Market Yard Adte Association uses this digital portal to provide member services, notices, complaint handling, gallery publishing, and administrative workflows. This policy explains how portal information is collected, used, and protected.
+              Shree Chhatrapati Shivaji Market Yard Adte Association uses this digital portal to provide member services, notices, complaint handling, gallery publishing, and administrative workflows. This policy explains how portal information is collected, used, and protected.
             </p>
           </div>
         </div>

@@ -9,9 +9,9 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/chairman")({
   head: () => ({
     meta: [
-      { title: "Chairman & Committee - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { title: "Chairman & Committee - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { name: "description", content: "Meet our current chairman, lobby chairman, past chairmen and committee Members." },
-      { property: "og:title", content: "Chairman & Committee - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { property: "og:title", content: "Chairman & Committee - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { property: "og:description", content: "Leadership serving 850+ Members." },
     ],
   }),

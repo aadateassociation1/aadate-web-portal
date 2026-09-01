@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin Dashboard - Shri Chhatrapati Shivaji Market Yard Adte Association" }] }),
+  head: () => ({ meta: [{ title: "Admin Dashboard - Shree Chhatrapati Shivaji Market Yard Adte Association" }] }),
   component: AdminDash,
 });
 

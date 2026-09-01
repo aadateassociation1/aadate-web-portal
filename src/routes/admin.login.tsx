@@ -13,7 +13,7 @@ import type { UserRole } from "@/lib/mock";
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
     meta: [
-      { title: "Admin Login - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { title: "Admin Login - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { name: "description", content: "Hidden admin hub login for Main Admin and User Admin." },
     ],
   }),

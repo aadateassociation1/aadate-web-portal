@@ -19,9 +19,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/updates")({
   head: () => ({
     meta: [
-      { title: "Market Updates - Daily Rates & News | Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { title: "Market Updates - Daily Rates & News | Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { name: "description", content: "Daily vegetable, fruit, grain prices and market yard news." },
-      { property: "og:title", content: "Market Updates - Shri Chhatrapati Shivaji Market Yard Adte Association" },
+      { property: "og:title", content: "Market Updates - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { property: "og:description", content: "Live market rates and yard news." },
     ],
   }),
@@ -83,7 +83,7 @@ function Updates() {
     const title = lang === "mr" ? update.titleMr : update.title;
     const fileName = `${update.id}-${update.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}.txt`;
     const report = [
-      "Shri Chhatrapati Shivaji Market Yard Adte Association",
+      "Shree Chhatrapati Shivaji Market Yard Adte Association",
       "Market Update Report",
       "",
       `Update ID: ${update.id}`,

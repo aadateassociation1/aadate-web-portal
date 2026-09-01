@@ -22,10 +22,10 @@ const NAV = [
   { to: "/contact", key: "nav.contact" as const },
 ];
 
-const ASSOCIATION_NAME = "Shri Chhatrapati Shivaji Market Yard Adte Association";
+const ASSOCIATION_NAME = "Shree Chhatrapati Shivaji Market Yard Adte Association";
 const ASSOCIATION_REGISTRATION = "Registration No.: Maharashtra-1026/2013";
 const ASSOCIATION_PTR = "P.T.R. No.: F. 41841 / Pune";
-const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shri Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
+const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shree Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
 const ASSOCIATION_EMAIL = "aadateassociation1@gmail.com";
 const ASSOCIATION_MAP_URL = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d121086.05561617303!2d73.71149379726565!3d18.486411300000007!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c022bfffffff%3A0xdca80b98f93f015e!2sShree%20Chatrapati%20Shivaji%20Market%20Yard%20Adate%20Assoc!5e0!3m2!1sen!2sin!4v1788258576279!5m2!1sen!2sin";
 
@@ -177,7 +177,7 @@ function Footer() {
   const { t, lang } = useI18n();
   const { user } = useAuth();
   const ideationPrefix = lang === "mr" ? "\u0938\u0902\u0915\u0932\u094d\u092a\u0928\u093e" : "Ideation by";
-  const chairmanLine = "Chairman of Shri Chhatrapati Shivaji Market Yard Adte Association";
+  const chairmanLine = "Chairman of Shree Chhatrapati Shivaji Market Yard Adte Association";
   const marketUpdatesLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/market-prices" : user?.role === "owner" ? "/member/market-prices" : "/market-prices";
   const complaintLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/complaints" : user?.role === "owner" ? "/member/new-complaint" : "/login";
   return (

@@ -12,7 +12,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/owner")({
-  head: () => ({ meta: [{ title: "Member Dashboard - Shri Chhatrapati Shivaji Market Yard Adte Association" }] }),
+  head: () => ({ meta: [{ title: "Member Dashboard - Shree Chhatrapati Shivaji Market Yard Adte Association" }] }),
   component: OwnerDash,
 });
 

@@ -9,10 +9,10 @@ import { Label } from "@/components/ui/label";
 import { MapPin, Phone, Mail, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
-const ASSOCIATION_NAME = "Shri Chhatrapati Shivaji Market Yard Adte Association";
+const ASSOCIATION_NAME = "Shree Chhatrapati Shivaji Market Yard Adte Association";
 const ASSOCIATION_REGISTRATION = "Registration No.: Maharashtra-1026/2013";
 const ASSOCIATION_PTR = "P.T.R. No.: F. 41841 / Pune";
-const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shri Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
+const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shree Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
 const ASSOCIATION_EMAIL = "aadateassociation1@gmail.com";
 const ASSOCIATION_MAP_URL = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d121086.05561617303!2d73.71149379726565!3d18.486411300000007!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c022bfffffff%3A0xdca80b98f93f015e!2sShree%20Chatrapati%20Shivaji%20Market%20Yard%20Adate%20Assoc!5e0!3m2!1sen!2sin!4v1788258576279!5m2!1sen!2sin";
 const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
@@ -82,7 +82,7 @@ function Contact() {
             <Card className="border-border/60 overflow-hidden">
               <iframe
                 src={ASSOCIATION_MAP_URL}
-                title="Shri Chhatrapati Shivaji Market Yard Adte Association location"
+                title="Shree Chhatrapati Shivaji Market Yard Adte Association location"
                 className="aspect-[16/9] w-full border-0"
                 allowFullScreen
                 loading="lazy"

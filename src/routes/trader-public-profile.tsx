@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/traders/$id")({
-  head: () => ({ meta: [{ title: "Member Profile - Shri Chhatrapati Shivaji Market Yard Adte Association" }] }),
+  head: () => ({ meta: [{ title: "Member Profile - Shree Chhatrapati Shivaji Market Yard Adte Association" }] }),
   component: PublicTraderProfile,
 });
 

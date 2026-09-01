@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/reviews")({
-  head: () => ({ meta: [{ title: "Rating Reviews - Shri Chhatrapati Shivaji Market Yard Adte Association" }] }),
+  head: () => ({ meta: [{ title: "Rating Reviews - Shree Chhatrapati Shivaji Market Yard Adte Association" }] }),
   component: AdminReviews,
 });
 
