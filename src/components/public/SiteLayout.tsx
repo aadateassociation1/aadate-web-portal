@@ -174,8 +174,11 @@ function Header() {
 
 function Footer() {
   const { t, lang } = useI18n();
+  const { user } = useAuth();
   const ideationPrefix = lang === "mr" ? "\u0938\u0902\u0915\u0932\u094d\u092a\u0928\u093e" : "Ideation by";
   const chairmanLine = "Chairman of Shri Chhatrapati Shivaji Market Yard Adte Association";
+  const marketUpdatesLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/market-prices" : user?.role === "owner" ? "/member/market-prices" : "/market-prices";
+  const complaintLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/complaints" : user?.role === "owner" ? "/member/new-complaint" : "/login";
   return (
     <footer className="mt-16 bg-primary-dark text-white/90">
       <div className="container-page grid gap-10 py-14 md:grid-cols-4">
@@ -206,11 +209,11 @@ function Footer() {
         </div>
         <div>
           <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider text-saffron">Services</h4>
-          <ul className="space-y-2 text-sm text-white/70">
-            <li>Daily Market Updates</li>
-            <li>Raise a Complaint</li>
-            <li>Privacy Policy</li>
-            <li>Terms & Conditions</li>
+          <ul className="space-y-2 text-sm">
+            <li><Link to={marketUpdatesLink} className="inline-flex items-center gap-1 text-white/70 hover:text-white"><ChevronRight className="h-3.5 w-3.5" /> Daily Market Updates</Link></li>
+            <li><Link to={complaintLink} className="inline-flex items-center gap-1 text-white/70 hover:text-white"><ChevronRight className="h-3.5 w-3.5" /> Raise a Complaint</Link></li>
+            <li><Link to="/privacy-policy" className="inline-flex items-center gap-1 text-white/70 hover:text-white"><ChevronRight className="h-3.5 w-3.5" /> Privacy Policy</Link></li>
+            <li><Link to="/terms-and-conditions" className="inline-flex items-center gap-1 text-white/70 hover:text-white"><ChevronRight className="h-3.5 w-3.5" /> Terms & Conditions</Link></li>
           </ul>
         </div>
         <div>

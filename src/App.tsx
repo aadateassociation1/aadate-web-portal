@@ -14,6 +14,8 @@ import { Route as NoticesRoute } from "@/routes/notices";
 import { Route as GalleryRoute } from "@/routes/gallery";
 import { Route as MarketPricesRoute } from "@/routes/market-prices";
 import { Route as ContactRoute } from "@/routes/contact";
+import { Route as PrivacyPolicyRoute } from "@/routes/privacy-policy";
+import { Route as TermsAndConditionsRoute } from "@/routes/terms-and-conditions";
 import { Route as LoginRoute } from "@/routes/login";
 import { Route as ForgotPasswordRoute } from "@/routes/forgot-password";
 import { Route as RegisterRoute } from "@/routes/register";
@@ -70,6 +72,8 @@ const ROUTES: Record<string, LocalRoute> = {
   "/gallery": GalleryRoute,
   "/market-prices": MarketPricesRoute,
   "/contact": ContactRoute,
+  "/privacy-policy": PrivacyPolicyRoute,
+  "/terms-and-conditions": TermsAndConditionsRoute,
   "/login": LoginRoute,
   "/forgot-password": ForgotPasswordRoute,
   "/register": RegisterRoute,
