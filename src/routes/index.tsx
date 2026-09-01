@@ -313,7 +313,7 @@ function Home() {
               Shree Chhatrapati Shivaji Market Yard Adte Association brings market notices, member services, complaints, gallery updates and daily market information into one simple digital portal for traders, gala owners and administrators at Gultekdi, Pune.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              {["Market notices in one place", "Online complaint tracking", "Member and admin dashboards", "Marathi and English access"].map((f) => (
+              {["Market notices in one place", "Online complaint tracking", "Gala and profile services", "Public gallery updates"].map((f) => (
                 <div key={f} className="flex items-start gap-2 text-sm">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary-fresh" /> {f}
                 </div>
