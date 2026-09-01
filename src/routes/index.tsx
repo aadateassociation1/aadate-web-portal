@@ -365,13 +365,12 @@ function Home() {
             <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">{chairmanCopy.title}</h2>
           </div>
           <div className="mx-auto mt-10 max-w-6xl">
-            {chairman && (
-              <Card className="overflow-hidden border-border/60 shadow-sm">
+            <Card className="overflow-hidden border-border/60 shadow-sm">
                 <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,54%)_minmax(0,46%)]">
                   <div className="relative min-h-[420px] bg-secondary sm:min-h-[500px] lg:min-h-[560px]">
                     <img
-                      src={chairman.photo_url || sourabhKunjirImg}
-                      alt={chairman.full_name}
+                      src={chairman?.photo_url || sourabhKunjirImg}
+                      alt={chairman?.full_name || "Shri. Sourabh Kunjir"}
                       className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
                     />
                     <div className="absolute left-5 top-5">
@@ -382,7 +381,7 @@ function Home() {
                     <Badge variant="outline" className="w-fit border-primary text-primary">{chairmanCopy.role}</Badge>
                     <h3 className="mt-4 font-display text-3xl font-bold text-primary-dark sm:text-4xl">{chairmanCopy.name}</h3>
                     {chairmanCopy.secondaryName && <div className="mt-1 text-base text-muted-foreground">{chairmanCopy.secondaryName}</div>}
-                    {chairman.term_label && <div className="mt-3 text-sm font-semibold text-primary">{chairmanCopy.term}: {chairman.term_label}</div>}
+                    {chairman?.term_label && <div className="mt-3 text-sm font-semibold text-primary">{chairmanCopy.term}: {chairman.term_label}</div>}
                     <p className="mt-5 text-base leading-relaxed text-foreground/80">
                       {chairmanCopy.intro}
                     </p>
@@ -398,8 +397,7 @@ function Home() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            )}
+            </Card>
           </div>
 
           {/* Committee */}
