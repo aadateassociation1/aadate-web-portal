@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   Menu, X,
   Clock, Mail,
-  Facebook, Twitter, Youtube, MapPin, ChevronRight,
+  MapPin, ChevronRight,
   ArrowUp, UserCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -191,11 +191,6 @@ function Footer() {
             {ASSOCIATION_REGISTRATION}<br />
             {ASSOCIATION_PTR}
           </p>
-          <div className="mt-4 flex gap-3">
-            <a className="grid h-9 w-9 place-items-center rounded-full bg-white/10 transition hover:bg-saffron hover:text-primary-dark"><Facebook className="h-4 w-4" /></a>
-            <a className="grid h-9 w-9 place-items-center rounded-full bg-white/10 transition hover:bg-saffron hover:text-primary-dark"><Twitter className="h-4 w-4" /></a>
-            <a className="grid h-9 w-9 place-items-center rounded-full bg-white/10 transition hover:bg-saffron hover:text-primary-dark"><Youtube className="h-4 w-4" /></a>
-          </div>
         </div>
         <div>
           <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider text-saffron">Quick Links</h4>
@@ -214,9 +209,6 @@ function Footer() {
           <ul className="space-y-2 text-sm text-white/70">
             <li>Daily Market Updates</li>
             <li>Raise a Complaint</li>
-            <li>Download Notices</li>
-            <li>Mobile Number Change</li>
-            <li>Portal Guidelines</li>
             <li>Privacy Policy</li>
             <li>Terms & Conditions</li>
           </ul>
