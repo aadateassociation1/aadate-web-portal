@@ -1607,7 +1607,9 @@ type DashboardPost = {
   id: number;
   post_type: string;
   title_en: string;
-  content_en?: string;
+  title_mr?: string | null;
+  content_en?: string | null;
+  content_mr?: string | null;
   status: string;
   created_at: string;
   published_at?: string | null;
@@ -1620,6 +1622,7 @@ type DashboardPost = {
   share_category_id?: number | null;
   share_category_name?: string | null;
   parsed?: { category?: string; details?: string };
+  parsed_mr?: { category?: string; details?: string };
   attachments?: PostAttachment[];
 };
 
@@ -4687,14 +4690,45 @@ export function OwnerNoticesPage() {
   return <OwnerDbContentPage title="Notices & Documents" subtitle="Official documents, circulars, meeting notices, and files visible to your Member category." icon={FileText} items={items} attachmentBase="/api/v1/trader/content-attachments" />;
 }
 
+function parseDashboardPostContent(value?: string | null) {
+  try {
+    const parsed = JSON.parse(value || "{}");
+    return {
+      category: String(parsed.category || "").trim(),
+      details: String(parsed.details || "").trim(),
+    };
+  } catch {
+    return { category: "", details: String(value || "").trim() };
+  }
+}
+
 function OwnerDbContentPage({ title, subtitle, icon: Icon, items, attachmentBase = "/api/v1/public/content-attachments" }: { title: string; subtitle: string; icon: React.ElementType; items: DashboardPost[]; attachmentBase?: string }) {
+  const { lang } = useI18n();
+  const isMr = lang === "mr";
+  const displayPost = (item: DashboardPost) => {
+    const en = item.parsed || parseDashboardPostContent(item.content_en);
+    const mr = item.parsed_mr || parseDashboardPostContent(item.content_mr);
+    return isMr
+      ? {
+          title: item.title_mr || item.title_en,
+          category: mr.category || en.category || "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940",
+          details: mr.details || en.details || "",
+        }
+      : {
+          title: item.title_en,
+          category: en.category || "General",
+          details: en.details || "",
+        };
+  };
   return (
     <DashLayout kind="owner">
       <PageTitle title={title} subtitle={subtitle} />
-      <Card className="border-border/60"><CardContent className="p-4 sm:p-6"><div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><SearchBar /><Button variant="outline" className="w-full sm:w-auto">Filter</Button></div><div className="grid gap-3 md:grid-cols-2">{items.map((item) => {
+      <Card className="border-border/60"><CardContent className="p-4 sm:p-6"><div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><SearchBar /><Button variant="outline" className="w-full sm:w-auto">{isMr ? "\u092b\u093f\u0932\u094d\u091f\u0930" : "Filter"}</Button></div><div className="grid gap-3 md:grid-cols-2">{items.map((item) => {
         const image = (item.attachments || []).find((file) => file.attachment_type === "image");
-        return <div key={item.id} className="overflow-hidden rounded-lg border bg-background">{image && <img src={`${attachmentBase}/${image.id}/download`} className="h-40 w-full bg-secondary/30 object-contain sm:h-44" />}<div className="p-4"><div className="flex items-start gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><Icon className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{item.parsed?.category || "General"} - {new Date(item.published_at || item.created_at).toLocaleDateString("en-IN")}</div><h3 className="mt-1 whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{item.title_en}</h3><p className="mt-1 whitespace-normal break-words text-sm leading-5 text-muted-foreground">{item.parsed?.details || ""}</p>{item.share_audience === "category" && <div className="mt-2 text-xs font-semibold text-primary">Visible to {item.share_category_name || "your category"}</div>}</div></div><div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">{(item.attachments || []).map((file) => <Button key={file.id} size="sm" variant="outline" className="w-full justify-start sm:w-auto" onClick={() => window.open(`${attachmentBase}/${file.id}/download?download=1`, "_blank")}><Download className="mr-1 h-4 w-4 shrink-0" /> <span className="truncate">{file.original_filename}</span></Button>)}</div></div></div>;
-      })}</div>{items.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No published content yet.</div>}</CardContent></Card>
+        const display = displayPost(item);
+        const visibleTo = item.share_audience === "category" ? item.share_category_name || (isMr ? "\u0924\u0941\u092e\u091a\u094d\u092f\u093e \u0935\u093f\u092d\u093e\u0917\u093e\u0932\u093e" : "your category") : isMr ? "\u0938\u0930\u094d\u0935 \u0938\u092d\u093e\u0938\u0926\u093e\u0902\u0928\u093e" : "All Members";
+        return <div key={item.id} className="overflow-hidden rounded-lg border bg-background">{image && <img src={`${attachmentBase}/${image.id}/download`} className="h-40 w-full bg-secondary/30 object-contain sm:h-44" />}<div className="p-4"><div className="flex items-start gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary"><Icon className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-xs text-muted-foreground">{display.category} - {new Date(item.published_at || item.created_at).toLocaleDateString(isMr ? "mr-IN" : "en-IN")}</div><h3 className="mt-1 whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{display.title}</h3><p className="mt-1 whitespace-normal break-words text-sm leading-5 text-muted-foreground">{display.details}</p>{item.share_audience === "category" && <div className="mt-2 text-xs font-semibold text-primary">{isMr ? "\u0926\u093f\u0938\u0923\u093e\u0930" : "Visible to"} {visibleTo}</div>}</div></div><div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">{(item.attachments || []).map((file) => <Button key={file.id} size="sm" variant="outline" className="w-full justify-start sm:w-auto" onClick={() => window.open(`${attachmentBase}/${file.id}/download?download=1`, "_blank")}><Download className="mr-1 h-4 w-4 shrink-0" /> <span className="truncate">{file.original_filename}</span></Button>)}</div></div></div>;
+      })}</div>{items.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">{isMr ? "\u0905\u091c\u0942\u0928 \u0915\u094b\u0923\u0924\u0940\u0939\u0940 \u092a\u094d\u0930\u0915\u093e\u0936\u093f\u0924 \u092e\u093e\u0939\u093f\u0924\u0940 \u0928\u093e\u0939\u0940." : "No published content yet."}</div>}</CardContent></Card>
     </DashLayout>
   );
 }
