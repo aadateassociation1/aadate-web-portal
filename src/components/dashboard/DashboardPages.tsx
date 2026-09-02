@@ -2479,7 +2479,7 @@ export function AdminMobileRequestsPage() {
                 {requests.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="break-all font-mono text-[11px] leading-tight">{r.request_code}</TableCell>
-                    <TableCell>{r.trader_name}<div className="text-xs text-muted-foreground">Gala {r.gala_number || "-"} ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· {r.trader_code}</div></TableCell>
+                    <TableCell>{r.trader_name}<div className="text-xs text-muted-foreground">Gala {r.gala_number || "-"} - {r.trader_code}</div></TableCell>
                     <TableCell className="whitespace-normal break-all font-mono text-xs">{r.old_mobile}</TableCell>
                     <TableCell className="whitespace-normal break-all font-mono text-xs">{r.new_mobile}</TableCell>
                     <TableCell className="whitespace-normal text-sm leading-snug">{r.reason}</TableCell>
