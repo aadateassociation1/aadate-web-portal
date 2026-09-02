@@ -29,15 +29,38 @@ export const Route = createFileRoute("/updates")({
 });
 
 const CATS = ["All", "Market arrivals", "Vegetable prices", "Grain prices", "Weather alert", "Market holiday", "Water or electricity update", "Traffic or parking update", "General market news"];
+const CAT_MR: Record<string, string> = {
+  All: "\u0938\u0930\u094d\u0935",
+  "Market arrivals": "\u092c\u093e\u091c\u093e\u0930 \u0906\u0935\u0915",
+  "Vegetable prices": "\u092d\u093e\u091c\u0940\u092a\u093e\u0932\u093e \u0926\u0930",
+  "Grain prices": "\u0927\u093e\u0928\u094d\u092f \u0926\u0930",
+  "Weather alert": "\u0939\u0935\u093e\u092e\u093e\u0928 \u0938\u0942\u091a\u0928\u093e",
+  "Market holiday": "\u092c\u093e\u091c\u093e\u0930 \u0938\u0941\u091f\u094d\u091f\u0940",
+  "Water or electricity update": "\u092a\u093e\u0923\u0940 \u0935 \u0935\u0940\u091c \u092e\u093e\u0939\u093f\u0924\u0940",
+  "Traffic or parking update": "\u0935\u093e\u0939\u0924\u0942\u0915 \u0935 \u092a\u093e\u0930\u094d\u0915\u093f\u0902\u0917 \u092e\u093e\u0939\u093f\u0924\u0940",
+  "General market news": "\u0938\u093e\u092e\u093e\u0928\u094d\u092f \u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940",
+};
 
 function Updates() {
   type UpdateAttachment = { id: number; attachment_type: "image" | "video" | "document"; original_filename: string };
-  type DbMarketUpdate = MarketUpdate & { attachments?: UpdateAttachment[] };
+  type DbMarketUpdate = MarketUpdate & { categoryMr?: string; summaryMr?: string; attachments?: UpdateAttachment[] };
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("All");
   const [selected, setSelected] = useState<DbMarketUpdate | null>(null);
   const [apiUpdates, setApiUpdates] = useState<DbMarketUpdate[]>([]);
   const { lang } = useI18n();
+  const isMr = lang === "mr";
+  const parsePostContent = (value?: string | null) => {
+    try {
+      const parsed = JSON.parse(value || "{}");
+      return {
+        category: String(parsed.category || "").trim(),
+        details: String(parsed.details || "").trim(),
+      };
+    } catch {
+      return { category: "", details: String(value || "").trim() };
+    }
+  };
 
   useEffect(() => {
     fetch("/api/v1/public/posts")
@@ -49,21 +72,29 @@ function Updates() {
           title_en: string;
           title_mr: string | null;
           content_en: string | null;
+          content_mr: string | null;
           published_at: string | null;
           attachments?: UpdateAttachment[];
-        }) => ({
-          id: `DB-${post.id}`,
-          title: post.title_en,
-          titleMr: post.title_mr || post.title_en,
-          category: (() => { try { return JSON.parse(post.content_en || "{}").category || "General market news"; } catch { return "General market news"; } })(),
-          summary: (() => { try { return JSON.parse(post.content_en || "{}").details || post.content_en || "Published by market yard administration."; } catch { return post.content_en || "Published by market yard administration."; } })(),
-          date: post.published_at || new Date().toISOString(),
-          publishedBy: "Admin Hub",
-          views: 0,
-          featured: false,
-          emergency: false,
-          attachments: post.attachments || [],
-        })));
+        }) => {
+          const en = parsePostContent(post.content_en);
+          const mr = parsePostContent(post.content_mr);
+          const fallbackDetails = "Published by market yard administration.";
+          return {
+            id: `DB-${post.id}`,
+            title: post.title_en,
+            titleMr: post.title_mr || post.title_en,
+            category: en.category || "General market news",
+            categoryMr: mr.category || CAT_MR[en.category] || "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940",
+            summary: en.details || post.content_en || fallbackDetails,
+            summaryMr: mr.details || post.title_mr || en.details || post.content_en || fallbackDetails,
+            date: post.published_at || new Date().toISOString(),
+            publishedBy: "Admin Hub",
+            views: 0,
+            featured: false,
+            emergency: false,
+            attachments: post.attachments || [],
+          };
+        }));
       })
       .catch(() => undefined);
   }, []);
@@ -80,23 +111,25 @@ function Updates() {
       window.open(`/api/v1/public/content-attachments/${firstAttachment.id}/download?download=1`, "_blank");
       return;
     }
-    const title = lang === "mr" ? update.titleMr : update.title;
+    const title = isMr ? update.titleMr : update.title;
+    const category = isMr ? update.categoryMr || update.category : update.category;
+    const summary = isMr ? update.summaryMr || update.summary : update.summary;
     const fileName = `${update.id}-${update.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}.txt`;
     const report = [
       "Shree Chhatrapati Shivaji Market Yard Adte Association",
-      "Market Update Report",
+      isMr ? "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940 \u0905\u0939\u0935\u093e\u0932" : "Market Update Report",
       "",
-      `Update ID: ${update.id}`,
-      `Title: ${title}`,
-      `Category: ${update.category}`,
-      `Date: ${new Date(update.date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}`,
-      `Published by: ${update.publishedBy}`,
-      `Views: ${update.views}`,
-      `Featured: ${update.featured ? "Yes" : "No"}`,
-      `Emergency: ${update.emergency ? "Yes" : "No"}`,
+      `${isMr ? "\u0905\u092a\u0921\u0947\u091f ID" : "Update ID"}: ${update.id}`,
+      `${isMr ? "\u0936\u0940\u0930\u094d\u0937\u0915" : "Title"}: ${title}`,
+      `${isMr ? "\u0935\u093f\u092d\u093e\u0917" : "Category"}: ${category}`,
+      `${isMr ? "\u0926\u093f\u0928\u093e\u0902\u0915" : "Date"}: ${new Date(update.date).toLocaleDateString(isMr ? "mr-IN" : "en-IN", { day: "numeric", month: "long", year: "numeric" })}`,
+      `${isMr ? "\u092a\u094d\u0930\u0915\u093e\u0936\u093f\u0924 \u0915\u0930\u0923\u093e\u0930\u0947" : "Published by"}: ${update.publishedBy}`,
+      `${isMr ? "\u0926\u0943\u0936\u094d\u092f\u0947" : "Views"}: ${update.views}`,
+      `${isMr ? "\u092e\u0939\u0924\u094d\u0924\u094d\u0935\u093e\u091a\u0947" : "Featured"}: ${update.featured ? (isMr ? "\u0939\u094b" : "Yes") : (isMr ? "\u0928\u093e\u0939\u0940" : "No")}`,
+      `${isMr ? "\u0924\u093e\u0924\u0921\u0940\u091a\u0947" : "Emergency"}: ${update.emergency ? (isMr ? "\u0939\u094b" : "Yes") : (isMr ? "\u0928\u093e\u0939\u0940" : "No")}`,
       "",
-      "Summary:",
-      update.summary,
+      isMr ? "\u0938\u093e\u0930\u093e\u0902\u0936:" : "Summary:",
+      summary,
     ].join("\n");
     const blob = new Blob([report], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -117,12 +150,12 @@ function Updates() {
           <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
             <div className="relative min-w-0 flex-1 sm:min-w-[200px]">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search updates..." className="pl-9" />
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={isMr ? "\u0905\u092a\u0921\u0947\u091f\u094d\u0938 \u0936\u094b\u0927\u093e..." : "Search updates..."} className="pl-9" />
             </div>
             <Select value={cat} onValueChange={setCat}>
               <SelectTrigger className="w-full sm:w-64"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {CATS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {CATS.map((c) => <SelectItem key={c} value={c}>{isMr ? CAT_MR[c] || c : c}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -174,16 +207,16 @@ function Updates() {
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="secondary" className="bg-secondary text-primary-dark">
-                      {u.category}
+                      {isMr ? u.categoryMr || u.category : u.category}
                     </Badge>
-                    {u.emergency && <Badge className="bg-destructive text-white">Emergency</Badge>}
-                    {u.featured && <Badge className="bg-saffron text-saffron-foreground">Featured</Badge>}
+                    {u.emergency && <Badge className="bg-destructive text-white">{isMr ? "\u0924\u093e\u0924\u0921\u0940\u091a\u0947" : "Emergency"}</Badge>}
+                    {u.featured && <Badge className="bg-saffron text-saffron-foreground">{isMr ? "\u092e\u0939\u0924\u094d\u0924\u094d\u0935\u093e\u091a\u0947" : "Featured"}</Badge>}
                   </div>
                   <h3 className="mt-3 line-clamp-2 text-lg font-display font-semibold text-primary-dark sm:text-xl">
-                    {lang === "mr" ? u.titleMr : u.title}
+                    {isMr ? u.titleMr : u.title}
                   </h3>
                   <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                    {u.summary}
+                    {isMr ? u.summaryMr || u.summary : u.summary}
                   </p>
                   {u.attachments && u.attachments.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -201,9 +234,9 @@ function Updates() {
                   <div className="mt-4 flex items-center justify-between rounded-xl bg-secondary/35 px-3 py-2 text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                       <Calendar className="h-3.5 w-3.5" />
-                      {new Date(u.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      {new Date(u.date).toLocaleDateString(isMr ? "mr-IN" : "en-IN", { day: "numeric", month: "short", year: "numeric" })}
                     </span>
-                    <span>{u.views} views</span>
+                    <span>{isMr ? `${u.views} \u0926\u0943\u0936\u094d\u092f\u0947` : `${u.views} views`}</span>
                   </div>
                   <div className="mt-4 grid grid-cols-2 gap-2">
                     <Button
@@ -212,14 +245,14 @@ function Updates() {
                       className="w-full rounded-xl"
                       onClick={() => setSelected(u)}
                     >
-                      <Eye className="mr-1 h-4 w-4" /> View
+                      <Eye className="mr-1 h-4 w-4" /> {isMr ? "\u092a\u0939\u093e" : "View"}
                     </Button>
                     <Button
                       size="sm"
                       className="w-full rounded-xl bg-saffron text-saffron-foreground hover:bg-saffron/90"
                       onClick={() => downloadUpdate(u)}
                     >
-                      <Download className="mr-1 h-4 w-4" /> Download
+                      <Download className="mr-1 h-4 w-4" /> {isMr ? "\u0921\u093e\u0909\u0928\u0932\u094b\u0921" : "Download"}
                     </Button>
                   </div>
                 </CardContent>
@@ -227,7 +260,7 @@ function Updates() {
             ))}
           </div>
           {filtered.length === 0 && (
-            <div className="py-16 text-center text-muted-foreground">No updates match your search.</div>
+            <div className="py-16 text-center text-muted-foreground">{isMr ? "\u0924\u0941\u092e\u091a\u094d\u092f\u093e \u0936\u094b\u0927\u093e\u0936\u0940 \u091c\u0941\u0933\u0923\u093e\u0930\u0947 \u0905\u092a\u0921\u0947\u091f\u094d\u0938 \u0938\u093e\u092a\u0921\u0932\u0947 \u0928\u093e\u0939\u0940\u0924." : "No updates match your search."}</div>
           )}
         </div>
       </section>
@@ -238,14 +271,14 @@ function Updates() {
             <div className="flex max-h-[calc(100vh-5rem)] flex-col">
               <DialogHeader className="border-b px-6 py-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className="bg-secondary text-primary-dark">{selected.category}</Badge>
-                  {selected.emergency && <Badge className="bg-destructive text-white">Emergency</Badge>}
-                  {selected.featured && <Badge className="bg-saffron text-saffron-foreground">Featured</Badge>}
+                  <Badge variant="secondary" className="bg-secondary text-primary-dark">{isMr ? selected.categoryMr || selected.category : selected.category}</Badge>
+                  {selected.emergency && <Badge className="bg-destructive text-white">{isMr ? "\u0924\u093e\u0924\u0921\u0940\u091a\u0947" : "Emergency"}</Badge>}
+                  {selected.featured && <Badge className="bg-saffron text-saffron-foreground">{isMr ? "\u092e\u0939\u0924\u094d\u0924\u094d\u0935\u093e\u091a\u0947" : "Featured"}</Badge>}
                 </div>
                 <DialogTitle className="pt-2 font-display text-2xl text-primary-dark">
-                  {lang === "mr" ? selected.titleMr : selected.title}
+                  {isMr ? selected.titleMr : selected.title}
                 </DialogTitle>
-                <DialogDescription>{selected.summary}</DialogDescription>
+                <DialogDescription>{isMr ? selected.summaryMr || selected.summary : selected.summary}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 overflow-y-auto px-6 py-4">
                 {selected.attachments && selected.attachments.length > 0 && (
@@ -270,33 +303,33 @@ function Updates() {
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="rounded-lg border bg-secondary/40 p-3">
                     <Calendar className="h-4 w-4 text-primary" />
-                    <div className="mt-2 text-xs text-muted-foreground">Published date</div>
-                    <div className="text-sm font-semibold text-primary-dark">{new Date(selected.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
+                    <div className="mt-2 text-xs text-muted-foreground">{isMr ? "\u092a\u094d\u0930\u0915\u093e\u0936\u0928 \u0926\u093f\u0928\u093e\u0902\u0915" : "Published date"}</div>
+                    <div className="text-sm font-semibold text-primary-dark">{new Date(selected.date).toLocaleDateString(isMr ? "mr-IN" : "en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
                   </div>
                   <div className="rounded-lg border bg-secondary/40 p-3">
                     <UserRound className="h-4 w-4 text-primary" />
-                    <div className="mt-2 text-xs text-muted-foreground">Published by</div>
+                    <div className="mt-2 text-xs text-muted-foreground">{isMr ? "\u092a\u094d\u0930\u0915\u093e\u0936\u093f\u0924 \u0915\u0930\u0923\u093e\u0930\u0947" : "Published by"}</div>
                     <div className="text-sm font-semibold text-primary-dark">{selected.publishedBy}</div>
                   </div>
                   <div className="rounded-lg border bg-secondary/40 p-3">
                     <BarChart3 className="h-4 w-4 text-primary" />
-                    <div className="mt-2 text-xs text-muted-foreground">Views</div>
+                    <div className="mt-2 text-xs text-muted-foreground">{isMr ? "\u0926\u0943\u0936\u094d\u092f\u0947" : "Views"}</div>
                     <div className="text-sm font-semibold text-primary-dark">{selected.views}</div>
                   </div>
                 </div>
                 <div className="rounded-lg border p-4">
                   <div className="flex items-center gap-2 font-display font-semibold text-primary-dark">
-                    <FileText className="h-4 w-4 text-primary" /> Update details
+                    <FileText className="h-4 w-4 text-primary" /> {isMr ? "\u0905\u092a\u0921\u0947\u091f \u0924\u092a\u0936\u0940\u0932" : "Update details"}
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{selected.summary}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{isMr ? selected.summaryMr || selected.summary : selected.summary}</p>
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    This update is published by the market yard administration for Members and visitors. Download the report for offline reference.
+                    {isMr ? "\u0939\u0940 \u092e\u093e\u0939\u093f\u0924\u0940 \u092c\u093e\u091c\u093e\u0930 \u092f\u093e\u0930\u094d\u0921 \u092a\u094d\u0930\u0936\u093e\u0938\u0928\u093e\u0928\u0947 \u0938\u092d\u093e\u0938\u0926 \u0906\u0923\u093f \u092a\u093e\u0939\u0941\u0923\u094d\u092f\u093e\u0902\u0938\u093e\u0920\u0940 \u092a\u094d\u0930\u0938\u093f\u0926\u094d\u0927 \u0915\u0947\u0932\u0940 \u0906\u0939\u0947. \u0911\u092b\u0932\u093e\u0907\u0928 \u0938\u0902\u0926\u0930\u094d\u092d\u093e\u0938\u093e\u0920\u0940 \u0905\u0939\u0935\u093e\u0932 \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u0930\u093e." : "This update is published by the market yard administration for Members and visitors. Download the report for offline reference."}
                   </p>
                 </div>
               </div>
               <div className="flex flex-wrap justify-end gap-2 border-t px-6 py-4">
-                <Button variant="outline" onClick={() => setSelected(null)}>Close</Button>
-                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => downloadUpdate(selected)}><Download className="mr-1 h-4 w-4" /> Download Report</Button>
+                <Button variant="outline" onClick={() => setSelected(null)}>{isMr ? "\u092c\u0902\u0926 \u0915\u0930\u093e" : "Close"}</Button>
+                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => downloadUpdate(selected)}><Download className="mr-1 h-4 w-4" /> {isMr ? "\u0905\u0939\u0935\u093e\u0932 \u0921\u093e\u0909\u0928\u0932\u094b\u0921" : "Download Report"}</Button>
               </div>
             </div>
           )}

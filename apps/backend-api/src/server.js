@@ -336,26 +336,48 @@ async function tryTranslateWithGemini(options) {
   }
 }
 
-async function translatePostContentToMarathi({ titleEn, category, details, titleMr = null, contentMr = null }) {
-  let translatedTitle = String(titleMr || "").trim() || null;
-  if (!translatedTitle) {
-    const result = await tryTranslateWithGemini({ text: titleEn, sourceLang: "en", targetLang: "mr" });
-    translatedTitle = result.provider !== "none" ? result.translatedText : null;
+function hasDevanagariText(value) {
+  return /[\u0900-\u097F]/.test(String(value || ""));
+}
+
+function inferTranslationSourceLanguage(...values) {
+  return values.some((value) => hasDevanagariText(value)) ? "mr" : "en";
+}
+
+async function translatePostContentPair({ title, category, details, titleMr = null, contentMr = null }) {
+  const safeTitle = String(title || "").trim();
+  const safeCategory = String(category || "General").trim() || "General";
+  const safeDetails = String(details || "").trim();
+  const sourceLang = inferTranslationSourceLanguage(safeTitle, safeCategory, safeDetails);
+  const targetLang = sourceLang === "mr" ? "en" : "mr";
+
+  const [translatedTitle, translatedCategory, translatedDetails] = await Promise.all([
+    tryTranslateWithGemini({ text: safeTitle, sourceLang, targetLang }),
+    tryTranslateWithGemini({ text: safeCategory, sourceLang, targetLang }),
+    tryTranslateWithGemini({ text: safeDetails, sourceLang, targetLang }),
+  ]);
+
+  const targetTitle = translatedTitle.provider !== "none" ? translatedTitle.translatedText : safeTitle;
+  const targetCategory = translatedCategory.provider !== "none" ? translatedCategory.translatedText : safeCategory;
+  const targetDetails = translatedDetails.provider !== "none" ? translatedDetails.translatedText : safeDetails;
+  const requestedTitleMr = String(titleMr || "").trim();
+  const requestedContentMr = String(contentMr || "").trim();
+
+  if (sourceLang === "mr") {
+    return {
+      titleEn: targetTitle,
+      titleMr: requestedTitleMr || safeTitle,
+      contentEn: JSON.stringify({ category: targetCategory, details: targetDetails }),
+      contentMr: requestedContentMr || JSON.stringify({ category: safeCategory, details: safeDetails }),
+    };
   }
-  let translatedContent = contentMr;
-  if (!String(translatedContent || "").trim()) {
-    const [translatedCategory, translatedDetails] = await Promise.all([
-      tryTranslateWithGemini({ text: category || "General", sourceLang: "en", targetLang: "mr" }),
-      tryTranslateWithGemini({ text: details || "", sourceLang: "en", targetLang: "mr" }),
-    ]);
-    translatedContent = translatedCategory.provider !== "none" || translatedDetails.provider !== "none"
-      ? JSON.stringify({
-          category: translatedCategory.provider !== "none" ? translatedCategory.translatedText : category,
-          details: translatedDetails.provider !== "none" ? translatedDetails.translatedText : details,
-        })
-      : null;
-  }
-  return { titleMr: translatedTitle, contentMr: translatedContent };
+
+  return {
+    titleEn: safeTitle,
+    titleMr: requestedTitleMr || targetTitle,
+    contentEn: JSON.stringify({ category: safeCategory, details: safeDetails }),
+    contentMr: requestedContentMr || JSON.stringify({ category: targetCategory, details: targetDetails }),
+  };
 }
 
 function validateDocumentMetadata({ documentType, originalFilename, claimedMimeType, detectedMimeType }) {
@@ -2757,9 +2779,54 @@ app.delete("/api/v1/trader/notifications/read", requireRoles("TRADER"), async (r
   res.json({ ok: true, deleted: result.affectedRows || 0 });
 });
 
-async function attachContentFiles(rows) {
-  const ids = rows.map((row) => row.id);
-  if (ids.length === 0) return rows.map((row) => ({ ...row, parsed: safeJson(row.content_en), attachments: [] }));
+async function ensureBilingualPostRows(rows) {
+  if (!config.gemini.apiKey || !Array.isArray(rows) || rows.length === 0) return rows;
+  const updatedRows = [];
+  for (const row of rows) {
+    const titleEn = String(row.title_en || "").trim();
+    if (!titleEn) {
+      updatedRows.push(row);
+      continue;
+    }
+    const parsedEn = safeJson(row.content_en);
+    const parsedMr = safeJson(row.content_mr);
+    const hasTitleMr = Boolean(String(row.title_mr || "").trim()) && String(row.title_mr || "").trim() !== titleEn;
+    const hasContentMr = Boolean(String(row.content_mr || "").trim()) && Boolean(String(parsedMr.details || row.content_mr || "").trim()) && String(row.content_mr || "").trim() !== String(row.content_en || "").trim();
+    if (hasTitleMr && hasContentMr) {
+      updatedRows.push(row);
+      continue;
+    }
+    const sourceCategory = String(parsedEn.category || "General").trim() || "General";
+    const sourceDetails = String(parsedEn.details || row.content_en || "").trim();
+    const translated = await translatePostContentPair({
+      title: titleEn,
+      category: sourceCategory,
+      details: sourceDetails,
+      titleMr: hasTitleMr ? row.title_mr : null,
+      contentMr: hasContentMr ? row.content_mr : null,
+    });
+    try {
+      await pool.query(
+        `UPDATE posts
+            SET title_en = :titleEn,
+                title_mr = :titleMr,
+                content_en = :contentEn,
+                content_mr = :contentMr
+          WHERE id = :postId`,
+        { postId: row.id, titleEn: translated.titleEn, titleMr: translated.titleMr, contentEn: translated.contentEn, contentMr: translated.contentMr },
+      );
+      updatedRows.push({ ...row, title_en: translated.titleEn, title_mr: translated.titleMr, content_en: translated.contentEn, content_mr: translated.contentMr });
+    } catch (error) {
+      console.warn("Public post translation backfill skipped", row.id, error instanceof Error ? error.message : String(error));
+      updatedRows.push(row);
+    }
+  }
+  return updatedRows;
+}
+async function attachContentFiles(rows, options = {}) {
+  const contentRows = options.ensureBilingual ? await ensureBilingualPostRows(rows) : rows;
+  const ids = contentRows.map((row) => row.id);
+  if (ids.length === 0) return contentRows.map((row) => ({ ...row, parsed: safeJson(row.content_en), parsed_mr: safeJson(row.content_mr), attachments: [] }));
   const [attachments] = await pool.query(
     `SELECT id, post_id, attachment_type, original_filename, mime_type, file_size_bytes
        FROM content_attachments
@@ -2772,28 +2839,28 @@ async function attachContentFiles(rows) {
     acc[attachment.post_id].push(attachment);
     return acc;
   }, {});
-  return rows.map((row) => ({ ...row, parsed: safeJson(row.content_en), attachments: byPost[row.id] || [] }));
+  return contentRows.map((row) => ({ ...row, parsed: safeJson(row.content_en), parsed_mr: safeJson(row.content_mr), attachments: byPost[row.id] || [] }));
 }
 
 app.get("/api/v1/public/posts", async (_req, res) => {
   const [rows] = await pool.query(
     "SELECT id, post_type, title_en, title_mr, content_en, content_mr, published_at, created_at, share_audience, share_category_id FROM posts WHERE status = 'published' AND post_type IN ('news','event') AND COALESCE(share_audience, 'all') = 'all' ORDER BY published_at DESC, id DESC LIMIT 100",
   );
-  res.json({ ok: true, posts: await attachContentFiles(rows) });
+  res.json({ ok: true, posts: await attachContentFiles(rows, { ensureBilingual: true }) });
 });
 
 app.get("/api/v1/public/notices", async (_req, res) => {
   const [rows] = await pool.query(
     "SELECT id, post_type, title_en, title_mr, content_en, content_mr, published_at, created_at, share_audience, share_category_id FROM posts WHERE status = 'published' AND post_type IN ('notice', 'circular') AND COALESCE(share_audience, 'all') = 'all' ORDER BY published_at DESC, id DESC LIMIT 100",
   );
-  res.json({ ok: true, notices: await attachContentFiles(rows) });
+  res.json({ ok: true, notices: await attachContentFiles(rows, { ensureBilingual: true }) });
 });
 
 app.get("/api/v1/public/gallery", async (_req, res) => {
   const [rows] = await pool.query(
     "SELECT id, post_type, title_en, title_mr, content_en, content_mr, published_at, created_at FROM posts WHERE status = 'published' AND post_type = 'gallery' ORDER BY published_at DESC, id DESC LIMIT 100",
   );
-  res.json({ ok: true, items: await attachContentFiles(rows) });
+  res.json({ ok: true, items: await attachContentFiles(rows, { ensureBilingual: true }) });
 });
 
 app.get("/api/v1/public/committee", async (_req, res) => {
@@ -2878,7 +2945,7 @@ async function selectTraderVisibleContent({ traderId, postTypes }) {
       LIMIT 100`,
     { traderId: traderId || 0, postTypes },
   );
-  return attachContentFiles(rows);
+  return attachContentFiles(rows, { ensureBilingual: true });
 }
 
 app.get("/api/v1/trader/market-updates", requireRoles("TRADER"), async (req, res) => {
@@ -3515,15 +3582,15 @@ app.post("/api/v1/admin/posts", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async 
   const safeTitleEn = String(titleEn).trim();
   const safeCategory = String(category || "General").trim() || "General";
   const safeDetails = String(contentEn || "").trim();
-  const translated = await translatePostContentToMarathi({
-    titleEn: safeTitleEn,
+  const translated = await translatePostContentPair({
+    title: safeTitleEn,
     category: safeCategory,
     details: safeDetails,
     titleMr,
     contentMr,
   });
 
-  const body = JSON.stringify({ category: safeCategory, details: safeDetails });
+  const body = translated.contentEn;
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -3532,7 +3599,7 @@ app.post("/api/v1/admin/posts", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async 
      VALUES (:postType, :titleEn, :titleMr, :contentEn, :contentMr, :status, IF(:status = 'published', NOW(), NULL), :publisherId, :shareAudience, :shareCategoryId)`,
     {
       postType: safePostType,
-      titleEn: safeTitleEn,
+      titleEn: translated.titleEn,
       titleMr: translated.titleMr,
       contentEn: body,
       contentMr: translated.contentMr,
@@ -3556,7 +3623,7 @@ app.post("/api/v1/admin/posts", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async 
       await notifyMembersAboutPublishedPost(connection, {
         postId,
         postType: safePostType,
-        titleEn: safeTitleEn,
+        titleEn: translated.titleEn,
         details: safeDetails,
         excludeUserId: req.user.id,
         shareAudience,
@@ -3566,10 +3633,10 @@ app.post("/api/v1/admin/posts", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async 
     await connection.commit();
     if (safeStatus === "published") {
       setImmediate(() => {
-        sendPublishedPostPush({ postId, postType: safePostType, titleEn: safeTitleEn, details: safeDetails, shareAudience, shareCategoryId });
+        sendPublishedPostPush({ postId, postType: safePostType, titleEn: translated.titleEn, details: safeDetails, shareAudience, shareCategoryId });
       });
     }
-    res.status(201).json({ ok: true, postId, titleMr: translated.titleMr, contentMr: translated.contentMr });
+    res.status(201).json({ ok: true, postId, titleEn: translated.titleEn, titleMr: translated.titleMr, contentEn: translated.contentEn, contentMr: translated.contentMr });
   } catch (error) {
     await connection.rollback();
     throw error;
@@ -3592,11 +3659,13 @@ app.put("/api/v1/admin/posts/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), asy
   }
 
   const titleEn = String(req.body?.titleEn ?? before.title_en ?? "").trim();
-  const requestedTitleMr = req.body?.titleMr ?? before.title_mr;
-  const requestedContentMr = req.body?.contentMr ?? before.content_mr;
   const parsed = safeJson(before.content_en);
   const category = String(req.body?.category ?? parsed.category ?? "General").trim() || "General";
   const details = String(req.body?.contentEn ?? parsed.details ?? "").trim();
+  const titleChanged = req.body?.titleEn !== undefined && titleEn !== String(before.title_en || "").trim();
+  const contentChanged = req.body?.category !== undefined || req.body?.contentEn !== undefined;
+  const requestedTitleMr = req.body?.titleMr ?? (titleChanged ? null : before.title_mr);
+  const requestedContentMr = req.body?.contentMr ?? (contentChanged ? null : before.content_mr);
   const allowedTypes = new Set(["news", "notice", "circular", "event", "gallery", "announcement"]);
   const postType = allowedTypes.has(req.body?.postType) ? req.body.postType : before.post_type;
   const status = req.body?.status === "draft" ? "draft" : "published";
@@ -3615,14 +3684,14 @@ app.put("/api/v1/admin/posts/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), asy
     return;
   }
 
-  const contentEn = JSON.stringify({ category, details });
-  const translated = await translatePostContentToMarathi({
-    titleEn,
+  const translated = await translatePostContentPair({
+    title: titleEn,
     category,
     details,
     titleMr: requestedTitleMr,
     contentMr: requestedContentMr,
   });
+  const contentEn = translated.contentEn;
   await pool.query(
     `UPDATE posts
         SET post_type = :postType,
@@ -3636,24 +3705,24 @@ app.put("/api/v1/admin/posts/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), asy
             share_category_id = :shareCategoryId,
             updated_by_user_id = :userId
       WHERE id = :postId`,
-    { postId, postType, titleEn, titleMr: translated.titleMr, contentEn, contentMr: translated.contentMr, status, shareAudience, shareCategoryId, userId: req.user.id },
+    { postId, postType, titleEn: translated.titleEn, titleMr: translated.titleMr, contentEn, contentMr: translated.contentMr, status, shareAudience, shareCategoryId, userId: req.user.id },
   );
   if (before.status !== "published" && status === "published") {
     await notifyMembersAboutPublishedPost(pool, {
       postId,
       postType,
-      titleEn,
+      titleEn: translated.titleEn,
       details,
       excludeUserId: req.user.id,
       shareAudience,
       shareCategoryId,
     });
     setImmediate(() => {
-      sendPublishedPostPush({ postId, postType, titleEn, details, shareAudience, shareCategoryId });
+      sendPublishedPostPush({ postId, postType, titleEn: translated.titleEn, details, shareAudience, shareCategoryId });
     });
   }
-  await writeAudit({ req, action: "post.update", module: "posts", entityType: "posts", entityId: postId, oldValues: before, newValues: { postType, titleEn, titleMr: translated.titleMr, category, details, contentMr: translated.contentMr, status, shareAudience, shareCategoryId } });
-  res.json({ ok: true, postId, status, titleMr: translated.titleMr, contentMr: translated.contentMr });
+  await writeAudit({ req, action: "post.update", module: "posts", entityType: "posts", entityId: postId, oldValues: before, newValues: { postType, titleEn: translated.titleEn, titleMr: translated.titleMr, category, details, contentMr: translated.contentMr, status, shareAudience, shareCategoryId } });
+  res.json({ ok: true, postId, status, titleEn: translated.titleEn, titleMr: translated.titleMr, contentEn, contentMr: translated.contentMr });
 });
 
 app.get("/api/v1/admin/trader-kyc", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
@@ -5802,7 +5871,7 @@ app.get("/api/v1/admin/content-posts", requireRoles("MAIN_ADMIN", "USER_ADMIN"),
       LIMIT 150`,
     { postTypes },
   );
-  res.json({ ok: true, posts: await attachContentFiles(rows) });
+  res.json({ ok: true, posts: await attachContentFiles(rows, { ensureBilingual: true }) });
 });
 
 app.get("/api/v1/admin/content-attachments/:id/download", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {

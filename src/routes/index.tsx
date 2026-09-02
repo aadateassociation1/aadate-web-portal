@@ -58,7 +58,7 @@ const GALLERY_TILES = [
 
 function Home() {
   const { t, lang } = useI18n();
-  type PublicContent = { id: number; title_en: string; content_en?: string; published_at: string | null; created_at: string; parsed?: { category?: string; details?: string }; attachments?: Array<{ id: number; attachment_type: string; original_filename: string }> };
+  type PublicContent = { id: number; title_en: string; title_mr?: string | null; content_en?: string | null; content_mr?: string | null; published_at: string | null; created_at: string; parsed?: { category?: string; details?: string }; attachments?: Array<{ id: number; attachment_type: string; original_filename: string }> };
   type CommitteeMemberRecord = { id: number; full_name: string; name_mr: string | null; designation: string; designation_mr: string | null; gala_number: string | null; term_label: string | null; message: string | null; photo_url: string | null };
   type RatingAttachment = { id: number; attachment_type: "image" | "video"; original_filename: string; mime_type: string; file_size_bytes: number };
   type PublicReview = { id: number; rating_value: number; review_text: string | null; reviewer_type: "trader" | "customer"; reviewer_name: string; business_name: string; trader_code: string; trader_name: string; gala_number: string | null; customer_code: string | null; created_at: string; attachments?: RatingAttachment[] };
@@ -124,6 +124,29 @@ function Home() {
   const fruitPrices = homepagePrices.filter((price) => price.category === "fruit");
   const vegetablePrices = homepagePrices.filter((price) => price.category === "vegetable");
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
+  const parsePublicContentBody = (value?: string | null) => {
+    try {
+      const parsed = JSON.parse(value || "{}");
+      return { category: String(parsed.category || "").trim(), details: String(parsed.details || "").trim() };
+    } catch {
+      return { category: "", details: String(value || "").trim() };
+    }
+  };
+  const displayPublicContent = (item: PublicContent) => {
+    const en = item.parsed || parsePublicContentBody(item.content_en);
+    const mr = parsePublicContentBody(item.content_mr);
+    return lang === "mr"
+      ? {
+          title: item.title_mr || item.title_en,
+          category: mr.category || en.category || "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940",
+          details: mr.details || en.details || "",
+        }
+      : {
+          title: item.title_en,
+          category: en.category || "General",
+          details: en.details || "",
+        };
+  };
   const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
   const displayChairmanName = (name?: string | null) => name && /sourabh\s+kunjir/i.test(name) ? "Shri. Sourabh Shekhar Kunjir" : name || "Shri. Sourabh Shekhar Kunjir";
@@ -502,22 +525,25 @@ function Home() {
             <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/updates">View all updates <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {updates.slice(0, 6).map((u) => (
+            {updates.slice(0, 6).map((u) => {
+              const display = displayPublicContent(u);
+              return (
               <Card key={u.id} className="border-border/60 transition hover:shadow-lg">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-secondary text-primary-dark">{u.parsed?.category || "General"}</Badge>
+                    <Badge variant="secondary" className="bg-secondary text-primary-dark">{display.category}</Badge>
                   </div>
                   <h3 className="mt-3 font-display font-semibold text-primary-dark line-clamp-2">
-                    {u.title_en}
+                    {display.title}
                   </h3>
-                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{u.parsed?.details || ""}</p>
+                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{display.details}</p>
                   <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{new Date(u.published_at || u.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
+                    <span>{new Date(u.published_at || u.created_at).toLocaleDateString(lang === "mr" ? "mr-IN" : "en-IN", { day: "numeric", month: "short" })}</span>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
             {updates.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground md:col-span-2 lg:col-span-3">No market updates yet.</div>}
           </div>
         </div>
