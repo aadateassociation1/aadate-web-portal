@@ -67,7 +67,7 @@ function About() {
               {isMr ? "सर्व सभासद आडते ह्यांच्या दैनंदिन कामकाज करताना अडचणी, बाजार भाव, प्रशासनाशी निगडित कामकाज, व्यापार उधारी बद्दल आडते संरक्षण, आदी कामे एप्लीकेशन मार्फत सोपी व सोयीस्कर होतील ह्याची खात्री आहे." : "This application will make the day-to-day work of all member Adte traders easier and more convenient, including work-related difficulties, market rates, administration-related work, protection regarding trade credit, and other related activities."}
             </p>
             <div className="mt-6 grid grid-cols-3 gap-4">
-<<              {stats.map((s) => (
+              {stats.map((s) => (
                 <div key={s.l} className="rounded-2xl bg-secondary p-4 text-center">
                   <div className="font-display text-2xl font-bold text-primary-dark">{s.n}</div>
                   <div className="text-xs text-muted-foreground">{s.l}</div>
