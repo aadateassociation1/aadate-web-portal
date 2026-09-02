@@ -242,7 +242,7 @@ function StatCard({
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, label }: { status: string; label?: string }) {
   const map: Record<string, string> = {
     approved: "bg-success/15 text-success",
     pending: "bg-warning/15 text-warning",
@@ -265,7 +265,7 @@ function StatusBadge({ status }: { status: string }) {
     expired: "bg-muted text-muted-foreground",
     replaced: "bg-muted text-muted-foreground",
   };
-  return <Badge className={`inline-flex min-w-max whitespace-nowrap capitalize ${map[status] || "bg-muted text-muted-foreground"}`}>{status.replace(/_/g, " ")}</Badge>;
+  return <Badge className={`inline-flex min-w-max whitespace-nowrap capitalize ${map[status] || "bg-muted text-muted-foreground"}`}>{label || status.replace(/_/g, " ")}</Badge>;
 }
 
 const complaintStatusTriggerClasses: Record<string, string> = {
@@ -3718,6 +3718,24 @@ export function OwnerKycPage() {
     return record.kyc_status || "pending";
   };
   const isMarketRestricted = (record: { market_action_type?: string | null }) => Boolean(record.market_action_type);
+  const getCustomerStatusLabel = (status: string) => {
+    const normalized = status.replace(/_/g, " ");
+    if (!isMr) return normalized;
+    const labels: Record<string, string> = {
+      approved: "\u092e\u0902\u091c\u0942\u0930",
+      active: "\u0938\u0915\u094d\u0930\u093f\u092f",
+      verified: "\u092a\u0921\u0924\u093e\u0933\u0932\u0947\u0932\u0947",
+      pending: "\u092a\u094d\u0930\u0932\u0902\u092c\u093f\u0924",
+      submitted: "\u0938\u093e\u0926\u0930",
+      rejected: "\u0928\u093e\u0915\u093e\u0930\u0932\u0947\u0932\u0947",
+      "high risk": "\u091c\u094b\u0916\u0940\u092e",
+      blocked: "\u092c\u094d\u0932\u0949\u0915",
+      suspended: "\u0928\u093f\u0932\u0902\u092c\u093f\u0924",
+      removed: "\u0915\u093e\u0922\u0932\u0947\u0932\u0947",
+      restored: "\u092a\u0942\u0930\u094d\u0935\u0935\u0924",
+    };
+    return labels[status] || normalized;
+  };
   const showRecordAction = (record: TraderKycRecord) => {
     if (hasRiskWarning(record)) {
       toast.error(
@@ -4212,8 +4230,8 @@ export function OwnerKycPage() {
         <Card className="min-w-0 border-border/60">
           <CardContent className="p-4 sm:p-6">
             <div className="mb-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(220px,320px)] md:items-center">
-              <h2 className="font-display text-lg font-bold text-primary-dark">My Customer KYC Records</h2>
-              <div className="min-w-0"><SearchBar placeholder="Search customer KYC..." /></div>
+              <h2 className="font-display text-lg font-bold text-primary-dark">{isMr ? "\u092e\u093e\u091d\u094d\u092f\u093e \u0917\u094d\u0930\u093e\u0939\u0915\u093e\u0902\u091a\u094d\u092f\u093e \u092a\u0921\u0924\u093e\u0933\u0923\u0940 \u0928\u094b\u0902\u0926\u0940" : "My Customer KYC Records"}</h2>
+              <div className="min-w-0"><SearchBar placeholder={isMr ? "\u0917\u094d\u0930\u093e\u0939\u0915 \u0936\u094b\u0927\u093e..." : "Search customer KYC..."} /></div>
             </div>
             <div className="grid gap-3 md:hidden">
               {visibleRecords.map((record) => (
@@ -4224,13 +4242,13 @@ export function OwnerKycPage() {
                       <div className="whitespace-normal break-words font-semibold text-primary-dark">{record.full_name}</div>
                       <div className="mt-1 font-mono text-xs text-muted-foreground">{record.customer_code}</div>
                     </div>
-                    <span className="shrink-0"><StatusBadge status={getVisibleCustomerStatus(record)} /></span>
+                    <span className="shrink-0"><StatusBadge status={getVisibleCustomerStatus(record)} label={getCustomerStatusLabel(getVisibleCustomerStatus(record))} /></span>
                   </div>
                   <div className="mt-3 grid gap-2 text-sm">
-                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">Phone</span><span className="font-mono">{record.mobile}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">Aadhaar</span><span className="font-mono">{record.aadhaar_masked || "-"}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">PAN</span><span className="font-mono">{record.pan_masked || "-"}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">Date</span><span>{new Date(record.created_at).toLocaleDateString("en-IN")}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">{isMr ? "\u092e\u094b\u092c\u093e\u0908\u0932" : "Phone"}</span><span className="font-mono">{record.mobile}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">{isMr ? "\u0906\u0927\u093e\u0930" : "Aadhaar"}</span><span className="font-mono">{record.aadhaar_masked || "-"}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">{isMr ? "\u092a\u0945\u0928" : "PAN"}</span><span className="font-mono">{record.pan_masked || "-"}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted-foreground">{isMr ? "\u0926\u093f\u0928\u093e\u0902\u0915" : "Date"}</span><span>{new Date(record.created_at).toLocaleDateString(isMr ? "mr-IN" : "en-IN")}</span></div>
                   </div>
                   {isMarketRestricted(record) && (
                     <div className="mt-3 rounded-md border border-warning/30 bg-warning/5 p-3 text-sm">
@@ -4246,18 +4264,18 @@ export function OwnerKycPage() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     {isMarketRestricted(record) ? (
                       <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "restored")}>
-                        Restore
+                        {isMr ? "\u092a\u0942\u0930\u094d\u0935\u0935\u0924" : "Restore"}
                       </Button>
                     ) : (
                       <>
                         <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "blocked")}>
-                          Block
+                          {isMr ? "\u092c\u094d\u0932\u0949\u0915" : "Block"}
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "suspended")}>
-                          Suspend
+                          {isMr ? "\u0928\u093f\u0932\u0902\u092c\u093f\u0924" : "Suspend"}
                         </Button>
                         <Button size="sm" variant="destructive" onClick={() => void runCustomerMarketAction(record, "removed")}>
-                          Remove
+                          {isMr ? "\u0915\u093e\u0922\u093e" : "Remove"}
                         </Button>
                       </>
                     )}
@@ -4270,7 +4288,7 @@ export function OwnerKycPage() {
                       onClick={() => clearMarketWarning(record.latest_warning_id, record.full_name)}
                     >
                       <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-                      {clearingWarningId === record.latest_warning_id ? "Clearing..." : "Payment received / Clear risk"}
+                      {clearingWarningId === record.latest_warning_id ? (isMr ? "\u0939\u091f\u0935\u0924 \u0906\u0939\u0947..." : "Clearing...") : (isMr ? "\u092a\u0947\u092e\u0947\u0902\u091f \u092e\u093f\u0933\u093e\u0932\u0947 / \u091c\u094b\u0916\u0940\u092e \u0939\u091f\u0935\u093e" : "Payment received / Clear risk")}
                     </Button>
                   )}
                 </div>
@@ -4280,14 +4298,14 @@ export function OwnerKycPage() {
               <Table className="min-w-[900px] table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[80px]">Photo</TableHead>
-                    <TableHead className="w-[190px]">Customer</TableHead>
-                    <TableHead className="w-[120px]">Phone</TableHead>
-                    <TableHead className="w-[140px]">Aadhaar</TableHead>
-                    <TableHead className="w-[115px]">PAN</TableHead>
-                    <TableHead className="w-[110px]">Status</TableHead>
-                    <TableHead className="w-[110px]">Date</TableHead>
-                    <TableHead className="w-[240px]">Action</TableHead>
+                    <TableHead className="w-[80px]">{isMr ? "\u092b\u094b\u091f\u094b" : "Photo"}</TableHead>
+                    <TableHead className="w-[190px]">{isMr ? "\u0917\u094d\u0930\u093e\u0939\u0915" : "Customer"}</TableHead>
+                    <TableHead className="w-[120px]">{isMr ? "\u092e\u094b\u092c\u093e\u0908\u0932" : "Phone"}</TableHead>
+                    <TableHead className="w-[140px]">{isMr ? "\u0906\u0927\u093e\u0930" : "Aadhaar"}</TableHead>
+                    <TableHead className="w-[115px]">{isMr ? "\u092a\u0945\u0928" : "PAN"}</TableHead>
+                    <TableHead className="w-[110px]">{isMr ? "\u0938\u094d\u0925\u093f\u0924\u0940" : "Status"}</TableHead>
+                    <TableHead className="w-[110px]">{isMr ? "\u0926\u093f\u0928\u093e\u0902\u0915" : "Date"}</TableHead>
+                    <TableHead className="w-[240px]">{isMr ? "\u0915\u0943\u0924\u0940" : "Action"}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -4299,26 +4317,26 @@ export function OwnerKycPage() {
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.aadhaar_masked || "-"}</TableCell>
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.pan_masked || "-"}</TableCell>
                       <TableCell className="align-top">
-                        <span className="inline-flex whitespace-nowrap"><StatusBadge status={getVisibleCustomerStatus(record)} /></span>
+                        <span className="inline-flex whitespace-nowrap"><StatusBadge status={getVisibleCustomerStatus(record)} label={getCustomerStatusLabel(getVisibleCustomerStatus(record))} /></span>
                         {isMarketRestricted(record) && <div className="mt-2 text-xs leading-relaxed text-muted-foreground">{record.market_action_reason || "Reason not provided."}</div>}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap align-top">{new Date(record.created_at).toLocaleDateString("en-IN")}</TableCell>
+                      <TableCell className="whitespace-nowrap align-top">{new Date(record.created_at).toLocaleDateString(isMr ? "mr-IN" : "en-IN")}</TableCell>
                       <TableCell className="align-top">
                         <div className="flex flex-wrap gap-2">
                           {isMarketRestricted(record) ? (
                             <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "restored")}>
-                              Restore
+                              {isMr ? "\u092a\u0942\u0930\u094d\u0935\u0935\u0924" : "Restore"}
                             </Button>
                           ) : (
                             <>
                               <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "blocked")}>
-                                Block
+                                {isMr ? "\u092c\u094d\u0932\u0949\u0915" : "Block"}
                               </Button>
                               <Button size="sm" variant="outline" onClick={() => void runCustomerMarketAction(record, "suspended")}>
-                                Suspend
+                                {isMr ? "\u0928\u093f\u0932\u0902\u092c\u093f\u0924" : "Suspend"}
                               </Button>
                               <Button size="sm" variant="destructive" onClick={() => void runCustomerMarketAction(record, "removed")}>
-                                Remove
+                                {isMr ? "\u0915\u093e\u0922\u093e" : "Remove"}
                               </Button>
                             </>
                           )}
@@ -4329,8 +4347,8 @@ export function OwnerKycPage() {
                 </TableBody>
               </Table>
             </div>
-            {!loading && visibleRecords.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">{recordFilter === "all" ? "No customer KYC records yet." : `No ${recordFilter === "risk" ? "risk alert" : recordFilter} records found.`}</div>}
-            {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading customer KYC records...</div>}
+            {!loading && visibleRecords.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">{recordFilter === "all" ? (isMr ? "\u0905\u091c\u0942\u0928 \u0917\u094d\u0930\u093e\u0939\u0915 \u092a\u0921\u0924\u093e\u0933\u0923\u0940 \u0928\u094b\u0902\u0926\u0940 \u0928\u093e\u0939\u0940\u0924." : "No customer KYC records yet.") : `No ${recordFilter === "risk" ? "risk alert" : recordFilter} records found.`}</div>}
+            {loading && <div className="py-8 text-center text-sm text-muted-foreground">{isMr ? "\u0917\u094d\u0930\u093e\u0939\u0915 \u092a\u0921\u0924\u093e\u0933\u0923\u0940 \u0928\u094b\u0902\u0926\u0940 \u0932\u094b\u0921 \u0939\u094b\u0924 \u0906\u0939\u0947\u0924..." : "Loading customer KYC records..."}</div>}
           </CardContent>
         </Card>
       </div>
