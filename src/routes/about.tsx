@@ -51,6 +51,7 @@ function About() {
 
   return (
     <SiteLayout>
+      <div data-no-translate>
       <section className="py-16">
         <div className="container-page grid gap-10 lg:grid-cols-2 lg:items-center">
           <img src={marketyardImg} alt="Market yard" width={1600} height={900} loading="lazy" className="rounded-3xl shadow-xl object-cover aspect-[4/3]" />
@@ -113,6 +114,7 @@ function About() {
           </div>
         </div>
       </section>
+      </div>
     </SiteLayout>
   );
 }
