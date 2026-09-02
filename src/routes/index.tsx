@@ -208,9 +208,8 @@ function Home() {
         <CardContent className="p-2 sm:p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <Badge variant="secondary" className="px-1.5 py-0 text-[8px] capitalize sm:px-2 sm:py-0.5 sm:text-[10px]">{price.category}</Badge>
-              <h3 className="mt-1 font-display text-[0.95rem] font-bold leading-tight text-primary-dark sm:mt-2 sm:text-lg">{price.name_en}</h3>
-              <div className="mt-0.5 line-clamp-1 text-[9px] text-muted-foreground sm:text-[11px]">{price.name_mr}</div>
+              <Badge variant="secondary" className="px-1.5 py-0 text-[8px] capitalize sm:px-2 sm:py-0.5 sm:text-[10px]">{lang === "mr" ? (price.category === "fruit" ? "\u092b\u0933\u0947" : "\u092d\u093e\u091c\u0940\u092a\u093e\u0932\u093e") : price.category}</Badge>
+              <h3 className="mt-1 font-display text-[0.95rem] font-bold leading-tight text-primary-dark sm:mt-2 sm:text-lg">{lang === "mr" ? price.name_mr || price.name_en : price.name_en || price.name_mr}</h3>
             </div>
             <div className="grid h-6 w-6 shrink-0 place-items-center rounded-xl bg-secondary/80 text-primary sm:h-8 sm:w-8">
               <IndianRupee className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
@@ -218,7 +217,7 @@ function Home() {
           </div>
 
           <div className="mt-2 sm:mt-3">
-            <div className="text-[8px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:text-[9px]">Today</div>
+            <div className="text-[8px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:text-[9px]">{lang === "mr" ? "\u0906\u091c" : "Today"}</div>
             <div className="mt-0.5 flex flex-wrap items-end gap-1">
               <div className="font-display text-[1.1rem] font-bold leading-none text-primary-dark sm:text-[1.55rem]">
                 {"\u20B9"}{price.min_price} - {"\u20B9"}{price.max_price}
@@ -229,7 +228,7 @@ function Home() {
 
           <div className="mt-2 flex items-end justify-between gap-2 border-t border-border/60 pt-1.5 sm:mt-3 sm:pt-2">
             <div>
-              <div className="text-[8px] font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-[9px]">Avg</div>
+              <div className="text-[8px] font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-[9px]">{lang === "mr" ? "\u0938\u0930\u093e\u0938\u0930\u0940" : "Avg"}</div>
               <div className="mt-0.5 text-[12px] font-semibold text-primary-dark sm:text-sm">{"\u20B9"}{price.modal_price}</div>
             </div>
             <span className={`whitespace-nowrap text-[10px] font-medium sm:text-[11px] ${trendClassName}`}>{trendLabel}</span>
@@ -479,9 +478,8 @@ function Home() {
                   <CardContent className="p-2 sm:p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <Badge variant="secondary" className="px-1.5 py-0 text-[8px] capitalize sm:px-2 sm:py-0.5 sm:text-[10px]">{price.category}</Badge>
-                        <h3 className="mt-1 font-display text-[0.95rem] font-bold leading-tight text-primary-dark sm:mt-2 sm:text-lg">{price.name_en}</h3>
-                        <div className="mt-0.5 line-clamp-1 text-[9px] text-muted-foreground sm:text-[11px]">{price.name_mr}</div>
+                        <Badge variant="secondary" className="px-1.5 py-0 text-[8px] capitalize sm:px-2 sm:py-0.5 sm:text-[10px]">{lang === "mr" ? (price.category === "fruit" ? "\u092b\u0933\u0947" : "\u092d\u093e\u091c\u0940\u092a\u093e\u0932\u093e") : price.category}</Badge>
+                        <h3 className="mt-1 font-display text-[0.95rem] font-bold leading-tight text-primary-dark sm:mt-2 sm:text-lg">{lang === "mr" ? price.name_mr || price.name_en : price.name_en || price.name_mr}</h3>
                       </div>
                       <div className="grid h-6 w-6 shrink-0 place-items-center rounded-xl bg-secondary/80 text-primary sm:h-8 sm:w-8">
                         <IndianRupee className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
@@ -489,7 +487,7 @@ function Home() {
                     </div>
 
                     <div className="mt-2 sm:mt-3">
-                      <div className="text-[8px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:text-[9px]">Today</div>
+                      <div className="text-[8px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:text-[9px]">{lang === "mr" ? "\u0906\u091c" : "Today"}</div>
                       <div className="mt-0.5 flex flex-wrap items-end gap-1">
                         <div className="font-display text-[1.1rem] font-bold leading-none text-primary-dark sm:text-[1.55rem]">
                           {"\u20B9"}{price.min_price} - {"\u20B9"}{price.max_price}
@@ -500,7 +498,7 @@ function Home() {
 
                     <div className="mt-2 flex items-end justify-between gap-2 border-t border-border/60 pt-1.5 sm:mt-3 sm:pt-2">
                       <div>
-                        <div className="text-[8px] font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-[9px]">Avg</div>
+                        <div className="text-[8px] font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-[9px]">{lang === "mr" ? "\u0938\u0930\u093e\u0938\u0930\u0940" : "Avg"}</div>
                         <div className="mt-0.5 text-[12px] font-semibold text-primary-dark sm:text-sm">{"\u20B9"}{price.modal_price}</div>
                       </div>
                       <span className={`whitespace-nowrap text-[10px] font-medium sm:text-[11px] ${trendClassName}`}>{trendLabel}</span>

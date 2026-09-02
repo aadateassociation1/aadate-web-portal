@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useI18n } from "@/lib/i18n";
 
 const CATEGORIES = [
   { value: "all", label: "All Items", mr: "\u0938\u0930\u094d\u0935" },
@@ -18,6 +19,17 @@ const CATEGORIES = [
   { value: "fruit", label: "Fruits", mr: "\u092b\u0933\u0947" },
 ];
 const UNITS = ["Kg", "Quintal", "Dozen", "Piece", "Bunch", "Bundle", "Crate", "Box", "Tray"];
+const UNIT_MR: Record<string, string> = {
+  Kg: "\u0915\u093f\u0932\u094b",
+  Quintal: "\u0915\u094d\u0935\u093f\u0902\u091f\u0932",
+  Dozen: "\u0921\u091d\u0928",
+  Piece: "\u0928\u0917",
+  Bunch: "\u091c\u0941\u0921\u0940",
+  Bundle: "\u092c\u0902\u0921\u0932",
+  Crate: "\u0915\u094d\u0930\u0947\u091f",
+  Box: "\u092c\u0949\u0915\u094d\u0938",
+  Tray: "\u091f\u094d\u0930\u0947",
+};
 
 type MarketPriceRow = {
   item_id: number;
@@ -72,9 +84,9 @@ function todayInput() {
   return now.toISOString().slice(0, 10);
 }
 
-function formatDate(value: string | null | undefined, withTime = false) {
+function formatDate(value: string | null | undefined, withTime = false, lang: "en" | "mr" = "en") {
   if (!value) return "-";
-  return new Date(value).toLocaleString("en-IN", {
+  return new Date(value).toLocaleString(lang === "mr" ? "mr-IN" : "en-IN", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -86,8 +98,19 @@ function currency(value: number | null | undefined) {
   return value === null || value === undefined ? "-" : `\u20B9${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
 
-function categoryLabel(value: string) {
-  return CATEGORIES.find((category) => category.value === value)?.label || value;
+function categoryLabel(value: string, lang: "en" | "mr" = "en") {
+  const category = CATEGORIES.find((item) => item.value === value);
+  return lang === "mr" ? category?.mr || value : category?.label || value;
+}
+
+function unitLabel(value: string | null | undefined, lang: "en" | "mr" = "en") {
+  const unit = String(value || "").trim();
+  if (!unit) return "-";
+  return lang === "mr" ? UNIT_MR[unit] || unit : unit;
+}
+
+function itemName(row: Pick<MarketPriceRow, "name_en" | "name_mr">, lang: "en" | "mr" = "en") {
+  return lang === "mr" ? row.name_mr || row.name_en : row.name_en || row.name_mr;
 }
 
 function marketItemKey(row: MarketPriceRow) {
@@ -117,14 +140,14 @@ function dedupeMarketItems(rows: MarketPriceRow[]) {
   ));
 }
 
-function changeView(row: MarketPriceRow) {
-  if (row.change_amount === null) return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> New</span>;
+function changeView(row: MarketPriceRow, lang: "en" | "mr" = "en") {
+  if (row.change_amount === null) return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> {lang === "mr" ? "\u0928\u0935\u0940\u0928" : "New"}</span>;
   if (row.change_direction === "up") return <span className="inline-flex items-center gap-1 font-semibold text-success"><ArrowUp className="h-4 w-4" /> {currency(row.change_amount)} {row.change_percent !== null ? `(${row.change_percent}%)` : ""}</span>;
   if (row.change_direction === "down") return <span className="inline-flex items-center gap-1 font-semibold text-destructive"><ArrowDown className="h-4 w-4" /> {currency(Math.abs(row.change_amount))} {row.change_percent !== null ? `(${row.change_percent}%)` : ""}</span>;
   return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> {"\u20B9"}0</span>;
 }
 
-function CategoryTabs({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+function CategoryTabs({ value, onChange, lang = "en" }: { value: string; onChange: (value: string) => void; lang?: "en" | "mr" }) {
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
       {CATEGORIES.map((category) => (
@@ -134,8 +157,7 @@ function CategoryTabs({ value, onChange }: { value: string; onChange: (value: st
           onClick={() => onChange(category.value)}
           className={`min-h-16 rounded-xl border px-2 py-2 text-center transition sm:min-h-0 sm:px-4 sm:py-3 sm:text-left ${value === category.value ? "border-primary bg-secondary text-primary-dark shadow-sm" : "border-border bg-background hover:bg-secondary/60"}`}
         >
-          <div className="font-display text-sm font-semibold leading-tight sm:text-base">{category.label}</div>
-          <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground sm:text-xs">{category.mr}</div>
+          <div className="font-display text-sm font-semibold leading-tight sm:text-base">{lang === "mr" ? category.mr : category.label}</div>
         </button>
       ))}
     </div>
@@ -143,6 +165,8 @@ function CategoryTabs({ value, onChange }: { value: string; onChange: (value: st
 }
 
 function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
+  const { lang } = useI18n();
+  const isMr = lang === "mr";
   const [rows, setRows] = useState<MarketPriceRow[]>([]);
   const [date, setDate] = useState("");
   const [lastPublished, setLastPublished] = useState<string | null>(null);
@@ -182,49 +206,48 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
     <>
       {mode !== "public" && (
         <section>
-          <h1 className="font-display text-3xl font-bold sm:text-5xl">Today's Market Prices</h1>
-          <p className="mt-2 text-muted-foreground">{"\u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930 \u092d\u093e\u0935"}</p>
+          <h1 className="font-display text-3xl font-bold sm:text-5xl">{isMr ? "\u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930 \u092d\u093e\u0935" : "Today's Market Prices"}</h1>
           <div className="mt-4 text-sm text-muted-foreground">
-            Last Updated: {formatDate(lastPublished, true)}
+            {isMr ? "\u0936\u0947\u0935\u091f\u091a\u0947 \u0905\u0926\u094d\u092f\u0924\u0928:" : "Last Updated:"} {formatDate(lastPublished, true, lang)}
           </div>
         </section>
       )}
       <section className={mode === "public" ? "py-10" : "mt-6"}>
         <div className={mode === "public" ? "container-page" : ""}>
-          <CategoryTabs value={category} onChange={setCategory} />
+          <CategoryTabs value={category} onChange={setCategory} lang={lang} />
           <Card className="mt-5 border-border/60">
             <CardContent className="p-4 sm:p-5">
               <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search commodity..." className="pl-9" />
+                  <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isMr ? "\u092e\u093e\u0932 \u0936\u094b\u0927\u093e..." : "Search commodity..."} className="pl-9" />
                 </div>
-                <Button variant="outline" onClick={load}><Filter className="mr-2 h-4 w-4" /> Refresh</Button>
+                <Button variant="outline" onClick={load}><Filter className="mr-2 h-4 w-4" /> {isMr ? "\u0924\u093e\u091c\u0947 \u0915\u0930\u093e" : "Refresh"}</Button>
               </div>
               <div className="mt-5 hidden overflow-hidden rounded-lg border md:block">
                 <table className="w-full text-sm">
                   <thead className="bg-secondary/60 text-left text-muted-foreground">
                     <tr>
-                      <th className="p-3">Commodity</th>
-                      <th className="p-3 text-right">Min</th>
-                      <th className="p-3 text-right">Max</th>
-                      <th className="p-3 text-right">Avg</th>
-                      <th className="p-3">Change</th>
-                      <th className="p-3">Unit</th>
+                      <th className="p-3">{isMr ? "\u092e\u093e\u0932" : "Commodity"}</th>
+                      <th className="p-3 text-right">{isMr ? "\u0915\u093f\u092e\u093e\u0928" : "Min"}</th>
+                      <th className="p-3 text-right">{isMr ? "\u0915\u092e\u093e\u0932" : "Max"}</th>
+                      <th className="p-3 text-right">{isMr ? "\u0938\u0930\u093e\u0938\u0930\u0940" : "Avg"}</th>
+                      <th className="p-3">{isMr ? "\u092c\u0926\u0932" : "Change"}</th>
+                      <th className="p-3">{isMr ? "\u090f\u0915\u0915" : "Unit"}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filtered.map((row) => (
                       <tr key={row.item_id} className="border-t">
                         <td className="p-3">
-                          <div className="font-display font-semibold text-primary-dark">{row.name_en} / {row.name_mr}</div>
-                          <div className="text-xs text-muted-foreground">{categoryLabel(row.category)} {row.variety ? `- ${row.variety}` : ""}</div>
+                          <div className="font-display font-semibold text-primary-dark">{itemName(row, lang)}</div>
+                          <div className="text-xs text-muted-foreground">{categoryLabel(row.category, lang)} {row.variety && !isMr ? `- ${row.variety}` : ""}</div>
                         </td>
                         <td className="p-3 text-right font-semibold">{currency(row.min_price)}</td>
                         <td className="p-3 text-right font-semibold">{currency(row.max_price)}</td>
                         <td className="p-3 text-right font-bold text-primary-dark">{currency(row.modal_price)}</td>
-                        <td className="p-3">{changeView(row)}</td>
-                        <td className="p-3">{row.unit}</td>
+                        <td className="p-3">{changeView(row, lang)}</td>
+                        <td className="p-3">{unitLabel(row.unit, lang)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -232,16 +255,16 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
               </div>
               <div className="mt-5 overflow-hidden rounded-lg border md:hidden">
                 <div className="grid grid-cols-[minmax(0,1.15fr)_46px_46px_46px_52px] items-center gap-1.5 border-b bg-secondary/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  <span>Commodity</span>
-                  <span className="text-left">Min</span>
-                  <span className="text-left">Max</span>
-                  <span className="text-left">Avg</span>
-                  <span className="text-left">Unit</span>
+                  <span>{isMr ? "\u092e\u093e\u0932" : "Commodity"}</span>
+                  <span className="text-left">{isMr ? "\u0915\u093f\u092e\u093e\u0928" : "Min"}</span>
+                  <span className="text-left">{isMr ? "\u0915\u092e\u093e\u0932" : "Max"}</span>
+                  <span className="text-left">{isMr ? "\u0938\u0930\u093e\u0938\u0930\u0940" : "Avg"}</span>
+                  <span className="text-left">{isMr ? "\u090f\u0915\u0915" : "Unit"}</span>
                 </div>
                 {filtered.map((row) => {
                   const changeLabel =
                     row.change_amount === null
-                      ? "New"
+                      ? (isMr ? "\u0928\u0935\u0940\u0928" : "New")
                       : row.change_direction === "up"
                         ? `\u2191 ${currency(row.change_amount)}`
                         : row.change_direction === "down"
@@ -261,14 +284,13 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                     <div key={row.item_id} className="border-t px-3 py-2.5 first:border-t-0">
                       <div className="grid grid-cols-[minmax(0,1.15fr)_46px_46px_46px_52px] items-center gap-1.5">
                         <div className="min-w-0">
-                          <div className="truncate font-display text-[13px] font-semibold text-primary-dark">{row.name_en}</div>
-                          <div className="truncate text-[11px] text-muted-foreground">{row.name_mr}</div>
-                          <div className="mt-0.5 text-[10px] text-muted-foreground">{categoryLabel(row.category)}</div>
+                          <div className="truncate font-display text-[13px] font-semibold text-primary-dark">{itemName(row, lang)}</div>
+                          <div className="mt-0.5 text-[10px] text-muted-foreground">{categoryLabel(row.category, lang)}</div>
                         </div>
                         <div className="text-left text-[12px] font-semibold text-primary-dark">{currency(row.min_price)}</div>
                         <div className="text-left text-[12px] font-semibold text-primary-dark">{currency(row.max_price)}</div>
                         <div className="text-left text-[12px] font-bold text-primary-dark">{currency(row.modal_price)}</div>
-                        <div className="text-left text-[11px] font-medium text-muted-foreground">{row.unit}</div>
+                        <div className="text-left text-[11px] font-medium text-muted-foreground">{unitLabel(row.unit, lang)}</div>
                       </div>
                       <div className="mt-2 flex items-center justify-start gap-2 border-t border-dashed pt-2 text-[10px]">
                         <span className={`truncate font-medium ${changeClassName}`}>{changeLabel}</span>
@@ -279,7 +301,7 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
               </div>
               {filtered.length === 0 && (
                 <div className="rounded-lg border p-8 text-center text-muted-foreground">
-                  Today's market prices have not been published yet. Please check again shortly.
+                  {isMr ? "\u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930 \u092d\u093e\u0935 \u0905\u091c\u0942\u0928 \u092a\u094d\u0930\u0915\u093e\u0936\u093f\u0924 \u091d\u093e\u0932\u0947 \u0928\u093e\u0939\u0940\u0924. \u0915\u0943\u092a\u092f\u093e \u0925\u094b\u0921\u094d\u092f\u093e \u0935\u0947\u0933\u093e\u0928\u0947 \u092a\u0941\u0928\u094d\u0939\u093e \u0924\u092a\u093e\u0938\u093e." : "Today's market prices have not been published yet. Please check again shortly."}
                 </div>
               )}
             </CardContent>
@@ -292,15 +314,15 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
           {historyItem && (
             <>
               <DialogHeader>
-                <DialogTitle>{historyItem.name_en} / {historyItem.name_mr}</DialogTitle>
-                <DialogDescription>Today's published price</DialogDescription>
+                <DialogTitle>{itemName(historyItem, lang)}</DialogTitle>
+                <DialogDescription>{isMr ? "\u0906\u091c\u091a\u093e \u092a\u094d\u0930\u0915\u093e\u0936\u093f\u0924 \u092d\u093e\u0935" : "Today's published price"}</DialogDescription>
               </DialogHeader>
               <div className="space-y-2">
                 {history.map((row) => (
                   <div key={row.price_id} className="flex items-center justify-between rounded-lg border p-3">
                     <div>
                       <div className="font-medium">{formatDate(row.price_date)}</div>
-                      <div className="text-xs text-muted-foreground">{row.quality_grade || "Standard"} - {row.unit}</div>
+                      <div className="text-xs text-muted-foreground">{row.quality_grade || (isMr ? "\u0938\u093e\u092e\u093e\u0928\u094d\u092f" : "Standard")} - {unitLabel(row.unit, lang)}</div>
                     </div>
                     <div className="text-right">
                       <div className="font-display text-lg font-bold text-primary-dark">{currency(row.modal_price)}</div>
