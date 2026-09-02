@@ -346,7 +346,7 @@ function Home() {
           <div className="relative">
             <img src={marketyardImg} alt="Market yard trading floor" width={1600} height={900} className="rounded-3xl shadow-xl object-cover aspect-[4/3]" />
             <div className="absolute -bottom-6 -left-6 hidden sm:block rounded-2xl bg-saffron px-5 py-4 shadow-xl">
-              <div className="font-display text-2xl font-bold text-primary-dark">15+ years</div>
+              <div className="font-display text-2xl font-bold text-primary-dark">Since 1979</div>
               <div className="text-xs font-semibold text-primary-dark/80">of trusted service</div>
             </div>
           </div>
