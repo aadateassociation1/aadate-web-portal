@@ -1,4 +1,4 @@
-const CACHE_NAME = "vpp-market-yard-v8";
+const CACHE_NAME = "vpp-market-yard-v10";
 const APP_SHELL = [
   "/",
   "/index.html",
