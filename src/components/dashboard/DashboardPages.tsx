@@ -3636,6 +3636,8 @@ export function OwnerKycPage() {
     id: number;
     customer_code: string;
     full_name: string;
+    full_name_en?: string | null;
+    full_name_mr?: string | null;
     mobile: string;
     aadhaar_masked: string | null;
     pan_masked: string | null;
@@ -3659,6 +3661,8 @@ export function OwnerKycPage() {
     id: number;
     customer_code: string;
     full_name: string;
+    full_name_en?: string | null;
+    full_name_mr?: string | null;
     mobile: string;
     kyc_status: string;
     risk_status: string;
@@ -3718,6 +3722,8 @@ export function OwnerKycPage() {
     return record.kyc_status || "pending";
   };
   const isMarketRestricted = (record: { market_action_type?: string | null }) => Boolean(record.market_action_type);
+  const displayCustomerName = (record: Pick<TraderKycRecord, "full_name" | "full_name_en" | "full_name_mr">) =>
+    isMr ? record.full_name_mr || record.full_name : record.full_name_en || record.full_name;
   const getCustomerStatusLabel = (status: string) => {
     const normalized = status.replace(/_/g, " ");
     if (!isMr) return normalized;
@@ -4094,8 +4100,8 @@ export function OwnerKycPage() {
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <div className="whitespace-normal break-words font-display font-semibold text-primary-dark">{customer.full_name}</div>
-                        <StatusBadge status={getVisibleCustomerStatus(customer)} />
+                        <div className="whitespace-normal break-words font-display font-semibold text-primary-dark">{displayCustomerName(customer)}</div>
+                        <StatusBadge status={getVisibleCustomerStatus(customer)} label={getCustomerStatusLabel(getVisibleCustomerStatus(customer))} />
                         {isHighRisk && <Badge className="bg-destructive text-white"><AlertTriangle className="mr-1 h-3.5 w-3.5" /> Red alert</Badge>}
                       </div>
                       <div className="mt-1 text-sm text-muted-foreground">{customer.customer_code} - {customer.mobile} - {[customer.address_line1, customer.village_city, customer.district].filter(Boolean).join(", ")}</div>
@@ -4237,9 +4243,9 @@ export function OwnerKycPage() {
               {visibleRecords.map((record) => (
                 <div key={record.id} className={`rounded-lg border p-4 ${hasRiskWarning(record) ? "border-destructive/40 bg-destructive/5" : "bg-background"}`}>
                   <div className="flex items-start justify-between gap-3">
-                    {record.photo_url ? <img src={record.photo_url} alt={record.full_name} className="h-14 w-14 shrink-0 rounded-md object-cover" /> : <div className="grid h-14 w-14 shrink-0 place-items-center rounded-md bg-secondary text-primary"><Camera className="h-5 w-5" /></div>}
+                    {record.photo_url ? <img src={record.photo_url} alt={displayCustomerName(record)} className="h-14 w-14 shrink-0 rounded-md object-cover" /> : <div className="grid h-14 w-14 shrink-0 place-items-center rounded-md bg-secondary text-primary"><Camera className="h-5 w-5" /></div>}
                     <div className="min-w-0 flex-1">
-                      <div className="whitespace-normal break-words font-semibold text-primary-dark">{record.full_name}</div>
+                      <div className="whitespace-normal break-words font-semibold text-primary-dark">{displayCustomerName(record)}</div>
                       <div className="mt-1 font-mono text-xs text-muted-foreground">{record.customer_code}</div>
                     </div>
                     <span className="shrink-0"><StatusBadge status={getVisibleCustomerStatus(record)} label={getCustomerStatusLabel(getVisibleCustomerStatus(record))} /></span>
@@ -4311,8 +4317,8 @@ export function OwnerKycPage() {
                 <TableBody>
                   {visibleRecords.map((record) => (
                     <TableRow key={record.id}>
-                      <TableCell className="align-top">{record.photo_url ? <img src={record.photo_url} alt={record.full_name} className="h-12 w-12 rounded-md object-cover" /> : <div className="grid h-12 w-12 place-items-center rounded-md bg-secondary text-primary"><Camera className="h-4 w-4" /></div>}</TableCell>
-                      <TableCell className="align-top"><div className="whitespace-normal font-medium leading-snug text-primary-dark">{record.full_name}</div><div className="mt-1 font-mono text-xs text-muted-foreground">{record.customer_code}</div></TableCell>
+                      <TableCell className="align-top">{record.photo_url ? <img src={record.photo_url} alt={displayCustomerName(record)} className="h-12 w-12 rounded-md object-cover" /> : <div className="grid h-12 w-12 place-items-center rounded-md bg-secondary text-primary"><Camera className="h-4 w-4" /></div>}</TableCell>
+                      <TableCell className="align-top"><div className="whitespace-normal font-medium leading-snug text-primary-dark">{displayCustomerName(record)}</div><div className="mt-1 font-mono text-xs text-muted-foreground">{record.customer_code}</div></TableCell>
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.mobile}</TableCell>
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.aadhaar_masked || "-"}</TableCell>
                       <TableCell className="whitespace-nowrap align-top font-mono">{record.pan_masked || "-"}</TableCell>
@@ -4385,6 +4391,8 @@ export function AdminTraderKycPage() {
     id: number;
     trader_code: string;
     full_name: string;
+    full_name_en?: string | null;
+    full_name_mr?: string | null;
     mobile: string;
     email: string | null;
     business_name: string;

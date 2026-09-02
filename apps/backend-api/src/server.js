@@ -336,6 +336,84 @@ async function tryTranslateWithGemini(options) {
   }
 }
 
+async function translateNameWithGemini({ text, sourceLang, targetLang }) {
+  const source = normalizeTranslationLanguage(sourceLang, "en");
+  const target = normalizeTranslationLanguage(targetLang, "mr");
+  const cleanText = String(text || "").trim();
+  if (!cleanText || source === target) return cleanText;
+
+  const sourceHash = crypto.createHash("sha256").update(`name:${source}:${target}:${cleanText}`).digest("hex");
+  const [[cached]] = await pool.query(
+    `SELECT target_text
+       FROM translation_cache
+      WHERE source_lang = :source
+        AND target_lang = :target
+        AND source_hash = :sourceHash
+      LIMIT 1`,
+    { source, target, sourceHash },
+  );
+  if (cached?.target_text) return cached.target_text;
+  if (!config.gemini.apiKey) return cleanText;
+
+  const sourceName = translationLanguageName(source);
+  const targetName = translationLanguageName(target);
+  const prompt = [
+    `Transliterate this person full name from ${sourceName} to ${targetName}.`,
+    "Keep it as a personal name, not a meaning translation.",
+    "Use natural spelling for Maharashtra names. Preserve initials and honorifics when present.",
+    "Return only the name. Do not add explanations, quotes, bullets, markdown, or labels.",
+    "",
+    cleanText,
+  ].join("\n");
+
+  try {
+    const model = String(config.gemini.model || "gemini-2.0-flash").replace(/^models\//, "");
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": config.gemini.apiKey,
+      },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0, candidateCount: 1 },
+      }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result?.error?.message || "Gemini name translation request failed.");
+    const translatedText = decodeHtmlEntities(extractGeminiText(result) || cleanText).trim();
+    await pool.query(
+      `INSERT INTO translation_cache (source_lang, target_lang, source_hash, source_text, target_text, provider)
+       VALUES (:source, :target, :sourceHash, :sourceText, :targetText, 'gemini')
+       ON DUPLICATE KEY UPDATE
+         target_text = VALUES(target_text),
+         provider = VALUES(provider),
+         updated_at = CURRENT_TIMESTAMP`,
+      { source, target, sourceHash, sourceText: cleanText, targetText: translatedText },
+    );
+    return translatedText;
+  } catch (error) {
+    console.warn("Optional Gemini name translation skipped", error instanceof Error ? error.message : String(error));
+    return cleanText;
+  }
+}
+
+async function buildCustomerNamePair(fullName) {
+  const cleanName = String(fullName || "").trim();
+  const sourceLang = inferTranslationSourceLanguage(cleanName);
+  if (sourceLang === "mr") {
+    return {
+      fullName: cleanName,
+      fullNameMr: cleanName,
+      fullNameEn: await translateNameWithGemini({ text: cleanName, sourceLang: "mr", targetLang: "en" }),
+    };
+  }
+  return {
+    fullName: cleanName,
+    fullNameEn: cleanName,
+    fullNameMr: await translateNameWithGemini({ text: cleanName, sourceLang: "en", targetLang: "mr" }),
+  };
+}
 function hasDevanagariText(value) {
   return /[\u0900-\u097F]/.test(String(value || ""));
 }
@@ -1373,6 +1451,8 @@ function scheduleRetentionCleanup() {
 
 async function ensurePlatformExtensions() {
   await addColumnIfMissing("users", "full_name_en", "full_name_en VARCHAR(180) NULL AFTER full_name");
+  await addColumnIfMissing("customers", "full_name_en", "full_name_en VARCHAR(180) NULL AFTER full_name");
+  await addColumnIfMissing("customers", "full_name_mr", "full_name_mr VARCHAR(180) NULL AFTER full_name_en");
   await addColumnIfMissing("traders", "business_name_en", "business_name_en VARCHAR(220) NULL AFTER business_name");
   await addColumnIfMissing("trader_galas", "business_name_en", "business_name_en VARCHAR(220) NULL AFTER business_name");
 
@@ -4254,7 +4334,7 @@ app.get("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) => 
     return;
   }
   const [rows] = await pool.query(
-    `SELECT c.id, c.customer_code, c.full_name, c.mobile, c.kyc_status, c.risk_status, c.created_at,
+    `SELECT c.id, c.customer_code, c.full_name, c.full_name_en, c.full_name_mr, c.mobile, c.kyc_status, c.risk_status, c.created_at,
             aadhaar.masked_value AS aadhaar_masked,
             pan.masked_value AS pan_masked,
             photo_doc.id AS photo_document_id,
@@ -4300,7 +4380,7 @@ app.get("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) => 
        )
        LEFT JOIN traders latest_trader ON latest_trader.id = latest_wc.trader_id
       WHERE tc.trader_id = :traderId
-      GROUP BY c.id, c.customer_code, c.full_name, c.mobile, c.kyc_status, c.risk_status, c.created_at,
+      GROUP BY c.id, c.customer_code, c.full_name, c.full_name_en, c.full_name_mr, c.mobile, c.kyc_status, c.risk_status, c.created_at,
                aadhaar.masked_value, pan.masked_value, photo_doc.id, tc.relationship_status, latest_action.id, latest_action.action_type, latest_action.reason, latest_action.created_at, latest_action_user.full_name, latest_wc.id, latest_wc.trader_id, latest_wc.trader_statement, latest_trader.business_name
       ORDER BY linked_at DESC`,
     { traderId },
@@ -4832,7 +4912,7 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
   }
 
   const [[existingCustomer]] = await pool.query(
-    `SELECT c.id, c.customer_code, c.full_name, c.kyc_status
+    `SELECT c.id, c.customer_code, c.full_name, c.full_name_en, c.full_name_mr, c.kyc_status
        FROM customers c
        LEFT JOIN customer_identifiers ci
          ON ci.customer_id = c.id
@@ -4863,13 +4943,14 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
   }
 
   const customerCode = `CUST-${Date.now().toString().slice(-8)}`;
+  const customerNames = await buildCustomerNamePair(fullName);
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
     const [customerResult] = await connection.query(
-      `INSERT INTO customers (customer_code, full_name, mobile, date_of_birth, occupation_business, address_line1, village_city, district, kyc_status, created_by_trader_id, created_by_user_id)
-       VALUES (:customerCode, :fullName, :mobile, :dateOfBirth, :occupationBusiness, :addressLine1, :villageCity, :district, 'submitted', :traderId, :userId)`,
-      { customerCode, fullName, mobile: cleanMobile, dateOfBirth, occupationBusiness, addressLine1, villageCity, district, traderId, userId: req.user.id },
+      `INSERT INTO customers (customer_code, full_name, full_name_en, full_name_mr, mobile, date_of_birth, occupation_business, address_line1, village_city, district, kyc_status, created_by_trader_id, created_by_user_id)
+       VALUES (:customerCode, :fullName, :fullNameEn, :fullNameMr, :mobile, :dateOfBirth, :occupationBusiness, :addressLine1, :villageCity, :district, 'submitted', :traderId, :userId)`,
+      { customerCode, fullName: customerNames.fullName, fullNameEn: customerNames.fullNameEn, fullNameMr: customerNames.fullNameMr, mobile: cleanMobile, dateOfBirth, occupationBusiness, addressLine1, villageCity, district, traderId, userId: req.user.id },
     );
     await connection.query(
       `INSERT INTO customer_identifiers (customer_id, identifier_type, masked_value, value_hash, last_four, is_primary)
@@ -4917,7 +4998,7 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
       },
     );
     await connection.commit();
-    await writeAudit({ req, action: "customer_kyc.submit", module: "customers", entityType: "customers", entityId: customerResult.insertId, newValues: { customerCode, fullName, mobile: cleanMobile } });
+    await writeAudit({ req, action: "customer_kyc.submit", module: "customers", entityType: "customers", entityId: customerResult.insertId, newValues: { customerCode, fullName: customerNames.fullName, fullNameEn: customerNames.fullNameEn, fullNameMr: customerNames.fullNameMr, mobile: cleanMobile } });
     res.status(201).json({ ok: true, customerId: customerResult.insertId, customerCode });
   } catch (error) {
     await connection.rollback();
@@ -5065,12 +5146,15 @@ app.put("/api/v1/trader/customers/:id", requireRoles("TRADER"), async (req, res)
     }
   }
 
+  const customerNames = await buildCustomerNamePair(cleanFullName);
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
     await connection.query(
       `UPDATE customers
           SET full_name = :fullName,
+              full_name_en = :fullNameEn,
+              full_name_mr = :fullNameMr,
               mobile = :mobile,
               date_of_birth = :dateOfBirth,
               occupation_business = :occupationBusiness,
@@ -5080,7 +5164,9 @@ app.put("/api/v1/trader/customers/:id", requireRoles("TRADER"), async (req, res)
         WHERE id = :customerId`,
       {
         customerId,
-        fullName: cleanFullName,
+        fullName: customerNames.fullName,
+        fullNameEn: customerNames.fullNameEn,
+        fullNameMr: customerNames.fullNameMr,
         mobile: cleanMobile,
         dateOfBirth: cleanDateOfBirth,
         occupationBusiness: cleanOccupationBusiness,
@@ -5390,15 +5476,18 @@ app.post("/api/v1/admin/traders/:id/customers", requireRoles("MAIN_ADMIN", "USER
   }
 
   const customerCode = `KYC-${Date.now().toString().slice(-8)}`;
+  const customerNames = await buildCustomerNamePair(fullName);
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
     const [customerResult] = await connection.query(
-      `INSERT INTO customers (customer_code, full_name, mobile, date_of_birth, occupation_business, address_line1, village_city, district, kyc_status, created_by_trader_id, created_by_user_id)
-       VALUES (:customerCode, :fullName, :mobile, :dateOfBirth, :occupationBusiness, :addressLine1, :villageCity, :district, 'verified', :traderId, :userId)`,
+      `INSERT INTO customers (customer_code, full_name, full_name_en, full_name_mr, mobile, date_of_birth, occupation_business, address_line1, village_city, district, kyc_status, created_by_trader_id, created_by_user_id)
+       VALUES (:customerCode, :fullName, :fullNameEn, :fullNameMr, :mobile, :dateOfBirth, :occupationBusiness, :addressLine1, :villageCity, :district, 'verified', :traderId, :userId)`,
       {
         customerCode,
-        fullName: String(fullName).trim(),
+        fullName: customerNames.fullName,
+        fullNameEn: customerNames.fullNameEn,
+        fullNameMr: customerNames.fullNameMr,
         mobile: cleanMobile,
         dateOfBirth,
         occupationBusiness,
@@ -5436,7 +5525,7 @@ app.post("/api/v1/admin/traders/:id/customers", requireRoles("MAIN_ADMIN", "USER
       module: "customers",
       entityType: "customers",
       entityId: customerResult.insertId,
-      newValues: { customerCode, fullName, mobile: cleanMobile, traderId },
+      newValues: { customerCode, fullName: customerNames.fullName, fullNameEn: customerNames.fullNameEn, fullNameMr: customerNames.fullNameMr, mobile: cleanMobile, traderId },
     });
     res.status(201).json({ ok: true, customerId: customerResult.insertId, customerCode });
   } catch (error) {
@@ -6946,7 +7035,7 @@ app.get("/api/v1/trader/customer-risk-search", requireRoles("TRADER"), async (re
   }
 
   const [rows] = await pool.query(
-    `SELECT c.id, c.customer_code, c.full_name, c.mobile, c.kyc_status, c.verified_at, c.risk_status,
+    `SELECT c.id, c.customer_code, c.full_name, c.full_name_en, c.full_name_mr, c.mobile, c.kyc_status, c.verified_at, c.risk_status,
             c.address_line1, c.village_city, c.district,
             latest_action.action_type AS market_action_type,
             latest_action.reason AS market_action_reason,
@@ -6983,8 +7072,8 @@ app.get("/api/v1/trader/customer-risk-search", requireRoles("TRADER"), async (re
        LEFT JOIN traders latest_trader ON latest_trader.id = latest_wc.trader_id
        LEFT JOIN trader_customers linked ON linked.customer_id = c.id AND linked.trader_id = :traderId
       WHERE c.deleted_at IS NULL
-        AND (c.customer_code = :q OR c.full_name LIKE :likeQuery OR c.mobile LIKE :likeQuery)
-      GROUP BY c.id, c.customer_code, c.full_name, c.mobile, c.kyc_status, c.verified_at, c.risk_status,
+        AND (c.customer_code = :q OR c.full_name LIKE :likeQuery OR c.full_name_en LIKE :likeQuery OR c.full_name_mr LIKE :likeQuery OR c.mobile LIKE :likeQuery)
+      GROUP BY c.id, c.customer_code, c.full_name, c.full_name_en, c.full_name_mr, c.mobile, c.kyc_status, c.verified_at, c.risk_status,
                c.address_line1, c.village_city, c.district,
                latest_action.id, latest_action.action_type, latest_action.reason, latest_action.created_at, latest_action_user.full_name,
                latest_wc.id, latest_wc.trader_id, latest_wc.trader_statement, latest_trader.business_name, linked.id

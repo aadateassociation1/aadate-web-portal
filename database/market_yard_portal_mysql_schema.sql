@@ -303,6 +303,8 @@ CREATE TABLE customers (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     customer_code VARCHAR(30) NOT NULL UNIQUE,
     full_name VARCHAR(180) NOT NULL,
+    full_name_en VARCHAR(180) NULL,
+    full_name_mr VARCHAR(180) NULL,
     mobile VARCHAR(20) NOT NULL,
     alternate_mobile VARCHAR(20) NULL,
     date_of_birth DATE NULL,
