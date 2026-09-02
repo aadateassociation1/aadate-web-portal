@@ -3649,6 +3649,10 @@ export function OwnerKycPage() {
     latest_warning_note?: string | null;
     latest_warning_trader?: string | null;
     can_clear_latest_warning?: 0 | 1 | boolean;
+    market_action_type?: string | null;
+    market_action_reason?: string | null;
+    market_action_by?: string | null;
+    market_action_at?: string | null;
     created_at: string;
   };
   type RiskSearchResult = {
@@ -3668,6 +3672,10 @@ export function OwnerKycPage() {
     latest_warning_note: string | null;
     latest_warning_trader: string | null;
     can_clear_latest_warning: 0 | 1 | boolean;
+    market_action_type?: string | null;
+    market_action_reason?: string | null;
+    market_action_by?: string | null;
+    market_action_at?: string | null;
     linked_to_me: 0 | 1 | boolean;
   };
   type TraderDashboardProfile = {
@@ -3704,6 +3712,12 @@ export function OwnerKycPage() {
   const riskStatuses = ["warning_2", "high_risk", "blocked", "disputed"];
   const hasRiskWarning = (record: TraderKycRecord) =>
     Number(record.active_market_warning_count || 0) > 0 || riskStatuses.includes(record.risk_status || "");
+  const getVisibleCustomerStatus = (record: Pick<TraderKycRecord, "kyc_status" | "risk_status" | "active_market_warning_count" | "market_action_type">) => {
+    if (record.market_action_type) return String(record.market_action_type).replace(/_/g, " ");
+    if (Number(record.active_market_warning_count || 0) > 0 || riskStatuses.includes(record.risk_status || "")) return "high risk";
+    return record.kyc_status || "pending";
+  };
+  const isMarketRestricted = (record: { market_action_type?: string | null }) => Boolean(record.market_action_type);
   const showRecordAction = (record: TraderKycRecord) => {
     if (hasRiskWarning(record)) {
       toast.error(
