@@ -4430,7 +4430,9 @@ export function AdminTraderKycPage() {
     }>;
   };
 
+  type TraderKycStatusCount = { verification_status: string; count: number | string };
   const [records, setRecords] = useState<TraderKycRecord[]>([]);
+  const [kycStats, setKycStats] = useState<TraderKycStatusCount[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -4449,6 +4451,7 @@ export function AdminTraderKycPage() {
       }
       if (!response.ok || !payload.ok) throw new Error(payload.error || "Unable to load Member KYC records.");
       setRecords(payload.requests || []);
+      setKycStats(payload.stats || []);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load Member KYC records.";
       setLoadError(message);
@@ -4507,7 +4510,17 @@ export function AdminTraderKycPage() {
     return haystack.includes(query.trim().toLowerCase());
   });
 
-  const counts = {
+  const kycStatusCount = (statuses: string[]) =>
+    kycStats
+      .filter((item) => statuses.includes(item.verification_status))
+      .reduce((total, item) => total + Number(item.count || 0), 0);
+
+  const counts = kycStats.length > 0 ? {
+    total: kycStats.reduce((total, item) => total + Number(item.count || 0), 0),
+    approved: kycStatusCount(["approved"]),
+    pending: kycStatusCount(["submitted", "under_review", "correction_required"]),
+    rejected: kycStatusCount(["rejected"]),
+  } : {
     total: records.length,
     approved: records.filter((record) => record.verification_status === "approved").length,
     pending: records.filter((record) => ["submitted", "under_review", "correction_required"].includes(record.verification_status)).length,
