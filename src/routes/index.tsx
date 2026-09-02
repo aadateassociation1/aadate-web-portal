@@ -345,9 +345,6 @@ function Home() {
           </div>
           <div className="relative">
             <img src={marketyardImg} alt="Market yard trading floor" width={1600} height={900} className="rounded-3xl shadow-xl object-cover aspect-[4/3]" />
-            <div className="absolute -bottom-6 -left-6 hidden sm:block rounded-2xl bg-saffron px-5 py-4 text-center shadow-xl">
-              <div className="font-display text-2xl font-bold text-primary-dark">{lang === "mr" ? "१९७९ साला पासून" : "Since 1979"}</div>
-            </div>
           </div>
         </div>
       </section>
