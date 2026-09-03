@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
 import marketyardImg from "@/assets/marketyard.webp";
-import sourabhKunjirImg from "@/assets/sourabh Kunjir.png";
+import sourabhKunjirImg from "@/assets/Sourabh Kunjir.jpeg";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
