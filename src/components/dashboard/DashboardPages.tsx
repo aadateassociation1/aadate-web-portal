@@ -40,6 +40,101 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 
 const CHART_COLORS = ["#86c127", "#e37814", "#86c127", "#D92D20", "#7C3AED", "#0284C7"];
+
+const ENGLISH_NAME_FIXES: Array<[string, string]> = [
+  ["Andd", "And"],
+  ["Bagvan", "Bagwan"],
+  ["Kaci", "Kachi"],
+  ["Ursl", "Ursal"],
+  ["Jsuja", "Jasuja"],
+  ["Dvarkadas", "Dwarkadas"],
+  ["Hsen", "Hasen"],
+  ["Rhim", "Rahim"],
+  ["Jmjm", "Jamjam"],
+  ["Munaph", "Munaf"],
+  ["Shekh", "Shaikh"],
+  ["Keshvrav", "Keshavrao"],
+  ["Naraynn", "Narayan"],
+  ["Mohmmd", "Mohammad"],
+  ["Mstan", "Mastan"],
+  ["Dstgir", "Dastagir"],
+  ["Slim", "Salim"],
+  ["Bshir", "Bashir"],
+  ["Rhemanji", "Rahmanji"],
+  ["Abduljbbar", "Abdul Jabbar"],
+  ["Pharukh", "Farukh"],
+  ["Tosiph", "Tosif"],
+  ["Muktar", "Mukhtar"],
+  ["Anvr", "Anwar"],
+  ["Kasmbhai", "Kasambhai"],
+  ["Nsir", "Nasir"],
+  ["Prdip", "Pradip"],
+  ["Kisnrav", "Kisanrao"],
+  ["Ujher", "Uzair"],
+  ["ujher", "Uzair"],
+  ["Njhir", "Nazir"],
+  ["Hcnure", "Hachnure"],
+  ["Sidhdarth", "Siddharth"],
+  ["Shekhr", "Shekhar"],
+  ["Stish", "Satish"],
+  ["Shetth", "Sheth"],
+  ["Shkrrav", "Shankarrao"],
+  ["Dipk", "Dipak"],
+  ["Sttaramdas", "Sattaramdas"],
+  ["Krmcdani", "Karamchandani"],
+  ["Rghunath", "Raghunath"],
+  ["Vishvnath", "Vishwanath"],
+  ["Mnoj", "Manoj"],
+  ["Prdeshi", "Pardeshi"],
+  ["Pritmdas", "Pritamdas"],
+  ["Shjram", "Sahajram"],
+  ["Jysinghani", "Jaisinghani"],
+  ["Vijy", "Vijay"],
+  ["Vamn", "Vaman"],
+  ["Borkr", "Borkar"],
+  ["Ttredding", "Trading"],
+  ["Es.ke.", "S.K."],
+  ["Ddi.bi.", "D.B."],
+  ["Ke.ddi.", "K.D."],
+  ["Ke.ddi", "K.D."],
+  [".rakesh", "Rakesh"],
+  [".mgesh", "Mangesh"],
+  [".sidhdarth", "Siddharth"],
+  [".yuvraj", "Yuvraj"],
+  [".ujher", "Uzair"],
+  ["Shrimhalkssmi", "Shri Mahalaxmi"],
+  ["ursl", "Ursal"],
+  ["  ", " "],
+];
+
+const MARATHI_NAME_FIXES: Array<[string, string]> = [
+  ["\u0936\u094d\u0930\u0940. .", "\u0936\u094d\u0930\u0940. "],
+  ["\u0936\u094d\u0930\u094b.", "\u0936\u094d\u0930\u0940."],
+  [".\u0930\u093e\u0915\u0947\u0936", "\u0930\u093e\u0915\u0947\u0936"],
+  [".\u092e\u0917\u0947\u0936", "\u092e\u0902\u0917\u0947\u0936"],
+  [".\u092e\u0902\u0917\u0947\u0936", "\u092e\u0902\u0917\u0947\u0936"],
+  [".\u0938\u093f\u0926\u094d\u0927\u093e\u0930\u094d\u0925", "\u0938\u093f\u0926\u094d\u0927\u093e\u0930\u094d\u0925"],
+  [".\u092f\u0941\u0935\u0930\u093e\u091c", "\u092f\u0941\u0935\u0930\u093e\u091c"],
+  [".\u0909\u091d\u0947\u0930", "\u0909\u091d\u0947\u0930"],
+  ["\u092e\u0917\u0947\u0936", "\u092e\u0902\u0917\u0947\u0936"],
+  ["  ", " "],
+];
+
+function cleanDisplayEnglish(value: string | null | undefined) {
+  let text = String(value || "").trim();
+  for (const [from, to] of ENGLISH_NAME_FIXES) text = text.split(from).join(to);
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function cleanDisplayMarathi(value: string | null | undefined) {
+  let text = String(value || "").trim();
+  for (const [from, to] of MARATHI_NAME_FIXES) text = text.split(from).join(to);
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function localizedKycName(lang: string, mrValue: string | null | undefined, enValue?: string | null) {
+  return lang === "en" ? cleanDisplayEnglish(enValue || mrValue) : cleanDisplayMarathi(mrValue || enValue);
+}
 const COMPLAINT_CATEGORIES = [
   { en: "Water Supply", mr: "\u092a\u093e\u0923\u0940 \u092a\u0941\u0930\u0935\u0920\u093e" },
   { en: "Electricity", mr: "\u0935\u0940\u091c \u092a\u0941\u0930\u0935\u0920\u093e" },
@@ -4387,6 +4482,8 @@ type AdminKycRecord = {
 };
 
 export function AdminTraderKycPage() {
+  const { lang } = useI18n();
+
   type TraderKycRecord = {
     id: number;
     trader_code: string;
@@ -4396,6 +4493,7 @@ export function AdminTraderKycPage() {
     mobile: string;
     email: string | null;
     business_name: string;
+    business_name_en?: string | null;
     gala_number: string | null;
     business_category: string | null;
     verification_status: string;
@@ -4506,7 +4604,7 @@ export function AdminTraderKycPage() {
   };
 
   const filteredRecords = records.filter((record) => {
-    const haystack = `${record.full_name} ${record.mobile} ${record.trader_code} ${record.business_name || ""} ${record.gala_number || ""} ${record.business_category || ""}`.toLowerCase();
+    const haystack = `${localizedKycName(lang, record.full_name, record.full_name_en)} ${localizedKycName(lang, record.business_name, record.business_name_en)} ${record.mobile} ${record.trader_code} ${record.gala_number || ""} ${record.business_category || ""}`.toLowerCase();
     return haystack.includes(query.trim().toLowerCase());
   });
 
@@ -4565,11 +4663,11 @@ export function AdminTraderKycPage() {
                 {filteredRecords.map((record) => (
                   <TableRow key={record.id}>
                     <TableCell>
-                      <div className="font-medium text-primary-dark">{record.full_name}</div>
+                      <div className="font-medium text-primary-dark">{localizedKycName(lang, record.full_name, record.full_name_en)}</div>
                       <div className="text-xs text-muted-foreground">{record.trader_code}</div>
                     </TableCell>
                     <TableCell>
-                      <div>{record.business_name}</div>
+                      <div>{localizedKycName(lang, record.business_name, record.business_name_en)}</div>
                       <div className="text-xs text-muted-foreground">{[record.business_category, record.gala_number].filter(Boolean).join(" - ") || "-"}</div>
                     </TableCell>
                     <TableCell>{record.mobile}</TableCell>
@@ -4610,7 +4708,7 @@ export function AdminTraderKycPage() {
       <Dialog open={!!details} onOpenChange={(open) => !open && setDetails(null)}>
         <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-primary-dark">{details?.application.full_name || "Member KYC"}</DialogTitle>
+            <DialogTitle className="font-display text-2xl text-primary-dark">{details ? localizedKycName(lang, details.application.full_name, details.application.full_name_en) : "Member KYC"}</DialogTitle>
             <DialogDescription>{details?.application.trader_code || "Member record"} - verification details and documents</DialogDescription>
           </DialogHeader>
           {detailsLoading && <div className="rounded-lg border p-4 text-sm text-muted-foreground">Loading member details...</div>}
@@ -4618,7 +4716,7 @@ export function AdminTraderKycPage() {
             <div className="space-y-5">
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {[
-                  ["Business", details.application.business_name],
+                  ["Business", localizedKycName(lang, details.application.business_name, details.application.business_name_en)],
                   ["Mobile", details.application.mobile],
                   ["Email", details.application.email || "-"],
                   ["Gala", details.application.gala_number || "-"],
