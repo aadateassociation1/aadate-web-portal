@@ -860,9 +860,34 @@ const MEMBER_ENGLISH_DISPLAY_FIXES = [
   ["Shrimhalkssmi", "Shri Mahalaxmi"], ["ursl", "Ursal"], ["  ", " "],
 ];
 
+const REFERENCE_ENGLISH_NAME_WORDS = ["A.B","Abaji","Abdul","Ajitkumar","Akash","Allabaksh","Altaf","Ambadas","Amol","Anwar","Appa","Arjun","Arman","Arun","Asha","Ashok","Asifali","Atul","Awadaji","Ayub","Babanrao","Baburao","Baburde","Bagwan","Balasaheb","Balshiram","Bandeali","Bangi","Bashir","Bashirbhai","Bhagwandas","Bhagwansheth","Bhausaheb","Bhole","Bhosale","Brothers","Chandsab","Chaudhari","Chetan","Chive","Company","Dadubhai","Dagdu","Damodar","Dattakrupa","Dattatray","Dilip","Doke","Firoz","Fruit","Fruits","Gadwe","Gajanan","Ganesh","Ganpat","Gawade","Gulshan","H.B","Hanif","Hanji","Hari","Haribhau","Hashambhai","I.M","Ibrahim","Iliyas","Jadhav","Jafar","Javed","Jayganesh","Jaysing","Jidge","K.D","Kajale","Kakade","Kale","Kamthe","Karamchandani","Keswani","Khaire","Khandu","Khanvilkar","Khudabaksh","Kiran","Kondaji","Kripal","Krishna","Kunjir","Lalchand","Laxman","Limbore","Lukde","Lukman","Mane","Maruti","Masal","Maulaali","Mehboob","Mohammad","Mohsin","Momin","Motiram","Namdev","Nanasaheb","Nanaware","Narwade","Nilesh","Niyamatbi","Pandharinath","Pandurang","Pardeshi","Patwardhan","Paymode","Pisal","Prabhakar","Prakash","Pranav","Pratik","Raghunath","Rahim","Rahul","Rajahmad","Rajaram","Rajendra","Rajesh","Raju","Rakesh","Rambhau","Ramchandra","Ravindra","Riyaj","Rizwan","Rutuja","Sache","Sagar","Sahadev","Saipan","Saisamarth","Sakore","Salim","Salunke","Sanap","Santosh","Satish","Saurabh","Shabbir","Shaikh","Shailaja","Sharada","Shashikant","Shekhar","Shripati","Shriram","Siddiqali","Siraj","Sonawane","Sons","Sopanrao","Subodh","Sudhakar","Sukhdev","Sunil","Suraj","Suresh","Tanaji","Todkar","Trading","Tulshiram","Ulhas","Umarali","Vakhare","Vijay","Vikas","Vilas","Vitthal","Waykar","Yash","Yasin","Zakir","Zamzam"];
+
+function englishNameWordKey(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z]/g, "").replace(/[aeiou]/g, "");
+}
+
+const REFERENCE_ENGLISH_NAME_WORD_BY_KEY = new Map(
+  REFERENCE_ENGLISH_NAME_WORDS
+    .map((word) => [englishNameWordKey(word), word])
+    .filter(([key]) => key.length >= 3),
+);
+
+function applyReferenceEnglishWordFixes(value) {
+  return String(value || "")
+    .split(/(\s+|[\/\-])/)
+    .map((part) => {
+      if (!/[A-Za-z]/.test(part) || /^[\s\/\-]+$/.test(part)) return part;
+      const cleanPart = part.replace(/^\.+|\.+$/g, "");
+      const corrected = REFERENCE_ENGLISH_NAME_WORD_BY_KEY.get(englishNameWordKey(cleanPart));
+      if (!corrected) return part;
+      return part.replace(cleanPart, corrected);
+    })
+    .join("");
+}
 function cleanMemberEnglishDisplay(value) {
   let text = String(value || "").trim();
   for (const [from, to] of MEMBER_ENGLISH_DISPLAY_FIXES) text = text.split(from).join(to);
+  text = applyReferenceEnglishWordFixes(text);
   return text.replace(/\s+/g, " ").replace(/\s+\./g, ".").trim();
 }
 
