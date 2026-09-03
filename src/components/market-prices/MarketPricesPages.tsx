@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { ArrowDown, ArrowUp, BarChart3, Calendar, Copy, Download, Eye, Filter, IndianRupee, Minus, Plus, Save, Search, Store } from "lucide-react";
+import { Fragment, useEffect, useMemo, useState, type FormEvent } from "react";
+import { ArrowDown, ArrowUp, BarChart3, Calendar, ChevronDown, ChevronRight, Copy, Download, Eye, Filter, IndianRupee, Minus, Plus, Save, Search, Store } from "lucide-react";
 import { toast } from "sonner";
 import { DashLayout } from "@/components/dashboard/DashLayout";
 import { SiteLayout } from "@/components/public/SiteLayout";
@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useI18n } from "@/lib/i18n";
 
 const CATEGORIES = [
   { value: "all", label: "All Items", mr: "\u0938\u0930\u094d\u0935" },
@@ -19,17 +18,6 @@ const CATEGORIES = [
   { value: "fruit", label: "Fruits", mr: "\u092b\u0933\u0947" },
 ];
 const UNITS = ["Kg", "Quintal", "Dozen", "Piece", "Bunch", "Bundle", "Crate", "Box", "Tray"];
-const UNIT_MR: Record<string, string> = {
-  Kg: "\u0915\u093f\u0932\u094b",
-  Quintal: "\u0915\u094d\u0935\u093f\u0902\u091f\u0932",
-  Dozen: "\u0921\u091d\u0928",
-  Piece: "\u0928\u0917",
-  Bunch: "\u091c\u0941\u0921\u0940",
-  Bundle: "\u092c\u0902\u0921\u0932",
-  Crate: "\u0915\u094d\u0930\u0947\u091f",
-  Box: "\u092c\u0949\u0915\u094d\u0938",
-  Tray: "\u091f\u094d\u0930\u0947",
-};
 
 type MarketPriceRow = {
   item_id: number;
@@ -38,6 +26,13 @@ type MarketPriceRow = {
   name_en: string;
   name_mr: string;
   variety: string | null;
+  parent_id?: number | null;
+  item_type?: "main" | "subtype";
+  parent_name_en?: string | null;
+  parent_name_mr?: string | null;
+  parent_display_order?: number | null;
+  subtype_count?: number;
+  has_children?: number;
   default_unit: string;
   display_order: number;
   is_active: number;
@@ -84,9 +79,9 @@ function todayInput() {
   return now.toISOString().slice(0, 10);
 }
 
-function formatDate(value: string | null | undefined, withTime = false, lang: "en" | "mr" = "en") {
+function formatDate(value: string | null | undefined, withTime = false) {
   if (!value) return "-";
-  return new Date(value).toLocaleString(lang === "mr" ? "mr-IN" : "en-IN", {
+  return new Date(value).toLocaleString("en-IN", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -98,19 +93,8 @@ function currency(value: number | null | undefined) {
   return value === null || value === undefined ? "-" : `\u20B9${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
 
-function categoryLabel(value: string, lang: "en" | "mr" = "en") {
-  const category = CATEGORIES.find((item) => item.value === value);
-  return lang === "mr" ? category?.mr || value : category?.label || value;
-}
-
-function unitLabel(value: string | null | undefined, lang: "en" | "mr" = "en") {
-  const unit = String(value || "").trim();
-  if (!unit) return "-";
-  return lang === "mr" ? UNIT_MR[unit] || unit : unit;
-}
-
-function itemName(row: Pick<MarketPriceRow, "name_en" | "name_mr">, lang: "en" | "mr" = "en") {
-  return lang === "mr" ? row.name_mr || row.name_en : row.name_en || row.name_mr;
+function categoryLabel(value: string) {
+  return CATEGORIES.find((category) => category.value === value)?.label || value;
 }
 
 function marketItemKey(row: MarketPriceRow) {
@@ -123,6 +107,38 @@ function marketItemKey(row: MarketPriceRow) {
   ].join("|");
 }
 
+
+function isPriceableRow(row: MarketPriceRow) {
+  return Number(row.has_children || 0) === 0;
+}
+
+function parentTitle(row: MarketPriceRow) {
+  return row.parent_name_en ? `${row.parent_name_en} / ${row.parent_name_mr || ""}` : `${row.name_en} / ${row.name_mr}`;
+}
+
+function itemTitle(row: MarketPriceRow) {
+  if (row.parent_name_en) return `${row.name_en} / ${row.name_mr}`;
+  if (row.variety) return `${row.variety} / ${row.name_mr}`;
+  return `${row.name_en} / ${row.name_mr}`;
+}
+function buildMarketGroups(rows: MarketPriceRow[]) {
+  const groups = new Map<string, { key: string; nameEn: string; nameMr: string; category: string; children: MarketPriceRow[] }>();
+  rows.filter(isPriceableRow).forEach((row) => {
+    const grouped = Boolean(row.parent_id || row.parent_name_en);
+    const key = grouped ? `${row.category}:${row.parent_id || row.parent_name_en}` : `${row.category}:${row.item_id}`;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        key,
+        nameEn: row.parent_name_en || row.name_en,
+        nameMr: row.parent_name_mr || row.name_mr,
+        category: row.category,
+        children: [],
+      });
+    }
+    groups.get(key)!.children.push(row);
+  });
+  return Array.from(groups.values());
+}
 function dedupeMarketItems(rows: MarketPriceRow[]) {
   const byItem = new Map<string, MarketPriceRow>();
   rows.forEach((row) => {
@@ -140,14 +156,14 @@ function dedupeMarketItems(rows: MarketPriceRow[]) {
   ));
 }
 
-function changeView(row: MarketPriceRow, lang: "en" | "mr" = "en") {
-  if (row.change_amount === null) return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> {lang === "mr" ? "\u0928\u0935\u0940\u0928" : "New"}</span>;
+function changeView(row: MarketPriceRow) {
+  if (row.change_amount === null) return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> New</span>;
   if (row.change_direction === "up") return <span className="inline-flex items-center gap-1 font-semibold text-success"><ArrowUp className="h-4 w-4" /> {currency(row.change_amount)} {row.change_percent !== null ? `(${row.change_percent}%)` : ""}</span>;
   if (row.change_direction === "down") return <span className="inline-flex items-center gap-1 font-semibold text-destructive"><ArrowDown className="h-4 w-4" /> {currency(Math.abs(row.change_amount))} {row.change_percent !== null ? `(${row.change_percent}%)` : ""}</span>;
   return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> {"\u20B9"}0</span>;
 }
 
-function CategoryTabs({ value, onChange, lang = "en" }: { value: string; onChange: (value: string) => void; lang?: "en" | "mr" }) {
+function CategoryTabs({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
       {CATEGORIES.map((category) => (
@@ -157,7 +173,8 @@ function CategoryTabs({ value, onChange, lang = "en" }: { value: string; onChang
           onClick={() => onChange(category.value)}
           className={`min-h-16 rounded-xl border px-2 py-2 text-center transition sm:min-h-0 sm:px-4 sm:py-3 sm:text-left ${value === category.value ? "border-primary bg-secondary text-primary-dark shadow-sm" : "border-border bg-background hover:bg-secondary/60"}`}
         >
-          <div className="font-display text-sm font-semibold leading-tight sm:text-base">{lang === "mr" ? category.mr : category.label}</div>
+          <div className="font-display text-sm font-semibold leading-tight sm:text-base">{category.label}</div>
+          <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground sm:text-xs">{category.mr}</div>
         </button>
       ))}
     </div>
@@ -165,8 +182,6 @@ function CategoryTabs({ value, onChange, lang = "en" }: { value: string; onChang
 }
 
 function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
-  const { lang } = useI18n();
-  const isMr = lang === "mr";
   const [rows, setRows] = useState<MarketPriceRow[]>([]);
   const [date, setDate] = useState("");
   const [lastPublished, setLastPublished] = useState<string | null>(null);
@@ -192,8 +207,15 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
 
   const filtered = useMemo(() => rows.filter((row) => {
     const q = search.toLowerCase();
-    return !q || row.name_en.toLowerCase().includes(q) || row.name_mr.includes(search);
+    return !q
+      || row.name_en.toLowerCase().includes(q)
+      || row.name_mr.includes(search)
+      || (row.variety || "").toLowerCase().includes(q)
+      || (row.parent_name_en || "").toLowerCase().includes(q)
+      || (row.parent_name_mr || "").includes(search);
   }), [rows, search]);
+
+  const groups = useMemo(() => buildMarketGroups(filtered), [filtered]);
 
   const openHistory = async (row: MarketPriceRow) => {
     setHistoryItem(row);
@@ -206,65 +228,81 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
     <>
       {mode !== "public" && (
         <section>
-          <h1 className="font-display text-3xl font-bold sm:text-5xl">{isMr ? "\u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930 \u092d\u093e\u0935" : "Today's Market Prices"}</h1>
+          <h1 className="font-display text-3xl font-bold sm:text-5xl">Today's Market Prices</h1>
+          <p className="mt-2 text-muted-foreground">{"\u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930 \u092d\u093e\u0935"}</p>
           <div className="mt-4 text-sm text-muted-foreground">
-            {isMr ? "\u0936\u0947\u0935\u091f\u091a\u0947 \u0905\u0926\u094d\u092f\u0924\u0928:" : "Last Updated:"} {formatDate(lastPublished, true, lang)}
+            Last Updated: {formatDate(lastPublished, true)}
           </div>
         </section>
       )}
       <section className={mode === "public" ? "py-10" : "mt-6"}>
         <div className={mode === "public" ? "container-page" : ""}>
-          <CategoryTabs value={category} onChange={setCategory} lang={lang} />
+          <CategoryTabs value={category} onChange={setCategory} />
           <Card className="mt-5 border-border/60">
             <CardContent className="p-4 sm:p-5">
               <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isMr ? "\u092e\u093e\u0932 \u0936\u094b\u0927\u093e..." : "Search commodity..."} className="pl-9" />
+                  <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search commodity..." className="pl-9" />
                 </div>
-                <Button variant="outline" onClick={load}><Filter className="mr-2 h-4 w-4" /> {isMr ? "\u0924\u093e\u091c\u0947 \u0915\u0930\u093e" : "Refresh"}</Button>
+                <Button variant="outline" onClick={load}><Filter className="mr-2 h-4 w-4" /> Refresh</Button>
               </div>
               <div className="mt-5 hidden overflow-hidden rounded-lg border md:block">
                 <table className="w-full text-sm">
                   <thead className="bg-secondary/60 text-left text-muted-foreground">
                     <tr>
-                      <th className="p-3">{isMr ? "\u092e\u093e\u0932" : "Commodity"}</th>
-                      <th className="p-3 text-right">{isMr ? "\u0915\u093f\u092e\u093e\u0928" : "Min"}</th>
-                      <th className="p-3 text-right">{isMr ? "\u0915\u092e\u093e\u0932" : "Max"}</th>
-                      <th className="p-3 text-right">{isMr ? "\u0938\u0930\u093e\u0938\u0930\u0940" : "Avg"}</th>
-                      <th className="p-3">{isMr ? "\u092c\u0926\u0932" : "Change"}</th>
-                      <th className="p-3">{isMr ? "\u090f\u0915\u0915" : "Unit"}</th>
+                      <th className="p-3">Commodity</th>
+                      <th className="p-3 text-right">Min</th>
+                      <th className="p-3 text-right">Max</th>
+                      <th className="p-3 text-right">Avg</th>
+                      <th className="p-3">Change</th>
+                      <th className="p-3">Unit</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map((row) => (
-                      <tr key={row.item_id} className="border-t">
-                        <td className="p-3">
-                          <div className="font-display font-semibold text-primary-dark">{itemName(row, lang)}</div>
-                          <div className="text-xs text-muted-foreground">{categoryLabel(row.category, lang)} {row.variety && !isMr ? `- ${row.variety}` : ""}</div>
-                        </td>
-                        <td className="p-3 text-right font-semibold">{currency(row.min_price)}</td>
-                        <td className="p-3 text-right font-semibold">{currency(row.max_price)}</td>
-                        <td className="p-3 text-right font-bold text-primary-dark">{currency(row.modal_price)}</td>
-                        <td className="p-3">{changeView(row, lang)}</td>
-                        <td className="p-3">{unitLabel(row.unit, lang)}</td>
-                      </tr>
-                    ))}
+                    {groups.map((group) => {
+                      const grouped = group.children.some((row) => row.parent_name_en);
+                      return (
+                        <Fragment key={group.key}>
+                          {grouped && (
+                            <tr className="border-t bg-secondary/35">
+                              <td className="p-3" colSpan={6}>
+                                <div className="font-display font-semibold text-primary-dark">{group.nameEn} / {group.nameMr}</div>
+                                <div className="text-xs text-muted-foreground">{group.children.length} varieties</div>
+                              </td>
+                            </tr>
+                          )}
+                          {group.children.map((row) => (
+                            <tr key={row.item_id} className="border-t">
+                              <td className={`p-3 ${grouped ? "pl-8" : ""}`}>
+                                <div className="font-display font-semibold text-primary-dark">{itemTitle(row)}</div>
+                                <div className="text-xs text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div>
+                              </td>
+                              <td className="p-3 text-right font-semibold">{currency(row.min_price)}</td>
+                              <td className="p-3 text-right font-semibold">{currency(row.max_price)}</td>
+                              <td className="p-3 text-right font-bold text-primary-dark">{currency(row.modal_price)}</td>
+                              <td className="p-3">{changeView(row)}</td>
+                              <td className="p-3">{row.unit}</td>
+                            </tr>
+                          ))}
+                        </Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
               <div className="mt-5 overflow-hidden rounded-lg border md:hidden">
                 <div className="grid grid-cols-[minmax(0,1.15fr)_46px_46px_46px_52px] items-center gap-1.5 border-b bg-secondary/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  <span>{isMr ? "\u092e\u093e\u0932" : "Commodity"}</span>
-                  <span className="text-left">{isMr ? "\u0915\u093f\u092e\u093e\u0928" : "Min"}</span>
-                  <span className="text-left">{isMr ? "\u0915\u092e\u093e\u0932" : "Max"}</span>
-                  <span className="text-left">{isMr ? "\u0938\u0930\u093e\u0938\u0930\u0940" : "Avg"}</span>
-                  <span className="text-left">{isMr ? "\u090f\u0915\u0915" : "Unit"}</span>
+                  <span>Commodity</span>
+                  <span className="text-left">Min</span>
+                  <span className="text-left">Max</span>
+                  <span className="text-left">Avg</span>
+                  <span className="text-left">Unit</span>
                 </div>
-                {filtered.map((row) => {
+                {filtered.filter(isPriceableRow).map((row) => {
                   const changeLabel =
                     row.change_amount === null
-                      ? (isMr ? "\u0928\u0935\u0940\u0928" : "New")
+                      ? "New"
                       : row.change_direction === "up"
                         ? `\u2191 ${currency(row.change_amount)}`
                         : row.change_direction === "down"
@@ -284,13 +322,14 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                     <div key={row.item_id} className="border-t px-3 py-2.5 first:border-t-0">
                       <div className="grid grid-cols-[minmax(0,1.15fr)_46px_46px_46px_52px] items-center gap-1.5">
                         <div className="min-w-0">
-                          <div className="truncate font-display text-[13px] font-semibold text-primary-dark">{itemName(row, lang)}</div>
-                          <div className="mt-0.5 text-[10px] text-muted-foreground">{categoryLabel(row.category, lang)}</div>
+                          <div className="truncate font-display text-[13px] font-semibold text-primary-dark">{row.name_en}</div>
+                          <div className="truncate text-[11px] text-muted-foreground">{row.name_mr}</div>
+                          <div className="mt-0.5 truncate text-[10px] text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div>
                         </div>
                         <div className="text-left text-[12px] font-semibold text-primary-dark">{currency(row.min_price)}</div>
                         <div className="text-left text-[12px] font-semibold text-primary-dark">{currency(row.max_price)}</div>
                         <div className="text-left text-[12px] font-bold text-primary-dark">{currency(row.modal_price)}</div>
-                        <div className="text-left text-[11px] font-medium text-muted-foreground">{unitLabel(row.unit, lang)}</div>
+                        <div className="text-left text-[11px] font-medium text-muted-foreground">{row.unit}</div>
                       </div>
                       <div className="mt-2 flex items-center justify-start gap-2 border-t border-dashed pt-2 text-[10px]">
                         <span className={`truncate font-medium ${changeClassName}`}>{changeLabel}</span>
@@ -301,7 +340,7 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
               </div>
               {filtered.length === 0 && (
                 <div className="rounded-lg border p-8 text-center text-muted-foreground">
-                  {isMr ? "\u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930 \u092d\u093e\u0935 \u0905\u091c\u0942\u0928 \u092a\u094d\u0930\u0915\u093e\u0936\u093f\u0924 \u091d\u093e\u0932\u0947 \u0928\u093e\u0939\u0940\u0924. \u0915\u0943\u092a\u092f\u093e \u0925\u094b\u0921\u094d\u092f\u093e \u0935\u0947\u0933\u093e\u0928\u0947 \u092a\u0941\u0928\u094d\u0939\u093e \u0924\u092a\u093e\u0938\u093e." : "Today's market prices have not been published yet. Please check again shortly."}
+                  Today's market prices have not been published yet. Please check again shortly.
                 </div>
               )}
             </CardContent>
@@ -314,15 +353,15 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
           {historyItem && (
             <>
               <DialogHeader>
-                <DialogTitle>{itemName(historyItem, lang)}</DialogTitle>
-                <DialogDescription>{isMr ? "\u0906\u091c\u091a\u093e \u092a\u094d\u0930\u0915\u093e\u0936\u093f\u0924 \u092d\u093e\u0935" : "Today's published price"}</DialogDescription>
+                <DialogTitle>{historyItem.name_en} / {historyItem.name_mr}</DialogTitle>
+                <DialogDescription>Today's published price</DialogDescription>
               </DialogHeader>
               <div className="space-y-2">
                 {history.map((row) => (
                   <div key={row.price_id} className="flex items-center justify-between rounded-lg border p-3">
                     <div>
                       <div className="font-medium">{formatDate(row.price_date)}</div>
-                      <div className="text-xs text-muted-foreground">{row.quality_grade || (isMr ? "\u0938\u093e\u092e\u093e\u0928\u094d\u092f" : "Standard")} - {unitLabel(row.unit, lang)}</div>
+                      <div className="text-xs text-muted-foreground">{row.quality_grade || "Standard"} - {row.unit}</div>
                     </div>
                     <div className="text-right">
                       <div className="font-display text-lg font-bold text-primary-dark">{currency(row.modal_price)}</div>
@@ -363,6 +402,7 @@ export function AdminMarketPricesPage() {
   const [historyItem, setHistoryItem] = useState<MarketPriceRow | null>(null);
   const [history, setHistory] = useState<MarketPriceRow[]>([]);
   const [newItem, setNewItem] = useState({ category: "vegetable", nameEn: "", nameMr: "", variety: "", defaultUnit: "Kg", displayOrder: "100", isActive: true });
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   const load = async () => {
     const params = new URLSearchParams({ date });
@@ -372,15 +412,16 @@ export function AdminMarketPricesPage() {
     const result = await response.json();
     if (!result.ok) throw new Error(result.error || "Market prices failed to load");
     const uniquePrices = dedupeMarketItems(result.prices || []);
+    const priceablePrices = uniquePrices.filter(isPriceableRow);
     setRows(uniquePrices);
     setSummary(result.summary ? {
       ...result.summary,
-      total_items: uniquePrices.length,
-      updated_today: uniquePrices.filter((row) => row.price_id).length,
-      pending_update: uniquePrices.filter((row) => !row.price_id).length,
+      total_items: priceablePrices.length,
+      updated_today: priceablePrices.filter((row) => row.price_id).length,
+      pending_update: priceablePrices.filter((row) => !row.price_id).length,
     } : null);
     const nextDrafts: Record<number, DraftRow> = {};
-    uniquePrices.forEach((row: MarketPriceRow) => {
+    priceablePrices.forEach((row: MarketPriceRow) => {
       nextDrafts[row.item_id] = {
         itemId: row.item_id,
         minPrice: row.min_price?.toString() || "",
@@ -400,8 +441,15 @@ export function AdminMarketPricesPage() {
 
   const filtered = useMemo(() => rows.filter((row) => {
     const q = search.toLowerCase();
-    return !q || row.name_en.toLowerCase().includes(q) || row.name_mr.includes(search) || (row.variety || "").toLowerCase().includes(q);
+    return !q
+      || row.name_en.toLowerCase().includes(q)
+      || row.name_mr.includes(search)
+      || (row.variety || "").toLowerCase().includes(q)
+      || (row.parent_name_en || "").toLowerCase().includes(q)
+      || (row.parent_name_mr || "").includes(search);
   }), [rows, search]);
+
+  const groups = useMemo(() => buildMarketGroups(filtered), [filtered]);
 
   const setDraft = (itemId: number, field: keyof DraftRow, value: string) => {
     setDrafts((current) => {
@@ -476,6 +524,7 @@ export function AdminMarketPricesPage() {
     await load();
   };
 
+
   const openHistory = async (row: MarketPriceRow) => {
     setHistoryItem(row);
     const response = await fetch(`/api/v1/admin/market-prices/${row.item_id}/history`, { credentials: "include" });
@@ -544,31 +593,54 @@ export function AdminMarketPricesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((row) => {
-                    const draft = drafts[row.item_id];
+                  {groups.map((group) => {
+                    const grouped = group.children.some((row) => row.parent_name_en);
+                    const collapsed = collapsedGroups[group.key] === true;
                     return (
-                      <tr key={row.item_id} className="border-t align-top">
-                        <td className="p-3">
-                          <div className="truncate font-display font-semibold text-primary-dark">{row.name_en}</div>
-                          <div className="truncate text-xs text-muted-foreground">{row.name_mr} - {categoryLabel(row.category)}</div>
-                        </td>
-                        <td className="whitespace-nowrap p-3">{currency(row.previous_price)}</td>
-                        <td className="p-3"><Input className="h-9 w-16 px-2" type="number" min="0" value={draft?.minPrice || ""} onChange={(event) => setDraft(row.item_id, "minPrice", event.target.value)} /></td>
-                        <td className="p-3"><Input className="h-9 w-16 px-2" type="number" min="0" value={draft?.maxPrice || ""} onChange={(event) => setDraft(row.item_id, "maxPrice", event.target.value)} /></td>
-                        <td className="p-3"><Input className="h-9 w-16 px-2" type="number" min="0" value={draft?.modalPrice || ""} onChange={(event) => setDraft(row.item_id, "modalPrice", event.target.value)} /></td>
-                        <td className="p-3">
-                          <Select value={draft?.unit || row.default_unit} onValueChange={(value) => setDraft(row.item_id, "unit", value)}>
-                            <SelectTrigger className="h-9 w-20 px-2"><SelectValue /></SelectTrigger>
-                            <SelectContent>{UNITS.map((unit) => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </td>
-                        <td className="whitespace-nowrap p-3">
-                          <Badge className={row.status === "published" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}>
-                            {row.status || "Pending"}
-                          </Badge>
-                        </td>
-                        <td className="whitespace-nowrap p-3 text-right"><Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button></td>
-                      </tr>
+                      <Fragment key={group.key}>
+                        {grouped && (
+                          <tr className="border-t bg-secondary/35 align-middle">
+                            <td className="p-3" colSpan={8}>
+                              <button
+                                type="button"
+                                onClick={() => setCollapsedGroups((current) => ({ ...current, [group.key]: !collapsed }))}
+                                className="flex w-full items-center gap-2 text-left"
+                              >
+                                {collapsed ? <ChevronRight className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />}
+                                <span className="font-display font-semibold text-primary-dark">{group.nameEn} / {group.nameMr}</span>
+                                <Badge className="bg-background text-primary-dark">{group.children.length} varieties</Badge>
+                              </button>
+                            </td>
+                          </tr>
+                        )}
+                        {!collapsed && group.children.map((row) => {
+                          const draft = drafts[row.item_id];
+                          return (
+                            <tr key={row.item_id} className="border-t align-top">
+                              <td className={`p-3 ${grouped ? "pl-8" : ""}`}>
+                                <div className="truncate font-display font-semibold text-primary-dark">{itemTitle(row)}</div>
+                                <div className="truncate text-xs text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div>
+                              </td>
+                              <td className="whitespace-nowrap p-3">{currency(row.previous_price)}</td>
+                              <td className="p-3"><Input className="h-9 w-16 px-2" type="number" min="0" value={draft?.minPrice || ""} onChange={(event) => setDraft(row.item_id, "minPrice", event.target.value)} /></td>
+                              <td className="p-3"><Input className="h-9 w-16 px-2" type="number" min="0" value={draft?.maxPrice || ""} onChange={(event) => setDraft(row.item_id, "maxPrice", event.target.value)} /></td>
+                              <td className="p-3"><Input className="h-9 w-16 px-2" type="number" min="0" value={draft?.modalPrice || ""} onChange={(event) => setDraft(row.item_id, "modalPrice", event.target.value)} /></td>
+                              <td className="p-3">
+                                <Select value={draft?.unit || row.default_unit} onValueChange={(value) => setDraft(row.item_id, "unit", value)}>
+                                  <SelectTrigger className="h-9 w-20 px-2"><SelectValue /></SelectTrigger>
+                                  <SelectContent>{UNITS.map((unit) => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}</SelectContent>
+                                </Select>
+                              </td>
+                              <td className="whitespace-nowrap p-3">
+                                <Badge className={row.status === "published" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}>
+                                  {row.status || "Pending"}
+                                </Badge>
+                              </td>
+                              <td className="whitespace-nowrap p-3 text-right"><Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button></td>
+                            </tr>
+                          );
+                        })}
+                      </Fragment>
                     );
                   })}
                 </tbody>
@@ -624,5 +696,3 @@ export function AdminMarketPricesPage() {
     </DashLayout>
   );
 }
-
-

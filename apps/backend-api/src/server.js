@@ -1937,6 +1937,20 @@ async function ensureMarketPriceTables() {
       CONSTRAINT chk_market_prices_range CHECK (max_price >= min_price)
     ) ENGINE=InnoDB
   `);
+  for (const statement of [
+    "ALTER TABLE market_items ADD COLUMN parent_id BIGINT UNSIGNED NULL AFTER variety",
+    "ALTER TABLE market_items ADD COLUMN item_type ENUM('main','subtype') NOT NULL DEFAULT 'main' AFTER parent_id",
+    "ALTER TABLE market_items ADD INDEX idx_market_items_parent (parent_id, is_active, deleted_at, display_order)",
+    "ALTER TABLE market_items ADD CONSTRAINT fk_market_items_parent FOREIGN KEY (parent_id) REFERENCES market_items(id) ON DELETE SET NULL",
+  ]) {
+    try {
+      await pool.query(statement);
+    } catch (error) {
+      const message = String(error.message || "");
+      if (!message.includes("Duplicate column name") && !message.includes("Duplicate key name") && !message.includes("Duplicate foreign key constraint name")) throw error;
+    }
+  }
+  await pool.query("UPDATE market_items SET item_type = IF(parent_id IS NULL, 'main', 'subtype') WHERE item_type IS NULL OR item_type NOT IN ('main','subtype')");
   const [[count]] = await pool.query("SELECT COUNT(*) AS count FROM market_items WHERE deleted_at IS NULL");
   if (Number(count?.count || 0) > 0) return;
   await pool.query(
@@ -3133,17 +3147,34 @@ async function getMarketPriceRows({ date, category = "all", search = "", publicO
     category,
     search: `%${String(search || "").trim()}%`,
   };
+  const hasSearch = String(search || "").trim();
+  const activeFilter = includeInactive ? "1=1" : "mi.is_active = 1";
   const filters = [
     "mi.deleted_at IS NULL",
     "mi.category IN ('vegetable','fruit')",
     category === "all" ? "1=1" : "mi.category = :category",
-    String(search || "").trim() ? "(mi.name_en LIKE :search OR mi.name_mr LIKE :search OR mi.variety LIKE :search)" : "1=1",
-    includeInactive ? "1=1" : "mi.is_active = 1",
+    hasSearch ? "(mi.name_en LIKE :search OR mi.name_mr LIKE :search OR mi.variety LIKE :search OR parent.name_en LIKE :search OR parent.name_mr LIKE :search)" : "1=1",
+    activeFilter,
   ];
   const priceJoinStatus = publicOnly ? "AND mp.status = 'published'" : "";
   const [rows] = await pool.query(
-    `SELECT mi.id AS item_id, mi.category, mi.name_en, mi.name_mr, mi.variety, mi.default_unit,
-            mi.display_order, mi.is_active,
+    `SELECT mi.id AS item_id, mi.category, mi.name_en, mi.name_mr, mi.variety,
+            mi.parent_id, mi.item_type,
+            parent.name_en AS parent_name_en, parent.name_mr AS parent_name_mr,
+            parent.display_order AS parent_display_order,
+            mi.default_unit, mi.display_order, mi.is_active,
+            (SELECT COUNT(*)
+               FROM market_items child
+              WHERE child.parent_id = mi.id
+                AND child.deleted_at IS NULL
+                AND ${includeInactive ? "1=1" : "child.is_active = 1"}) AS subtype_count,
+            EXISTS (
+              SELECT 1
+                FROM market_items child
+               WHERE child.parent_id = mi.id
+                 AND child.deleted_at IS NULL
+                 AND ${includeInactive ? "1=1" : "child.is_active = 1"}
+            ) AS has_children,
             mp.id AS price_id, mp.price_date, mp.min_price, mp.max_price, mp.modal_price, mp.unit,
             mp.arrival_quantity, mp.arrival_unit, mp.quality_grade, mp.notes, mp.status,
             mp.published_at, mp.updated_at AS price_updated_at,
@@ -3155,31 +3186,56 @@ async function getMarketPriceRows({ date, category = "all", search = "", publicO
               ORDER BY p2.price_date DESC
               LIMIT 1) AS previous_price
        FROM market_items mi
+       LEFT JOIN market_items parent
+         ON parent.id = mi.parent_id
+        AND parent.deleted_at IS NULL
        LEFT JOIN market_prices mp
          ON mp.market_item_id = mi.id
         AND mp.price_date = :date
         ${priceJoinStatus}
       WHERE ${filters.join(" AND ")}
-      ORDER BY mi.category ASC, mi.display_order ASC, mi.name_en ASC`,
+      ORDER BY mi.category ASC, COALESCE(parent.display_order, mi.display_order) ASC, COALESCE(parent.name_en, mi.name_en) ASC, mi.parent_id IS NOT NULL ASC, mi.display_order ASC, mi.name_en ASC`,
     params,
   );
   return decorateMarketPriceRows(rows);
 }
-
 async function getMarketSummary(date) {
   const [[summary]] = await pool.query(
     `SELECT
-       (SELECT COUNT(*) FROM market_items WHERE deleted_at IS NULL AND is_active = 1 AND category IN ('vegetable','fruit')) AS total_items,
-       (SELECT COUNT(DISTINCT market_item_id) FROM market_prices WHERE price_date = :date) AS updated_today,
-       (SELECT COUNT(*) FROM market_items WHERE deleted_at IS NULL AND is_active = 1 AND category IN ('vegetable','fruit'))
-         - (SELECT COUNT(DISTINCT market_item_id) FROM market_prices WHERE price_date = :date) AS pending_update,
+       (SELECT COUNT(*)
+          FROM market_items mi
+         WHERE mi.deleted_at IS NULL
+           AND mi.is_active = 1
+           AND mi.category IN ('vegetable','fruit')
+           AND NOT EXISTS (SELECT 1 FROM market_items child WHERE child.parent_id = mi.id AND child.deleted_at IS NULL AND child.is_active = 1)) AS total_items,
+       (SELECT COUNT(DISTINCT mp.market_item_id)
+          FROM market_prices mp
+          JOIN market_items mi ON mi.id = mp.market_item_id
+         WHERE mp.price_date = :date
+           AND mi.deleted_at IS NULL
+           AND mi.is_active = 1
+           AND mi.category IN ('vegetable','fruit')
+           AND NOT EXISTS (SELECT 1 FROM market_items child WHERE child.parent_id = mi.id AND child.deleted_at IS NULL AND child.is_active = 1)) AS updated_today,
+       (SELECT COUNT(*)
+          FROM market_items mi
+         WHERE mi.deleted_at IS NULL
+           AND mi.is_active = 1
+           AND mi.category IN ('vegetable','fruit')
+           AND NOT EXISTS (SELECT 1 FROM market_items child WHERE child.parent_id = mi.id AND child.deleted_at IS NULL AND child.is_active = 1))
+         - (SELECT COUNT(DISTINCT mp.market_item_id)
+              FROM market_prices mp
+              JOIN market_items mi ON mi.id = mp.market_item_id
+             WHERE mp.price_date = :date
+               AND mi.deleted_at IS NULL
+               AND mi.is_active = 1
+               AND mi.category IN ('vegetable','fruit')
+               AND NOT EXISTS (SELECT 1 FROM market_items child WHERE child.parent_id = mi.id AND child.deleted_at IS NULL AND child.is_active = 1)) AS pending_update,
        (SELECT MAX(published_at) FROM market_prices WHERE status = 'published') AS last_published
      `,
     { date },
   );
   return summary || { total_items: 0, updated_today: 0, pending_update: 0, last_published: null };
 }
-
 app.get("/api/v1/public/market-prices/today", async (_req, res) => {
   const date = todayMarketDate();
   const prices = await getMarketPriceRows({ date, publicOnly: true });
@@ -3334,7 +3390,7 @@ app.post("/api/v1/admin/market-prices/bulk-save", requireRoles("MAIN_ADMIN", "US
   try {
     await connection.beginTransaction();
     for (const record of normalized) {
-      const [[item]] = await connection.query("SELECT id FROM market_items WHERE id = :itemId AND deleted_at IS NULL AND is_active = 1", { itemId: record.itemId });
+      const [[item]] = await connection.query("SELECT mi.id FROM market_items mi WHERE mi.id = :itemId AND mi.deleted_at IS NULL AND mi.is_active = 1 AND NOT EXISTS (SELECT 1 FROM market_items child WHERE child.parent_id = mi.id AND child.deleted_at IS NULL AND child.is_active = 1)", { itemId: record.itemId });
       if (!item) throw new Error(`Market item ${record.itemId} is not active.`);
       await connection.query(
         `INSERT INTO market_prices (
@@ -3415,8 +3471,13 @@ app.post("/api/v1/admin/market-prices/copy-previous", requireRoles("MAIN_ADMIN",
       WHERE mi.deleted_at IS NULL
         AND mi.is_active = 1
         AND NOT EXISTS (
-          SELECT 1 FROM market_prices today
-           WHERE today.market_item_id = mi.id
+          SELECT 1 FROM market_items child
+           WHERE child.parent_id = mi.id
+             AND child.deleted_at IS NULL
+             AND child.is_active = 1
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM market_prices today           WHERE today.market_item_id = mi.id
              AND today.price_date = :date
         )`,
     { date, userId: req.user.id },
@@ -7376,9 +7437,3 @@ ensurePlatformExtensions()
     console.error("Failed to initialize backend extensions", error);
     process.exit(1);
   });
-
-
-
-
-
-
