@@ -4,7 +4,7 @@ import {
   Menu, X,
   Clock, Mail,
   MapPin, ChevronRight,
-  ArrowUp, UserCircle,
+  ArrowUp, Languages, UserCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -81,7 +81,7 @@ function TopBar() {
 }
 
 function Header() {
-  const { t } = useI18n();
+  const { t, lang, setLang } = useI18n();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -122,6 +122,15 @@ function Header() {
           <div className="hidden sm:inline-flex">
             <LangSwitcher tone="light" />
           </div>
+          <button
+            type="button"
+            onClick={() => setLang(lang === "mr" ? "en" : "mr")}
+            className="grid h-10 w-10 place-items-center rounded-full border border-border bg-background text-primary shadow-sm transition hover:border-saffron hover:bg-saffron/15 sm:hidden"
+            aria-label={lang === "mr" ? "Switch to English" : "Switch to Marathi"}
+            title={lang === "mr" ? "English" : "Marathi"}
+          >
+            <Languages className="h-5 w-5" />
+          </button>
           {!dashLink && (
             <>
               <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
