@@ -125,7 +125,7 @@ function Header() {
           <button
             type="button"
             onClick={() => setLang(lang === "mr" ? "en" : "mr")}
-            className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-xs font-bold text-primary shadow-sm transition hover:border-saffron hover:bg-saffron/15 sm:hidden"
+            className="inline-flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-full border border-border bg-background px-2.5 text-xs font-bold text-primary shadow-sm transition hover:border-saffron hover:bg-saffron/15 sm:hidden"
             aria-label={lang === "mr" ? "Switch to English" : "Switch to Marathi"}
             title={lang === "mr" ? "English" : "Marathi"}
           >
@@ -142,14 +142,14 @@ function Header() {
               </Button>
             </>
           )}
-          <Button asChild variant="outline" size="icon" className={`h-11 w-11 rounded-full border-saffron/35 bg-transparent text-foreground shadow-sm transition hover:border-saffron hover:bg-saffron/15 hover:text-saffron-foreground ${dashLink ? "" : "xl:hidden"}`}>
+          <Button asChild variant="outline" size="icon" className={`h-10 w-10 rounded-full border-border bg-background text-foreground shadow-sm transition hover:border-saffron hover:bg-saffron/15 hover:text-saffron-foreground ${dashLink ? "" : "xl:hidden"}`}>
             <Link to={dashLink || "/login"} aria-label={dashLink ? "Open dashboard" : "Open login"}>
-              <UserCircle className="h-6 w-6" />
+              <UserCircle className="h-5 w-5" />
             </Link>
           </Button>
           <button
             onClick={() => setOpen((value) => !value)}
-            className="grid h-10 w-10 place-items-center rounded-md border border-border text-foreground xl:hidden"
+            className="grid h-10 w-10 place-items-center rounded-full border border-border bg-background text-foreground shadow-sm transition hover:border-saffron hover:bg-saffron/15 xl:hidden"
             aria-label="Toggle menu"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
