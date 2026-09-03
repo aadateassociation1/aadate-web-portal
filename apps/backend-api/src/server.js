@@ -841,6 +841,39 @@ const traderRequestSelect = `
     LEFT JOIN business_categories bc ON bc.id = t.business_category_id
 `;
 
+const MEMBER_ENGLISH_DISPLAY_FIXES = [
+  ["Andd", "And"], ["Bagvan", "Bagwan"], ["Kaci", "Kachi"], ["Ursl", "Ursal"], ["Jsuja", "Jasuja"], ["Jadhv", "Jadhav"],
+  ["Dvarkadas", "Dwarkadas"], ["Hsen", "Hasen"], ["Rhim", "Rahim"], ["Jmjm", "Jamjam"], ["Munaph", "Munaf"], ["Shekh", "Shaikh"],
+  ["Keshvrav", "Keshavrao"], ["Naraynn", "Narayan"], ["Mohmmd", "Mohammad"], ["Mstan", "Mastan"], ["Dstgir", "Dastagir"],
+  ["Slim", "Salim"], ["Bshir", "Bashir"], ["Rhemanji", "Rahmanji"], ["Abduljbbar", "Abdul Jabbar"], ["Pharukh", "Farukh"],
+  ["Tosiph", "Tosif"], ["Muktar", "Mukhtar"], ["Anvr", "Anwar"], ["Kasmbhai", "Kasambhai"], ["Nsir", "Nasir"],
+  ["Prdip", "Pradip"], ["Kisnrav", "Kisanrao"], ["Ujher", "Uzair"], ["ujher", "Uzair"], ["Njhir", "Nazir"], ["Hcnure", "Hachnure"],
+  ["Sidhdarth", "Siddharth"], ["Shekhr", "Shekhar"], ["Stish", "Satish"], ["Shetth", "Sheth"], ["Shkrrav", "Shankarrao"],
+  ["Dipk", "Dipak"], ["Sttaramdas", "Sattaramdas"], ["Krmcdani", "Karamchandani"], ["Rghunath", "Raghunath"],
+  ["Vishvnath", "Vishwanath"], ["Mnoj", "Manoj"], ["Prdeshi", "Pardeshi"], ["Pritmdas", "Pritamdas"], ["Shjram", "Sahajram"],
+  ["Jysinghani", "Jaisinghani"], ["Vijy", "Vijay"], ["Vamn", "Vaman"], ["Borkr", "Borkar"], ["Ttredding", "Trading"], ["Tredding", "Trading"],
+  ["Rnjnit", "Ranjit"], ["Mdhukr", "Madhukar"], ["Prkash", "Prakash"], ["Nivrttinath", "Nivruttinath"], ["Sjy", "Sanjay"],
+  ["Anptt", "Anpat"], ["Sndip", "Sandip"], ["Nthsaheb", "Nathasaheb"], ["Khere", "Khaire"], ["Prshuram", "Parshuram"],
+  ["Lkssmn", "Laxman"], ["Sagr", "Sagar"], ["Slman", "Salman"], ["Sdesh", "Sudesh"], ["Paddurg", "Pandurang"], ["Ghole", "Ghule"],
+  ["Ke.ddi.", "K.D."], ["Ke.ddi", "K.D."], ["Es.ke.", "S.K."], ["Ddi.bi.", "D.B."],
+  [".rakesh", "Rakesh"], [".mgesh", "Mangesh"], [".sidhdarth", "Siddharth"], [".shripad", "Shripad"], [".yuvraj", "Yuvraj"], [".ujher", "Uzair"],
+  ["Shrimhalkssmi", "Shri Mahalaxmi"], ["ursl", "Ursal"], ["  ", " "],
+];
+
+function cleanMemberEnglishDisplay(value) {
+  let text = String(value || "").trim();
+  for (const [from, to] of MEMBER_ENGLISH_DISPLAY_FIXES) text = text.split(from).join(to);
+  return text.replace(/\s+/g, " ").replace(/\s+\./g, ".").trim();
+}
+
+function decorateTraderRequestDisplay(row) {
+  return {
+    ...row,
+    full_name_en: cleanMemberEnglishDisplay(row.full_name_en || row.full_name),
+    business_name_en: cleanMemberEnglishDisplay(row.business_name_en || row.business_name),
+  };
+}
+
 async function writeAudit({ req, action, module, entityType = null, entityId = null, oldValues = null, newValues = null }) {
   await pool.query(
     `INSERT INTO audit_logs (actor_user_id, action, module, entity_type, entity_id, old_values, new_values, ip_address, user_agent, request_id)
@@ -3913,7 +3946,7 @@ app.get("/api/v1/admin/trader-requests", requireRoles("MAIN_ADMIN", "USER_ADMIN"
   const [stats] = await pool.query(
     `SELECT verification_status, COUNT(*) AS count FROM traders GROUP BY verification_status`,
   );
-  res.json({ ok: true, requests: rows, stats });
+  res.json({ ok: true, requests: rows.map(decorateTraderRequestDisplay), stats });
 });
 
 app.get("/api/v1/admin/trader-requests/:applicationNumber", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
@@ -3940,7 +3973,7 @@ app.get("/api/v1/admin/trader-requests/:applicationNumber", requireRoles("MAIN_A
       ORDER BY tg.is_primary DESC, tg.created_at ASC, tg.id ASC`,
     { traderId: rows[0].id },
   );
-  res.json({ ok: true, application: rows[0], history, documents, galas });
+  res.json({ ok: true, application: decorateTraderRequestDisplay(rows[0]), history, documents, galas: galas.map(decorateTraderRequestDisplay) });
 });
 
 app.patch("/api/v1/admin/trader-galas/:id/decision", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
