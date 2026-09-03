@@ -599,7 +599,7 @@ export function AdminMarketPricesPage() {
       </div>
 
       <div className="mt-6 grid gap-4">
-        <div className="sticky top-0 z-40 space-y-4 bg-background pb-4">
+        <div className="sticky -top-8 z-40 -mx-3 space-y-4 bg-background px-3 pb-4 pt-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
           <CategoryTabs value={category} onChange={setCategory} />
           <Card className="border-border/60 shadow-sm">
             <CardContent className="grid gap-3 bg-white p-4 sm:p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto_auto_auto]">
