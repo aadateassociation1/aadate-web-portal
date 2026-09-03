@@ -131,7 +131,57 @@ function cleanDisplayMarathi(value: string | null | undefined) {
   for (const [from, to] of MARATHI_NAME_FIXES) text = text.split(from).join(to);
   return text.replace(/\s+/g, " ").trim();
 }
+const DEVANAGARI_TRANSLITERATION: Record<string, string> = {
+  "\u0905": "a", "\u0906": "aa", "\u0907": "i", "\u0908": "ee", "\u0909": "u", "\u090a": "oo", "\u090f": "e", "\u0910": "ai", "\u0913": "o", "\u0914": "au",
+  "\u0915": "k", "\u0916": "kh", "\u0917": "g", "\u0918": "gh", "\u0919": "n", "\u091a": "ch", "\u091b": "chh", "\u091c": "j", "\u091d": "jh", "\u091e": "ny",
+  "\u091f": "t", "\u0920": "th", "\u0921": "d", "\u0922": "dh", "\u0923": "n", "\u0924": "t", "\u0925": "th", "\u0926": "d", "\u0927": "dh", "\u0928": "n",
+  "\u092a": "p", "\u092b": "ph", "\u092c": "b", "\u092d": "bh", "\u092e": "m", "\u092f": "y", "\u0930": "r", "\u0932": "l", "\u0933": "l", "\u0935": "v",
+  "\u0936": "sh", "\u0937": "sh", "\u0938": "s", "\u0939": "h", "\u0915\u094d\u0937": "ksh", "\u091c\u094d\u091e": "dny",
+};
 
+const DEVANAGARI_MATRAS: Record<string, string> = {
+  "\u093e": "a", "\u093f": "i", "\u0940": "ee", "\u0941": "u", "\u0942": "oo", "\u0943": "ru", "\u0947": "e", "\u0948": "ai", "\u094b": "o", "\u094c": "au", "\u0902": "n", "\u0901": "n", "\u0903": "h",
+};
+
+const DEVANAGARI_WORD_FIXES: Record<string, string> = {
+  "shree": "Shri", "shri": "Shri", "me": "M/s.", "and": "And", "company": "Company", "kampanee": "Company", "kanpanee": "Company", "frut": "Fruit", "treding": "Trading", "trading": "Trading", "sons": "Sons", "bradars": "Brothers", "brders": "Brothers", "asosiets": "Associates", "bagwan": "Bagwan", "kachi": "Kachi", "thorat": "Thorat", "shaikh": "Shaikh", "shekh": "Shaikh", "ursal": "Ursal", "jamuja": "Jasuja", "jasuja": "Jasuja", "mangesh": "Mangesh", "rakesh": "Rakesh", "usman": "Usman", "munaf": "Munaf", "ashokkumar": "Ashokkumar", "dwarkadas": "Dwarkadas", "yuvraj": "Yuvraj", "balasaheb": "Balasaheb", "bhanudas": "Bhanudas", "keshavrao": "Keshavrao", "gokul": "Gokul", "sonba": "Sonba", "mohsin": "Mohsin", "gulam": "Gulam", "hasen": "Hasen", "rahim": "Rahim", "abdul": "Abdul", "jamjam": "Jamjam",
+};
+
+function titleCaseWord(word: string) {
+  if (!word) return word;
+  const lower = word.toLowerCase();
+  return DEVANAGARI_WORD_FIXES[lower] || lower.charAt(0).toUpperCase() + lower.slice(1);
+}
+
+function transliterateMarathiToEnglish(value: string | null | undefined) {
+  const input = cleanDisplayMarathi(value);
+  if (!/[\u0900-\u097F]/.test(input)) return "";
+  let output = "";
+  for (let index = 0; index < input.length; index += 1) {
+    const char = input[index];
+    const next = input[index + 1];
+    if (char === "\u094d") continue;
+    if (DEVANAGARI_MATRAS[char]) {
+      output += DEVANAGARI_MATRAS[char];
+      continue;
+    }
+    if (DEVANAGARI_TRANSLITERATION[char]) {
+      output += DEVANAGARI_TRANSLITERATION[char];
+      if (next && !DEVANAGARI_MATRAS[next] && next !== "\u094d" && /[\u0915-\u0939\u0933]/.test(char)) output += "a";
+      continue;
+    }
+    output += char;
+  }
+  return output
+    .replace(/[\u0964\u0965]/g, " ")
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .map((word) => /[A-Za-z]/.test(word) ? titleCaseWord(word.replace(/^\.+|\.+$/g, "")) : word)
+    .join(" ")
+    .replace(/\bM\/s\.?\b/i, "M/s.")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 function localizedKycName(lang: string, mrValue: string | null | undefined, enValue?: string | null) {
   return lang === "en" ? cleanDisplayEnglish(enValue || mrValue) : cleanDisplayMarathi(mrValue || enValue);
 }
