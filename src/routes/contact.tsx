@@ -116,6 +116,7 @@ function Contact() {
                 <h2 className="font-display text-xl font-bold text-primary-dark" data-no-translate>{copy.heading}</h2>
                 <form
                   className="mt-5 grid gap-4"
+                  data-no-translate
                   onSubmit={(e) => { e.preventDefault(); setSent(true); toast.success(copy.toast); (e.target as HTMLFormElement).reset(); setTimeout(() => setSent(false), 3000); }}
                 >
                   <div className="grid gap-4 sm:grid-cols-2">

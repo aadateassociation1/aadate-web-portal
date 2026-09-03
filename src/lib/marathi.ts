@@ -753,6 +753,7 @@ export function translateDocumentToMarathi(root: ParentNode = document.body, lan
 
   const attrNames = ["placeholder", "aria-label", "title"];
   root.querySelectorAll?.("input, textarea, button, a, [aria-label], [title]").forEach((el) => {
+    if (el.closest("[data-no-translate]")) return;
     const original = originalAttrs.get(el) ?? {};
     attrNames.forEach((attr) => {
       const value = el.getAttribute(attr);
