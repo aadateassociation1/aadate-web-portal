@@ -322,7 +322,7 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                     <div key={row.item_id} className="border-t px-3 py-2.5 first:border-t-0">
                       <div className="grid grid-cols-[minmax(0,1.15fr)_46px_46px_46px_52px] items-center gap-1.5">
                         <div className="min-w-0">
-                          <div className="truncate font-display text-[13px] font-semibold text-primary-dark">{row.name_en}</div>
+                          <div className="whitespace-normal break-words font-display text-[13px] font-semibold leading-snug text-primary-dark">{row.name_en}</div>
                           <div className="truncate text-[11px] text-muted-foreground">{row.name_mr}</div>
                           <div className="mt-0.5 truncate text-[10px] text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div>
                         </div>
@@ -618,7 +618,7 @@ export function AdminMarketPricesPage() {
                           return (
                             <tr key={row.item_id} className="border-t align-top">
                               <td className={`p-3 ${grouped ? "pl-8" : ""}`}>
-                                <div className="truncate font-display font-semibold text-primary-dark">{itemTitle(row)}</div>
+                                <div className="whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{itemTitle(row)}</div>
                                 <div className="truncate text-xs text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div>
                               </td>
                               <td className="whitespace-nowrap p-3">{currency(row.previous_price)}</td>
