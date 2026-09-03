@@ -602,7 +602,7 @@ export function AdminMarketPricesPage() {
         <CategoryTabs value={category} onChange={setCategory} />
         <Card className="overflow-visible border-border/60">
           <CardContent className="p-0">
-            <div className="sticky top-0 z-40 grid gap-3 border-b bg-white p-4 shadow-md sm:p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto_auto_auto]">
+            <div className="sticky top-0 z-40 isolate grid gap-3 border-b bg-white p-4 shadow-md before:absolute before:inset-x-0 before:-top-12 before:h-12 before:bg-white before:content-[''] sm:p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto_auto_auto]">
               <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
