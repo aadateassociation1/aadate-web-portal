@@ -624,7 +624,7 @@ export function AdminMarketPricesPage() {
                   <col className="w-[130px]" />
                   <col className="w-[390px]" />
                 </colgroup>
-                <thead className="sticky top-[82px] z-30 bg-secondary text-left text-muted-foreground shadow-md">
+                <thead className="bg-secondary/60 text-left text-muted-foreground">
                   <tr>
                     <th className="whitespace-nowrap p-3">Item</th>
                     <th className="whitespace-nowrap p-3">Yesterday</th>
