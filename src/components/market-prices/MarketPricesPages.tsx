@@ -632,7 +632,7 @@ export function AdminMarketPricesPage() {
                     <th className="whitespace-nowrap p-3">Max</th>
                     <th className="whitespace-nowrap p-3">Avg</th>
                     <th className="whitespace-nowrap p-3">Unit</th>
-                    <th className="whitespace-nowrap p-3 pr-6 text-right">Actions</th>
+                    <th className="whitespace-nowrap p-3 pl-4 text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -674,8 +674,8 @@ export function AdminMarketPricesPage() {
                                   <SelectContent>{UNITS.map((unit) => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}</SelectContent>
                                 </Select>
                               </td>
-                              <td className="whitespace-nowrap p-3 pl-6 pr-6 text-right">
-                                <div className="flex flex-nowrap justify-end gap-3">
+                              <td className="whitespace-nowrap p-3 pl-4 pr-6 text-left">
+                                <div className="flex flex-nowrap justify-start gap-3">
                                   <Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button>
                                   <Button size="sm" variant="outline" onClick={() => startEditItem(row)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
                                   <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive hover:text-white" onClick={() => deleteItem(row)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
