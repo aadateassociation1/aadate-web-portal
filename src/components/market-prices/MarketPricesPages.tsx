@@ -600,9 +600,9 @@ export function AdminMarketPricesPage() {
 
       <div className="mt-6 grid gap-4">
         <CategoryTabs value={category} onChange={setCategory} />
-        <Card className="border-border/60">
+        <Card className="overflow-visible border-border/60">
           <CardContent className="p-0">
-            <div className="sticky top-0 z-30 grid gap-3 border-b bg-background/95 p-4 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/85 sm:p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto_auto_auto]">
+            <div className="sticky top-0 z-40 grid gap-3 border-b bg-white p-4 shadow-md sm:p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto_auto_auto]">
               <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -613,7 +613,7 @@ export function AdminMarketPricesPage() {
               <Button disabled={saving} onClick={() => saveRows("published")} className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Save & Publish Today's Prices</Button>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-b-lg bg-white">
               <table className="w-full min-w-[1180px] table-fixed text-sm">
                 <colgroup>
                   <col className="w-[170px]" />
@@ -624,7 +624,7 @@ export function AdminMarketPricesPage() {
                   <col className="w-[130px]" />
                   <col className="w-[390px]" />
                 </colgroup>
-                <thead className="sticky top-[73px] z-20 bg-secondary text-left text-muted-foreground shadow-sm">
+                <thead className="sticky top-[82px] z-30 bg-secondary text-left text-muted-foreground shadow-md">
                   <tr>
                     <th className="whitespace-nowrap p-3">Item</th>
                     <th className="whitespace-nowrap p-3">Yesterday</th>
