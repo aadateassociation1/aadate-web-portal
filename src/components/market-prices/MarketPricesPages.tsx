@@ -614,16 +614,16 @@ export function AdminMarketPricesPage() {
             </div>
 
             <div className="mt-5 overflow-x-auto rounded-lg border">
-              <table className="w-full min-w-[1040px] table-fixed text-sm">
+              <table className="w-full min-w-[1250px] table-fixed text-sm">
                 <colgroup>
                   <col className="w-[170px]" />
                   <col className="w-[95px]" />
                   <col className="w-[86px]" />
                   <col className="w-[86px]" />
                   <col className="w-[86px]" />
-                  <col className="w-[105px]" />
-                  <col className="w-[95px]" />
-                  <col className="w-[275px]" />
+                  <col className="w-[130px]" />
+                  <col className="w-[135px]" />
+                  <col className="w-[360px]" />
                 </colgroup>
                 <thead className="bg-secondary/60 text-left text-muted-foreground">
                   <tr>
@@ -672,17 +672,17 @@ export function AdminMarketPricesPage() {
                               <td className="p-3"><Input className="h-9 w-16 px-2" type="number" min="0" value={draft?.modalPrice || ""} onChange={(event) => setDraft(row.item_id, "modalPrice", event.target.value)} /></td>
                               <td className="p-3">
                                 <Select value={draft?.unit || row.default_unit} onValueChange={(value) => setDraft(row.item_id, "unit", value)}>
-                                  <SelectTrigger className="h-9 w-20 px-2"><SelectValue /></SelectTrigger>
+                                  <SelectTrigger className="h-9 w-24 px-2"><SelectValue /></SelectTrigger>
                                   <SelectContent>{UNITS.map((unit) => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}</SelectContent>
                                 </Select>
                               </td>
-                              <td className="whitespace-nowrap p-3">
+                              <td className="whitespace-nowrap p-3 pr-5">
                                 <Badge className={row.status === "published" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}>
                                   {row.status || "Pending"}
                                 </Badge>
                               </td>
-                              <td className="whitespace-nowrap p-3 pr-4 text-right">
-                                <div className="flex flex-nowrap justify-end gap-2">
+                              <td className="whitespace-nowrap p-3 pl-5 pr-5 text-right">
+                                <div className="flex flex-nowrap justify-end gap-3">
                                   <Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button>
                                   <Button size="sm" variant="outline" onClick={() => startEditItem(row)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
                                   <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive hover:text-white" onClick={() => deleteItem(row)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
