@@ -3922,7 +3922,7 @@ app.get("/api/v1/admin/trader-kyc", requireRoles("MAIN_ADMIN", "USER_ADMIN"), as
       LIMIT 100`,
     { status },
   );
-  res.json({ ok: true, traders: rows });
+  res.json({ ok: true, traders: rows.map(decorateTraderRequestDisplay) });
 });
 
 app.get("/api/v1/admin/trader-requests", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
@@ -4314,7 +4314,7 @@ app.get("/api/v1/admin/traders", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async
       GROUP BY t.verification_status`,
     { search, likeSearch: `%${search}%` },
   );
-  res.json({ ok: true, traders: rows, stats: statusCounts });
+  res.json({ ok: true, traders: rows.map(decorateTraderRequestDisplay), stats: statusCounts });
 });
 
 app.get("/api/v1/admin/traders/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
@@ -4328,7 +4328,7 @@ app.get("/api/v1/admin/traders/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), a
     "SELECT id, document_type, original_filename, mime_type, file_size_bytes, status, rejection_reason, verified_at, created_at FROM trader_documents WHERE trader_id = :traderId ORDER BY created_at DESC",
     { traderId },
   );
-  res.json({ ok: true, trader: rows[0], documents });
+  res.json({ ok: true, trader: decorateTraderRequestDisplay(rows[0]), documents });
 });
 
 app.get("/api/v1/admin/traders/:id/history", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {

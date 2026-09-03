@@ -487,9 +487,9 @@ export function AdminUsersPage() {
   const [accessSaving, setAccessSaving] = useState(false);
   const { lang } = useI18n();
   const memberName = (trader: Pick<ManagedTrader, "full_name" | "full_name_en"> | null | undefined) =>
-    lang === "en" ? trader?.full_name_en || trader?.full_name || "" : trader?.full_name || trader?.full_name_en || "";
+    localizedKycName(lang, trader?.full_name, trader?.full_name_en);
   const businessName = (trader: Pick<ManagedTrader, "business_name" | "business_name_en"> | null | undefined) =>
-    lang === "en" ? trader?.business_name_en || trader?.business_name || "" : trader?.business_name || trader?.business_name_en || "";
+    localizedKycName(lang, trader?.business_name, trader?.business_name_en);
 
   const loadTraders = async () => {
     setLoading(true);
@@ -865,11 +865,11 @@ export function AdminRegistrationsPage() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const { lang } = useI18n();
   const memberName = (trader: Pick<PendingTrader, "full_name" | "full_name_en"> | null | undefined) =>
-    lang === "en" ? trader?.full_name_en || trader?.full_name || "" : trader?.full_name || trader?.full_name_en || "";
+    localizedKycName(lang, trader?.full_name, trader?.full_name_en);
   const businessName = (trader: Pick<PendingTrader, "business_name" | "business_name_en"> | null | undefined) =>
-    lang === "en" ? trader?.business_name_en || trader?.business_name || "" : trader?.business_name || trader?.business_name_en || "";
+    localizedKycName(lang, trader?.business_name, trader?.business_name_en);
   const galaBusinessName = (gala: Pick<TraderGala, "business_name" | "business_name_en"> | null | undefined) =>
-    lang === "en" ? gala?.business_name_en || gala?.business_name || "" : gala?.business_name || gala?.business_name_en || "";
+    localizedKycName(lang, gala?.business_name, gala?.business_name_en);
 
   const loadPending = async () => {
     setLoading(true);
