@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState, type FormEvent } from "react";
-import { ArrowDown, ArrowUp, BarChart3, Calendar, ChevronDown, ChevronRight, Copy, Download, Eye, Filter, IndianRupee, Minus, Plus, Save, Search, Store } from "lucide-react";
+import { ArrowDown, ArrowUp, BarChart3, Calendar, ChevronDown, ChevronRight, Copy, Download, Eye, Filter, IndianRupee, Minus, Pencil, Plus, Save, Search, Store, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DashLayout } from "@/components/dashboard/DashLayout";
 import { SiteLayout } from "@/components/public/SiteLayout";
@@ -402,6 +402,7 @@ export function AdminMarketPricesPage() {
   const [historyItem, setHistoryItem] = useState<MarketPriceRow | null>(null);
   const [history, setHistory] = useState<MarketPriceRow[]>([]);
   const [newItem, setNewItem] = useState({ category: "vegetable", nameEn: "", nameMr: "", variety: "", defaultUnit: "Kg", displayOrder: "100", isActive: true });
+  const [editItem, setEditItem] = useState<{ id: number; category: string; nameEn: string; nameMr: string; variety: string; defaultUnit: string; displayOrder: string; isActive: boolean } | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   const load = async () => {
@@ -525,6 +526,49 @@ export function AdminMarketPricesPage() {
   };
 
 
+  const startEditItem = (row: MarketPriceRow) => {
+    setEditItem({
+      id: row.item_id,
+      category: row.category,
+      nameEn: row.name_en,
+      nameMr: row.name_mr,
+      variety: row.variety || "",
+      defaultUnit: row.default_unit || "Kg",
+      displayOrder: String(row.display_order || 100),
+      isActive: row.is_active !== 0,
+    });
+  };
+
+  const updateItem = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!editItem) return;
+    const response = await fetch(`/api/v1/admin/market-items/${editItem.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ ...editItem, displayOrder: Number(editItem.displayOrder), defaultUnit: editItem.defaultUnit }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) {
+      toast.error(result.error || "Item update failed");
+      return;
+    }
+    toast.success("Market item updated");
+    setEditItem(null);
+    await load();
+  };
+
+  const deleteItem = async (row: MarketPriceRow) => {
+    if (!window.confirm(`Delete ${itemTitle(row)}?`)) return;
+    const response = await fetch(`/api/v1/admin/market-items/${row.item_id}`, { method: "DELETE", credentials: "include" });
+    const result = await response.json();
+    if (!response.ok || !result.ok) {
+      toast.error(result.error || "Item delete failed");
+      return;
+    }
+    toast.success("Market item deleted");
+    await load();
+  };
   const openHistory = async (row: MarketPriceRow) => {
     setHistoryItem(row);
     const response = await fetch(`/api/v1/admin/market-prices/${row.item_id}/history`, { credentials: "include" });
@@ -570,7 +614,7 @@ export function AdminMarketPricesPage() {
             </div>
 
             <div className="mt-5 overflow-x-auto rounded-lg border">
-              <table className="w-full min-w-[680px] table-fixed text-sm">
+              <table className="w-full min-w-[860px] table-fixed text-sm">
                 <colgroup>
                   <col className="w-[170px]" />
                   <col className="w-[95px]" />
@@ -579,6 +623,7 @@ export function AdminMarketPricesPage() {
                   <col className="w-[86px]" />
                   <col className="w-[105px]" />
                   <col className="w-[85px]" />
+                  <col className="w-[170px]" />
                 </colgroup>
                 <thead className="bg-secondary/60 text-left text-muted-foreground">
                   <tr>
@@ -589,7 +634,7 @@ export function AdminMarketPricesPage() {
                     <th className="whitespace-nowrap p-3">Avg</th>
                     <th className="whitespace-nowrap p-3">Unit</th>
                     <th className="whitespace-nowrap p-3">Status</th>
-                    <th className="whitespace-nowrap p-3 text-right">History</th>
+                    <th className="whitespace-nowrap p-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -600,7 +645,7 @@ export function AdminMarketPricesPage() {
                       <Fragment key={group.key}>
                         {grouped && (
                           <tr className="border-t bg-secondary/35 align-middle">
-                            <td className="p-3" colSpan={8}>
+                            <td className="p-3" colSpan={9}>
                               <button
                                 type="button"
                                 onClick={() => setCollapsedGroups((current) => ({ ...current, [group.key]: !collapsed }))}
@@ -636,7 +681,13 @@ export function AdminMarketPricesPage() {
                                   {row.status || "Pending"}
                                 </Badge>
                               </td>
-                              <td className="whitespace-nowrap p-3 text-right"><Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button></td>
+                              <td className="whitespace-nowrap p-3 text-right">
+                                <div className="flex justify-end gap-2">
+                                  <Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button>
+                                  <Button size="sm" variant="outline" onClick={() => startEditItem(row)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
+                                  <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive hover:text-white" onClick={() => deleteItem(row)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
+                                </div>
+                              </td>
                             </tr>
                           );
                         })}
@@ -674,6 +725,33 @@ export function AdminMarketPricesPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
+        <DialogContent className="max-w-2xl">
+          {editItem && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Edit Market Item</DialogTitle>
+                <DialogDescription>Update item name, category, unit, order or active status.</DialogDescription>
+              </DialogHeader>
+              <form className="grid gap-4" onSubmit={updateItem}>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div><Label>Category *</Label><Select value={editItem.category} onValueChange={(value) => setEditItem((item) => item ? { ...item, category: value } : item)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{CATEGORIES.filter((item) => item.value !== "all").map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select></div>
+                  <div><Label>Default Unit *</Label><Select value={editItem.defaultUnit} onValueChange={(value) => setEditItem((item) => item ? { ...item, defaultUnit: value } : item)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{UNITS.map((unit) => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}</SelectContent></Select></div>
+                  <div><Label>Item Name - English *</Label><Input value={editItem.nameEn} onChange={(event) => setEditItem((item) => item ? { ...item, nameEn: event.target.value } : item)} required /></div>
+                  <div><Label>Item Name - Marathi *</Label><Input value={editItem.nameMr} onChange={(event) => setEditItem((item) => item ? { ...item, nameMr: event.target.value } : item)} required /></div>
+                  <div><Label>Variety</Label><Input value={editItem.variety} onChange={(event) => setEditItem((item) => item ? { ...item, variety: event.target.value } : item)} /></div>
+                  <div><Label>Display Order</Label><Input type="number" value={editItem.displayOrder} onChange={(event) => setEditItem((item) => item ? { ...item, displayOrder: event.target.value } : item)} /></div>
+                </div>
+                <label className="flex items-center gap-2 rounded-lg border p-3 text-sm font-medium">
+                  <input type="checkbox" checked={editItem.isActive} onChange={(event) => setEditItem((item) => item ? { ...item, isActive: event.target.checked } : item)} />
+                  Active item
+                </label>
+                <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setEditItem(null)}>Cancel</Button><Button type="submit" className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Update Item</Button></div>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
       <Dialog open={!!historyItem} onOpenChange={(open) => !open && setHistoryItem(null)}>
         <DialogContent className="max-w-xl">
           {historyItem && (
