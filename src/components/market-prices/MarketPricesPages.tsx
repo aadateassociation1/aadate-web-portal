@@ -614,7 +614,7 @@ export function AdminMarketPricesPage() {
             </div>
 
             <div className="mt-5 overflow-x-auto rounded-lg border">
-              <table className="w-full min-w-[860px] table-fixed text-sm">
+              <table className="w-full min-w-[1040px] table-fixed text-sm">
                 <colgroup>
                   <col className="w-[170px]" />
                   <col className="w-[95px]" />
@@ -622,8 +622,8 @@ export function AdminMarketPricesPage() {
                   <col className="w-[86px]" />
                   <col className="w-[86px]" />
                   <col className="w-[105px]" />
-                  <col className="w-[85px]" />
-                  <col className="w-[170px]" />
+                  <col className="w-[95px]" />
+                  <col className="w-[275px]" />
                 </colgroup>
                 <thead className="bg-secondary/60 text-left text-muted-foreground">
                   <tr>
@@ -634,7 +634,7 @@ export function AdminMarketPricesPage() {
                     <th className="whitespace-nowrap p-3">Avg</th>
                     <th className="whitespace-nowrap p-3">Unit</th>
                     <th className="whitespace-nowrap p-3">Status</th>
-                    <th className="whitespace-nowrap p-3 text-right">Actions</th>
+                    <th className="whitespace-nowrap p-3 pr-5 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -645,7 +645,7 @@ export function AdminMarketPricesPage() {
                       <Fragment key={group.key}>
                         {grouped && (
                           <tr className="border-t bg-secondary/35 align-middle">
-                            <td className="p-3" colSpan={9}>
+                            <td className="p-3" colSpan={8}>
                               <button
                                 type="button"
                                 onClick={() => setCollapsedGroups((current) => ({ ...current, [group.key]: !collapsed }))}
@@ -681,8 +681,8 @@ export function AdminMarketPricesPage() {
                                   {row.status || "Pending"}
                                 </Badge>
                               </td>
-                              <td className="whitespace-nowrap p-3 text-right">
-                                <div className="flex justify-end gap-2">
+                              <td className="whitespace-nowrap p-3 pr-4 text-right">
+                                <div className="flex flex-nowrap justify-end gap-2">
                                   <Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button>
                                   <Button size="sm" variant="outline" onClick={() => startEditItem(row)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
                                   <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive hover:text-white" onClick={() => deleteItem(row)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
