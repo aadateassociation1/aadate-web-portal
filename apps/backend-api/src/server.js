@@ -897,11 +897,19 @@ function cleanMemberEnglishDisplay(value) {
   return text.replace(/\s+/g, " ").replace(/\s+\./g, ".").trim();
 }
 
+const MEMBER_REFERENCE_DISPLAY_BY_GALA = {
+  "842": { full_name_en: "Mr. Sachin Dattatray Kolhe", business_name_en: "M/s Kolhe Bhosale Company" },
+  "848": { full_name_en: "Mr. Tausif Karim Sayyad", business_name_en: "M/s Sahayog Trading Company" },
+  "852": { full_name_en: "Mr. Mandhare Suryakant Shantaram", business_name_en: "M/s Arnav Trading Company" },
+  "855": { full_name_en: "Mr. Rajesh Pralhad Gund", business_name_en: "M/s Rajesh Pralhad Gund & Sons" },
+  "859": { full_name_en: "Mr. Satish Namdev Pangare", business_name_en: "M/s Namdev Damu Pangare" },
+};
 function decorateTraderRequestDisplay(row) {
+  const referenceDisplay = MEMBER_REFERENCE_DISPLAY_BY_GALA[String(row.gala_number || "").trim()] || null;
   return {
     ...row,
-    full_name_en: cleanMemberEnglishDisplay(row.full_name_en || row.full_name),
-    business_name_en: cleanMemberEnglishDisplay(row.business_name_en || row.business_name),
+    full_name_en: cleanMemberEnglishDisplay(referenceDisplay?.full_name_en || row.full_name_en || row.full_name),
+    business_name_en: cleanMemberEnglishDisplay(referenceDisplay?.business_name_en || row.business_name_en || row.business_name),
   };
 }
 
