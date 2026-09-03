@@ -4,7 +4,7 @@ import {
   Menu, X,
   Clock, Mail,
   MapPin, ChevronRight,
-  ArrowUp, Languages, UserCircle,
+  ArrowUp, UserCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -125,11 +125,10 @@ function Header() {
           <button
             type="button"
             onClick={() => setLang(lang === "mr" ? "en" : "mr")}
-            className="inline-flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-full border border-border bg-background px-2.5 text-xs font-bold text-primary shadow-sm transition hover:border-saffron hover:bg-saffron/15 sm:hidden"
+            className="inline-flex h-10 min-w-10 items-center justify-center rounded-full border border-border bg-background px-2.5 text-xs font-bold text-primary shadow-sm transition hover:border-saffron hover:bg-saffron/15 sm:hidden"
             aria-label={lang === "mr" ? "Switch to English" : "Switch to Marathi"}
             title={lang === "mr" ? "English" : "Marathi"}
           >
-            <Languages className="h-4 w-4" />
             <span>{lang === "mr" ? "EN" : "MR"}</span>
           </button>
           {!dashLink && (
