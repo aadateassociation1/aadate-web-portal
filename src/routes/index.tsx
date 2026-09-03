@@ -132,12 +132,61 @@ function Home() {
       return { category: "", details: String(value || "").trim() };
     }
   };
+  const contentTitleMrFallbacks: Record<string, string> = {
+    "marketyard entrance": "\u092e\u093e\u0930\u094d\u0915\u0947\u091f\u092f\u093e\u0930\u094d\u0921 \u092a\u094d\u0930\u0935\u0947\u0936\u0926\u094d\u0935\u093e\u0930",
+    "marketyard": "\u092e\u093e\u0930\u094d\u0915\u0947\u091f\u092f\u093e\u0930\u094d\u0921",
+  };
+  const reviewNameMrFallbacks: Record<string, string> = {
+    "ayush borkar": "\u0906\u092f\u0941\u0937 \u092c\u094b\u0930\u0915\u0930",
+    "vishal shinde": "\u0935\u093f\u0936\u093e\u0932 \u0936\u093f\u0902\u0926\u0947",
+  };
+  const businessNameMrFallbacks: Record<string, string> = {
+    "vaishnavi stall": "\u0935\u0948\u0937\u094d\u0923\u0935\u0940 \u0938\u094d\u091f\u0949\u0932",
+  };
+  const displayFallbackText = (value: string | null | undefined, fallbacks: Record<string, string>) => {
+    const text = String(value || "").trim();
+    if (!text || lang !== "mr") return text;
+    return fallbacks[text.toLowerCase()] || text;
+  };
+  const displayReviewMeta = (review: PublicReview) => {
+    const business = review.business_name || review.trader_name;
+    if (lang === "mr") {
+      const prefix = review.reviewer_type === "customer" ? `${review.customer_code || "\u0917\u094d\u0930\u093e\u0939\u0915"} \u092e\u093e\u0930\u094d\u092b\u0924 ` : "";
+      return `${prefix}${displayFallbackText(business, businessNameMrFallbacks)} - \u0917\u093e\u0933\u093e ${review.gala_number || "-"}`;
+    }
+    const prefix = review.reviewer_type === "customer" ? `${review.customer_code || "Customer"} via ` : "";
+    return `${prefix}${business} - Gala ${review.gala_number || "-"}`;
+  };
+  const complaintCategoryLabel = (value?: string | null) => {
+    if (lang !== "mr") return value || "Resolved Complaint";
+    const normalized = String(value || "").trim().toLowerCase();
+    const labels: Record<string, string> = {
+      cleanliness: "\u0938\u094d\u0935\u091a\u094d\u091b\u0924\u093e",
+      electricity: "\u0935\u0940\u091c",
+      "market facility": "\u092c\u093e\u091c\u093e\u0930 \u0938\u0941\u0935\u093f\u0927\u093e",
+      water: "\u092a\u093e\u0923\u0940",
+      resolved: "\u0928\u093f\u0935\u093e\u0930\u0923 \u091d\u093e\u0932\u0947\u0932\u0940 \u0924\u0915\u094d\u0930\u093e\u0930",
+      "resolved complaint": "\u0928\u093f\u0935\u093e\u0930\u0923 \u091d\u093e\u0932\u0947\u0932\u0940 \u0924\u0915\u094d\u0930\u093e\u0930",
+    };
+    return labels[normalized] || value || "\u0928\u093f\u0935\u093e\u0930\u0923 \u091d\u093e\u0932\u0947\u0932\u0940 \u0924\u0915\u094d\u0930\u093e\u0930";
+  };
+  const reactionLabel = (value?: string | null) => {
+    const normalized = String(value || "").replace(/_/g, " ").trim();
+    if (lang !== "mr") return normalized || "Resolved";
+    const labels: Record<string, string> = {
+      resolved: "\u0938\u092e\u093e\u0927\u093e\u0928\u0940",
+      satisfied: "\u0938\u092e\u093e\u0927\u093e\u0928\u0940",
+      happy: "\u0906\u0928\u0902\u0926\u0940",
+      neutral: "\u092e\u0927\u094d\u092f\u092e",
+    };
+    return labels[normalized.toLowerCase()] || "\u0938\u092e\u093e\u0927\u093e\u0928\u0940";
+  };
   const displayPublicContent = (item: PublicContent) => {
     const en = item.parsed || parsePublicContentBody(item.content_en);
     const mr = parsePublicContentBody(item.content_mr);
     return lang === "mr"
       ? {
-          title: item.title_mr || item.title_en,
+          title: item.title_mr || displayFallbackText(item.title_en, contentTitleMrFallbacks),
           category: mr.category || en.category || "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940",
           details: mr.details || en.details || "",
         }
@@ -514,7 +563,7 @@ function Home() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
               <span className="text-xs font-bold uppercase tracking-wider text-primary">{t("section.updates")}</span>
-              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Fresh from the market floor</h2>
+              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl" data-no-translate>{lang === "mr" ? "\u092c\u093e\u091c\u093e\u0930\u093e\u0924\u0940\u0932 \u0924\u093e\u091c\u094d\u092f\u093e \u0918\u0921\u093e\u092e\u094b\u0921\u0940" : "Fresh from the market floor"}</h2>
             </div>
             <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/updates">View all updates <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
@@ -629,22 +678,23 @@ function Home() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
               <span className="text-xs font-bold uppercase tracking-wider text-primary">{t("section.gallery")}</span>
-              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Moments from the market yard</h2>
+              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl" data-no-translate>{lang === "mr" ? "\u092e\u093e\u0930\u094d\u0915\u0947\u091f\u092f\u093e\u0930\u094d\u0921\u092e\u0927\u0940\u0932 \u0915\u094d\u0937\u0923" : "Moments from the market yard"}</h2>
             </div>
             <Button asChild variant="outline"><Link to="/gallery">Open gallery <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
           </div>
           <div className="mt-10 grid gap-4 grid-cols-2 md:grid-cols-3">
             {gallery.slice(0, 6).map((item) => {
               const image = item.attachments?.find((file) => file.attachment_type === "image");
+              const display = displayPublicContent(item);
               return (
               <div key={item.id} className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-secondary">
                 {image && <img src={`/api/v1/public/content-attachments/${image.id}/download`} className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />}
                 <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/55 via-primary-dark/10 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                <div className="absolute inset-x-0 bottom-0 p-4 text-white" data-no-translate>
                   <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-saffron">
-                    <Camera className="h-3.5 w-3.5" /> Photo
+                    <Camera className="h-3.5 w-3.5" /> {lang === "mr" ? "\u092b\u094b\u091f\u094b" : "Photo"}
                   </div>
-                  <div className="mt-1 font-display font-semibold">{item.title_en}</div>
+                  <div className="mt-1 font-display font-semibold">{display.title}</div>
                 </div>
               </div>
             )})}
@@ -658,9 +708,9 @@ function Home() {
         <div className="container-page">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
-              <span className="text-xs font-bold uppercase tracking-wider text-primary">Portal reviews</span>
-              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">Portal Feedback</h2>
-              <p className="mt-3 text-sm text-muted-foreground">Approved feedback from Members and customers.</p>
+              <span className="text-xs font-bold uppercase tracking-wider text-primary" data-no-translate>{lang === "mr" ? "\u092a\u094b\u0930\u094d\u091f\u0932 \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f" : "Portal reviews"}</span>
+              <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl" data-no-translate>{lang === "mr" ? "\u092a\u094b\u0930\u094d\u091f\u0932 \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f" : "Portal Feedback"}</h2>
+              <p className="mt-3 text-sm text-muted-foreground" data-no-translate>{lang === "mr" ? "\u0938\u092d\u093e\u0938\u0926 \u0906\u0923\u093f \u0917\u094d\u0930\u093e\u0939\u0915\u093e\u0902\u0915\u0921\u0942\u0928 \u092e\u0902\u091c\u0942\u0930 \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f." : "Approved feedback from Members and customers."}</p>
             </div>
           </div>
           <div className="mx-auto mt-10 max-w-6xl px-8 sm:px-16 lg:px-20">
@@ -677,7 +727,7 @@ function Home() {
                                 <Star key={star} className={`h-4 w-4 ${star <= review.rating_value ? "fill-current" : ""}`} />
                               ))}
                             </div>
-                            <Badge variant="outline" className="capitalize">{review.reviewer_type}</Badge>
+                            <Badge variant="outline" className="capitalize" data-no-translate>{lang === "mr" ? (review.reviewer_type === "customer" ? "\u0917\u094d\u0930\u093e\u0939\u0915" : "\u0938\u092d\u093e\u0938\u0926") : review.reviewer_type}</Badge>
                           </div>
                           <p className="mt-3 line-clamp-7 flex-1 text-sm leading-relaxed text-foreground/80">{review.review_text}</p>
                           {review.attachments && review.attachments.length > 0 && (
@@ -698,11 +748,8 @@ function Home() {
                             </div>
                           )}
                           <div className="mt-4 rounded-lg bg-secondary/40 p-3">
-                            <div className="font-display font-semibold leading-snug text-primary-dark">{review.reviewer_name}</div>
-                            <div className="mt-1 text-xs text-muted-foreground">
-                              {review.reviewer_type === "customer" ? `${review.customer_code || "Customer"} via ` : ""}
-                              {review.business_name || review.trader_name} - Gala {review.gala_number || "-"}
-                            </div>
+                            <div className="font-display font-semibold leading-snug text-primary-dark" data-no-translate>{displayFallbackText(review.reviewer_name, reviewNameMrFallbacks)}</div>
+                            <div className="mt-1 text-xs text-muted-foreground" data-no-translate>{displayReviewMeta(review)}</div>
                           </div>
                         </CardContent>
                       </Card>
@@ -723,13 +770,13 @@ function Home() {
       <section className="py-14 md:py-16">
         <div className="container-page">
           <div className="text-center">
-            <h2 className="font-display text-3xl font-bold text-primary-dark sm:text-4xl">Member Complaint Resolution Reviews</h2>
+            <h2 className="font-display text-3xl font-bold text-primary-dark sm:text-4xl" data-no-translate>{lang === "mr" ? "\u0938\u092d\u093e\u0938\u0926 \u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u093f\u0935\u093e\u0930\u0923 \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f" : "Member Complaint Resolution Reviews"}</h2>
             <div className="mt-2 flex justify-center text-saffron">
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star key={star} className="h-4 w-4 fill-current" />
               ))}
             </div>
-            <p className="mt-2 text-sm font-medium text-muted-foreground">Feedback shared by members after their complaints were resolved.</p>
+            <p className="mt-2 text-sm font-medium text-muted-foreground" data-no-translate>{lang === "mr" ? "\u0924\u0915\u094d\u0930\u093e\u0930\u0940\u0902\u091a\u0947 \u0928\u093f\u0935\u093e\u0930\u0923 \u091d\u093e\u0932\u094d\u092f\u093e\u0928\u0902\u0924\u0930 \u0938\u092d\u093e\u0938\u0926\u093e\u0902\u0928\u0940 \u0936\u0947\u0905\u0930 \u0915\u0947\u0932\u0947\u0932\u093e \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f." : "Feedback shared by members after their complaints were resolved."}</p>
           </div>
 
           <div className="mx-auto mt-9 max-w-6xl px-8 sm:px-16 lg:px-20">
@@ -740,8 +787,8 @@ function Home() {
                     <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
                       <Card className="h-full overflow-hidden border-border/60 bg-background shadow-md transition hover:-translate-y-1 hover:shadow-xl">
                         <CardContent className="flex min-h-[250px] flex-col items-center p-6 text-center">
-                          <div className="rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary-dark">
-                            {item.category || "Resolved Complaint"}
+                          <div className="rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary-dark" data-no-translate>
+                            {complaintCategoryLabel(item.category)}
                           </div>
                           <div className="mt-4 flex text-saffron">
                             {[1, 2, 3, 4, 5].map((star) => (
@@ -751,8 +798,8 @@ function Home() {
                           <p className="mt-5 line-clamp-4 flex-1 text-sm leading-relaxed text-muted-foreground">
                             {item.comment}
                           </p>
-                          <div className="mt-5 rounded-full bg-secondary px-5 py-2 font-display text-sm font-bold capitalize text-primary">
-                            {item.reaction?.replace(/_/g, " ") || "Resolved"}
+                          <div className="mt-5 rounded-full bg-secondary px-5 py-2 font-display text-sm font-bold capitalize text-primary" data-no-translate>
+                            {reactionLabel(item.reaction)}
                           </div>
                         </CardContent>
                       </Card>
