@@ -134,7 +134,11 @@ function Home() {
   };
   const contentTitleMrFallbacks: Record<string, string> = {
     "marketyard entrance": "\u092e\u093e\u0930\u094d\u0915\u0947\u091f\u092f\u093e\u0930\u094d\u0921 \u092a\u094d\u0930\u0935\u0947\u0936\u0926\u094d\u0935\u093e\u0930",
+    "market yard entrance": "\u092e\u093e\u0930\u094d\u0915\u0947\u091f\u092f\u093e\u0930\u094d\u0921 \u092a\u094d\u0930\u0935\u0947\u0936\u0926\u094d\u0935\u093e\u0930",
+    "market-yard entrance": "\u092e\u093e\u0930\u094d\u0915\u0947\u091f\u092f\u093e\u0930\u094d\u0921 \u092a\u094d\u0930\u0935\u0947\u0936\u0926\u094d\u0935\u093e\u0930",
     "marketyard": "\u092e\u093e\u0930\u094d\u0915\u0947\u091f\u092f\u093e\u0930\u094d\u0921",
+    "market yard": "\u092e\u093e\u0930\u094d\u0915\u0947\u091f\u092f\u093e\u0930\u094d\u0921",
+    "market-yard": "\u092e\u093e\u0930\u094d\u0915\u0947\u091f\u092f\u093e\u0930\u094d\u0921",
   };
   const reviewNameMrFallbacks: Record<string, string> = {
     "ayush borkar": "\u0906\u092f\u0941\u0937 \u092c\u094b\u0930\u0915\u0930",
@@ -146,7 +150,8 @@ function Home() {
   const displayFallbackText = (value: string | null | undefined, fallbacks: Record<string, string>) => {
     const text = String(value || "").trim();
     if (!text || lang !== "mr") return text;
-    return fallbacks[text.toLowerCase()] || text;
+    const normalized = text.toLowerCase().replace(/\s+/g, " ");
+    return fallbacks[normalized] || fallbacks[normalized.replace(/\s+/g, "")] || text;
   };
   const displayReviewMeta = (review: PublicReview) => {
     const business = review.business_name || review.trader_name;
