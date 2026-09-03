@@ -905,10 +905,23 @@ const MEMBER_REFERENCE_DISPLAY_BY_GALA = {
   "855": { full_name_en: "Mr. Rajesh Pralhad Gund", business_name_en: "M/s Rajesh Pralhad Gund & Sons" },
   "859": { full_name_en: "Mr. Satish Namdev Pangare", business_name_en: "M/s Namdev Damu Pangare" },
 };
+const MEMBER_REFERENCE_DISPLAY_BY_TRADER_CODE = {
+  "ONP-0041": { full_name: "\u0936\u094d\u0930\u0940. \u0926\u093f\u0932\u0940\u092a \u0936\u094d\u0930\u0940\u0915\u0943\u0937\u094d\u0923 \u092d\u093e\u0932\u0947\u0930\u093e\u0935", full_name_en: "Mr. Dilip Shrikrishna Bhalerao", business_name: "\u092e\u0947. \u092c\u0933\u0940\u0930\u093e\u092e \u0938\u0941\u0930\u094d\u092f\u0915\u093e\u0902\u0924 \u0906\u0923\u093f \u0915\u0902\u092a\u0928\u0940", business_name_en: "M/s. Baliram Suryakant & Company" },
+  "ONP-0042": { full_name: "\u0936\u094d\u0930\u0940. \u0926\u0924\u094d\u0924\u0942 \u0926\u093f\u0928\u0915\u0930 \u092b\u0921\u0924\u0930\u0947", full_name_en: "Mr. Dattu Dinkar Phadtare", business_name: "\u092e\u0947. \u0935\u0930\u0926 \u091f\u094d\u0930\u0947\u0921\u0940\u0902\u0917 \u0915\u0902\u092a\u0928\u0940", business_name_en: "M/s. Varad Trading Company" },
+  "ONP-0043": { full_name: "\u0936\u094d\u0930\u0940. \u0905\u092d\u092f \u0909\u0926\u092f\u0938\u093f\u0902\u0939 \u0936\u093f\u0902\u0926\u0947", full_name_en: "Mr. Abhay Udaysingh Shinde", business_name: "\u092e\u0947. \u092a\u094d\u0930\u0924\u093e\u092a\u0917\u0921\u0947 \u091f\u094d\u0930\u0947\u0921\u0940\u0902\u0917 \u0915\u0902\u092a\u0928\u0940", business_name_en: "M/s. Pratapgade Trading Company" },
+  "ONP-0044": { full_name: "\u0936\u094d\u0930\u0940. \u0935\u093f\u0915\u094d\u0930\u092e \u0909\u0926\u092f\u0938\u093f\u0902\u0917 \u0936\u093f\u0902\u0926\u0947", full_name_en: "Mr. Vikram Udaysing Shinde", business_name: "\u092e\u0947. \u0905\u0932\u0915\u0928\u0902\u0926\u093e \u091f\u094d\u0930\u0947\u0921\u0930\u094d\u0938", business_name_en: "M/s. Alaknanda Traders" },
+  "ONP-0046": { full_name: "\u0936\u094d\u0930\u0940. \u0917\u0923\u0947\u0936 \u0930\u0902\u0917\u0928\u093e\u0925 \u0936\u0947\u0921\u0917\u0947", full_name_en: "Mr. Ganesh Ranganath Shedge", business_name: "\u092e\u0947. \u0917\u0923\u0947\u0936 \u0930\u0902\u0917\u0928\u093e\u0925 \u0936\u0947\u0921\u0917\u0947", business_name_en: "M/s. Ganesh Ranganath Shedge" },
+  "ONP-0047": { full_name: "\u0936\u094d\u0930\u0940. \u0905\u0935\u093f\u0928\u093e\u0936 \u0928\u093f\u0935\u0943\u0924\u094d\u0924\u0940 \u092e\u094b\u0930\u0921\u0947", full_name_en: "Mr. Avinash Nivrutti Morde", business_name: "\u092e\u0947. \u0905\u0935\u093f\u0928\u093e\u0936 \u092e\u094b\u0930\u0921\u0947 \u0906\u0923\u093f \u0915\u0902\u092a\u0928\u0940", business_name_en: "M/s. Avinash Morde & Company" },
+  "ONP-0050": { full_name: "\u0936\u094d\u0930\u0940. \u0926\u0924\u094d\u0924\u093e\u0924\u094d\u0930\u092f \u0915\u093f\u0938\u0928 \u091a\u0935\u094d\u0939\u093e\u0923", full_name_en: "Mr. Dattatray Kisan Chavan", business_name: "\u092e\u0947. \u0915\u093f\u0938\u0928 \u092c\u093e\u092a\u0941\u091c\u0940 \u091a\u0935\u094d\u0939\u093e\u0923", business_name_en: "M/s. Kisan Bapuji Chavan" },
+};
 function decorateTraderRequestDisplay(row) {
-  const referenceDisplay = MEMBER_REFERENCE_DISPLAY_BY_GALA[String(row.gala_number || "").trim()] || null;
+  const codeReference = MEMBER_REFERENCE_DISPLAY_BY_TRADER_CODE[String(row.trader_code || "").trim()] || null;
+  const galaReference = MEMBER_REFERENCE_DISPLAY_BY_GALA[String(row.gala_number || "").trim()] || null;
+  const referenceDisplay = codeReference || galaReference;
   return {
     ...row,
+    full_name: referenceDisplay?.full_name || row.full_name,
+    business_name: referenceDisplay?.business_name || row.business_name,
     full_name_en: cleanMemberEnglishDisplay(referenceDisplay?.full_name_en || row.full_name_en || row.full_name),
     business_name_en: cleanMemberEnglishDisplay(referenceDisplay?.business_name_en || row.business_name_en || row.business_name),
   };
