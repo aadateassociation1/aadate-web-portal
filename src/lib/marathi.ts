@@ -127,6 +127,8 @@ const textTranslations: Record<string, string> = {
 
   "All rights reserved.": "\u0938\u0930\u094d\u0935 \u0939\u0915\u094d\u0915 \u0930\u093e\u0916\u0940\u0935.",
   "Dashboard": "\u0921\u0945\u0936\u092c\u094b\u0930\u094d\u0921",
+  "Main Administrator": "\u092e\u0941\u0916\u094d\u092f \u092a\u094d\u0930\u0936\u093e\u0938\u0915",
+  "User Administrator": "\u0935\u093e\u092a\u0930\u0915\u0930\u094d\u0924\u093e \u092a\u094d\u0930\u0936\u093e\u0938\u0915",
   "Main Admin": "\u092e\u0941\u0916\u094d\u092f \u092a\u094d\u0930\u0936\u093e\u0938\u0915",
   "User Admin": "\u0935\u093e\u092a\u0930\u0915\u0930\u094d\u0924\u093e \u092a\u094d\u0930\u0936\u093e\u0938\u0915",
   "Main Admin Portal": "\u092e\u0941\u0916\u094d\u092f \u092a\u094d\u0930\u0936\u093e\u0938\u0915 \u092a\u094b\u0930\u094d\u091f\u0932",
@@ -703,7 +705,8 @@ export function translateToMarathi(value: string) {
   }
 
   if (normalized.startsWith("Welcome back, ")) {
-    return restoreWhitespace(value, `\u092a\u0941\u0928\u094d\u0939\u093e \u0938\u094d\u0935\u093e\u0917\u0924 \u0906\u0939\u0947, ${normalized.replace("Welcome back, ", "")}`);
+    const name = normalized.replace("Welcome back, ", "");
+    return restoreWhitespace(value, `\u092a\u0941\u0928\u094d\u0939\u093e \u0938\u094d\u0935\u093e\u0917\u0924 \u0906\u0939\u0947, ${translateToMarathi(name)}`);
   }
 
   let translated = normalized;
