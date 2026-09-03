@@ -599,10 +599,10 @@ export function AdminMarketPricesPage() {
       </div>
 
       <div className="mt-6 grid gap-4">
-        <CategoryTabs value={category} onChange={setCategory} />
-        <Card className="overflow-visible border-border/60">
-          <CardContent className="p-0">
-            <div className="sticky top-0 z-40 grid gap-3 border-b bg-white p-4 shadow-md sm:p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto_auto_auto]">
+        <div className="sticky top-0 z-40 space-y-4 bg-background pb-4">
+          <CategoryTabs value={category} onChange={setCategory} />
+          <Card className="border-border/60 shadow-sm">
+            <CardContent className="grid gap-3 bg-white p-4 sm:p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto_auto_auto]">
               <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -611,9 +611,13 @@ export function AdminMarketPricesPage() {
               <Button variant="outline" onClick={copyPrevious}><Copy className="mr-2 h-4 w-4" /> Copy Previous Day</Button>
               <Button variant="outline" disabled={saving} onClick={() => saveRows("draft")}>Save Draft</Button>
               <Button disabled={saving} onClick={() => saveRows("published")} className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Save & Publish Today's Prices</Button>
-            </div>
+            </CardContent>
+          </Card>
+        </div>
 
-            <div className="overflow-x-auto rounded-b-lg bg-white">
+        <Card className="overflow-hidden border-border/60">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto bg-white">
               <table className="w-full min-w-[1180px] table-fixed text-sm">
                 <colgroup>
                   <col className="w-[170px]" />
