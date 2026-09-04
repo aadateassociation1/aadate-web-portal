@@ -342,7 +342,7 @@ function Home() {
       </div>
 
       {/* Hero */}
-      <section className="relative overflow-hidden hero-gradient text-white">
+      <section className="relative aspect-video min-h-[320px] overflow-hidden bg-black sm:min-h-[420px] lg:min-h-[560px]">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImg})` }}
@@ -352,40 +352,11 @@ function Home() {
           className="absolute inset-0 h-full w-full object-cover"
           src={heroVideo}
           autoPlay
-          muted
+          controls
           loop
           playsInline
           preload="metadata"
-          aria-hidden
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/78 via-primary-dark/42 to-transparent" aria-hidden />
-        <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/35 via-transparent to-white/5" aria-hidden />
-        <div className="container-page relative py-16 md:py-24">
-          <div className="text-left">
-            <span className="inline-flex items-center gap-2 rounded-full border border-saffron/40 bg-saffron/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-saffron">
-              <ShieldCheck className="h-3.5 w-3.5" /> Official Association Portal
-            </span>
-            <h1 className="mt-5 max-w-3xl text-left font-display text-3xl font-bold leading-snug drop-shadow-[0_3px_14px_rgba(0,0,0,0.55)] sm:text-4xl md:text-5xl lg:text-[3.4rem]">
-              {t("hero.title")}
-            </h1>
-            {heroSubtitle && (
-              <p className="mt-5 max-w-xl text-base text-white/95 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] sm:text-lg">
-                {heroSubtitle}
-              </p>
-            )}
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-saffron text-saffron-foreground hover:bg-saffron/90">
-                <Link to="/login">{t("hero.cta.login")} <ArrowRight className="ml-1 h-4 w-4" /></Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white hover:text-primary-dark">
-                <Link to="/register">{t("hero.cta.register")}</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white hover:text-primary-dark">
-                <Link to="/updates">{t("hero.cta.updates")}</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* About strip */}
