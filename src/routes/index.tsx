@@ -12,6 +12,7 @@ import {
   CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
+import heroVideo from "@/assets/Banner video.mp4";
 import marketyardImg from "@/assets/marketyard.webp";
 import sourabhKunjirImg from "@/assets/Sourabh Kunjir.jpeg";
 import { useI18n } from "@/lib/i18n";
@@ -345,6 +346,16 @@ function Home() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImg})` }}
+          aria-hidden
+        />
+        <video
+          className="absolute inset-0 h-full w-full object-cover"
+          src={heroVideo}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
           aria-hidden
         />
         <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/78 via-primary-dark/42 to-transparent" aria-hidden />
