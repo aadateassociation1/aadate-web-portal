@@ -322,25 +322,6 @@ function Home() {
 
   return (
     <SiteLayout>
-      {/* Announcement ticker */}
-      <div className="bg-saffron/95 text-saffron-foreground border-b border-saffron">
-        <div className="container-page flex items-center gap-3 py-2 text-sm font-medium overflow-hidden">
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-dark/90 px-3 py-1 text-xs text-white uppercase tracking-wider font-bold">
-            <Bell className="h-3.5 w-3.5" /> Live
-          </span>
-          <div className="flex-1 overflow-hidden">
-            <div className="flex gap-10 animate-marquee whitespace-nowrap">
-              {[...ticker, ...ticker].map((u, i) => (
-                <span key={i} className="inline-flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary-dark" />
-                  {u.title_en}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Hero */}
       <section className="relative h-[min(56.25vw,calc(100vh-92px))] min-h-[180px] w-full overflow-hidden bg-black">
         <div
