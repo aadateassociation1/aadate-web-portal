@@ -342,7 +342,7 @@ function Home() {
       </div>
 
       {/* Hero */}
-      <section className="relative aspect-video max-h-[calc(100vh-92px)] overflow-hidden bg-black">
+      <section className="relative h-[min(56.25vw,calc(100vh-92px))] min-h-[180px] w-full overflow-hidden bg-black">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImg})` }}
