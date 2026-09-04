@@ -330,7 +330,7 @@ function Home() {
           aria-hidden
         />
         <video
-          className="absolute inset-0 h-full w-full object-cover object-[center_35%]"
+          className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
           src={heroVideo}
           autoPlay
           controls
