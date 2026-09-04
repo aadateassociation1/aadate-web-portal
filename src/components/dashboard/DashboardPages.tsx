@@ -6171,7 +6171,7 @@ export function OwnerNotificationsPage() {
               <Button variant="outline" onClick={() => setOpenNotification(null)}>Close</Button>
               {openNotification?.action_url && (
                 <Button
-                  className="bg-primary"
+                  className="bg-primary text-white hover:bg-primary/90"
                   onClick={() => {
                     const target = openNotification.action_url;
                     setOpenNotification(null);
