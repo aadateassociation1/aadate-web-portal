@@ -4956,7 +4956,8 @@ export function AdminTraderKycPage() {
 }
 
 export function OwnerGalaPage() {
-  const { profile, galas, loading, reload } = useTraderProfile();
+  const { profile, galas, loading, reload } = useTraderProfile();
+  const { lang } = useI18n();
   const primaryGala = galas.find((gala) => gala.is_primary) || galas[0];
   const approvedCount = galas.filter((gala) => gala.status === "approved").length;
   const pendingCount = galas.filter((gala) => ["submitted", "under_review", "correction_required"].includes(gala.status)).length;
@@ -5343,6 +5344,7 @@ export function OwnerNewComplaintPage() {
 
 export function OwnerPostPage() {
   const { profile } = useTraderProfile();
+  const { lang } = useI18n();
   const { logout } = useAuth();
   const router = useRouter();
   const [postCategory, setPostCategory] = useState("Market Rate Update");
@@ -5745,7 +5747,8 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
 }
 
 export function MobileChangeApplicationForm({ compact = false }: { compact?: boolean }) {
-  const { profile } = useTraderProfile();
+  const { profile } = useTraderProfile();
+  const { lang } = useI18n();
   const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
 
   return (
@@ -5836,7 +5839,8 @@ export function MobileChangeApplicationForm({ compact = false }: { compact?: boo
 }
 
 export function OwnerMobileChangePage() {
-  const { profile } = useTraderProfile();
+  const { profile } = useTraderProfile();
+  const { lang } = useI18n();
   const section = profile?.business_category ? `${profile.business_category} Section` : "";
   const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
   const displayBusinessName = localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
