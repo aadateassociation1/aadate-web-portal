@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { translateToMarathi } from "@/lib/marathi";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -82,6 +83,7 @@ function HeaderLangSwitcher() {
 }
 
 export function DashLayout({ kind, children }: Props) {
+  const { lang } = useI18n();
   const { user, logout, loading } = useAuth();
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -213,6 +215,7 @@ export function DashLayout({ kind, children }: Props) {
     .map((to) => OWNER_NAV.find((item) => item.to === to))
     .filter(Boolean) as typeof OWNER_NAV;
   const title = kind === "owner" ? "Member Portal" : user.role === "main_admin" ? "Main Admin Portal" : "User Admin Portal";
+  const displayText = (value: string) => lang === "mr" ? translateToMarathi(value) : value;
   const helpLink = kind === "owner" ? "/member/help" : "/admin/help";
   const passwordLink = kind === "owner" ? "/member/change-password" : "/admin/change-password";
 
@@ -259,13 +262,13 @@ export function DashLayout({ kind, children }: Props) {
               </div>
               <div className="min-w-0">
                 <div className="truncate text-sm font-semibold text-white">{user.name}</div>
-                <div className="truncate text-xs text-sidebar-foreground/70">{title}</div>
+                <div className="truncate text-xs text-sidebar-foreground/70">{displayText(title)}</div>
               </div>
             </div>
           ) : (
             <div className="flex h-full w-full items-center justify-center rounded-2xl border border-white/10 bg-white/8 px-3 py-3">
               <div className="text-center">
-                <div className="text-sm font-semibold text-white">{title}</div>
+                <div className="text-sm font-semibold text-white">{displayText(title)}</div>
                 <div className="mt-1 text-xs text-sidebar-foreground/70">Signed in as {user.name}</div>
               </div>
             </div>
@@ -290,7 +293,7 @@ export function DashLayout({ kind, children }: Props) {
                 }`}
               >
                 <n.icon className="h-4 w-4 shrink-0 opacity-90" />
-                <span className="min-w-0 flex-1 truncate">{n.label}</span>
+                <span className="min-w-0 flex-1 truncate">{displayText(n.label)}</span>
                 {count > 0 && (
                   <span className={`ml-auto grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold ${active || activeExact ? "bg-primary text-white" : "bg-saffron text-primary-dark"}`}>
                     {count > 99 ? "99+" : count}
@@ -305,16 +308,16 @@ export function DashLayout({ kind, children }: Props) {
             Account
           </div>
           <Link to={helpLink} className={`flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.75 text-sm font-medium transition ${pathname === helpLink ? "bg-saffron text-saffron-foreground shadow-sm" : "text-sidebar-foreground/82 hover:bg-white/8 hover:text-white"}`}>
-            <LifeBuoy className="h-4 w-4" /> Help & Support
+            <LifeBuoy className="h-4 w-4" /> {displayText("Help & Support")}
           </Link>
           <Link to={passwordLink} className={`flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.75 text-sm font-medium transition ${pathname === passwordLink ? "bg-saffron text-saffron-foreground shadow-sm" : "text-sidebar-foreground/82 hover:bg-white/8 hover:text-white"}`}>
-            <Lock className="h-4 w-4" /> Change Password
+            <Lock className="h-4 w-4" /> {displayText("Change Password")}
           </Link>
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.75 text-sm text-sidebar-foreground/82 hover:bg-destructive hover:text-white"
           >
-            <LogOut className="h-4 w-4" /> Logout
+            <LogOut className="h-4 w-4" /> {displayText("Logout")}
           </button>
         </div>
       </aside>
@@ -333,13 +336,13 @@ export function DashLayout({ kind, children }: Props) {
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <div className="min-w-0 flex-1">
-            <div className="text-xs text-muted-foreground sm:text-sm">{title}</div>
+            <div className="text-xs text-muted-foreground sm:text-sm">{displayText(title)}</div>
             <div className="truncate font-display text-sm font-semibold text-foreground sm:text-base">
               Welcome back, {user.name}
             </div>
           </div>
           <Badge variant="secondary" className="hidden sm:inline-flex bg-secondary text-primary-dark">
-            {user.role === "main_admin" ? "Main Admin" : user.role === "user_admin" ? "User Admin" : "Member"}
+            {displayText(user.role === "main_admin" ? "Main Admin" : user.role === "user_admin" ? "User Admin" : "Member")}
           </Badge>
           {kind === "owner" && canUseWebPush() && !pushEnabled && (
             <Button
@@ -382,7 +385,7 @@ export function DashLayout({ kind, children }: Props) {
                     }`}
                   >
                     <item.icon className="h-5 w-5" />
-                    <span className="mt-1 max-w-full truncate">{item.label.replace("Market ", "").replace("Customer ", "")}</span>
+                    <span className="mt-1 max-w-full truncate">{displayText(item.label).replace("Market ", "").replace("Customer ", "").replace("\u092c\u093e\u091c\u093e\u0930 ", "").replace("\u0917\u094d\u0930\u093e\u0939\u0915 ", "")}</span>
                     {count > 0 && (
                       <span className="absolute right-2 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-saffron px-1 text-[10px] font-bold text-primary-dark">
                         {count > 9 ? "9+" : count}
