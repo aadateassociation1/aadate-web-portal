@@ -513,10 +513,6 @@ function MemberMarketPricesPage() {
         <div className="text-sm text-muted-foreground">Today's Date: <span className="font-semibold text-primary-dark">{formatDate(date)}</span></div>
       </div>
 
-      <div className="mb-4 rounded-lg border border-saffron/40 bg-saffron/10 px-4 py-3 text-sm font-semibold text-primary-dark">
-        <span className="font-bold">{"\u0938\u0942\u091a\u0928\u093e: "}</span>{"\u0938\u0930\u094d\u0935 \u0905\u0921\u0924\u094d\u092f\u093e\u0902\u0928\u0940 \u0930\u094b\u091c \u0926\u0941\u092a\u093e\u0930\u0940 "}{deadlineHour > 12 ? deadlineHour - 12 : deadlineHour}{":00 \u0935\u093e\u091c\u0947\u092a\u0930\u094d\u092f\u0902\u0924 \u0936\u0947\u0924\u0915\u0930\u0940 \u092e\u093e\u0932\u093e\u091a\u0947 \u092c\u093e\u091c\u093e\u0930\u092d\u093e\u0935 \u0905\u092a\u0921\u0947\u091f \u0915\u0930\u0923\u0947 \u0906\u0935\u0936\u094d\u092f\u0915 \u0906\u0939\u0947. \u0926\u0941\u092a\u093e\u0930\u0940 1 \u0928\u0902\u0924\u0930 \u0938\u092c\u092e\u093f\u091f \u0915\u0947\u0932\u0947\u0932\u0947 \u092d\u093e\u0935 \u0938\u094d\u0935\u0940\u0915\u093e\u0930\u0932\u0947 \u091c\u093e\u0923\u093e\u0930 \u0928\u093e\u0939\u0940\u0924. "}{submissionClosed ? "\u0906\u091c\u091a\u0940 \u0938\u092c\u092e\u093f\u0936\u0928 \u0935\u0947\u0933 \u0938\u0902\u092a\u0932\u0940 \u0906\u0939\u0947." : "\u0938\u0927\u094d\u092f\u093e \u092d\u093e\u0935 \u0938\u092c\u092e\u093f\u091f \u0915\u0930\u0924\u093e \u092f\u0947\u0924\u0940\u0932."}
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <Card><CardContent className="flex items-center gap-3 p-5"><Calendar className="h-9 w-9 rounded-lg bg-secondary p-2 text-primary" /><div><div className="text-xs text-muted-foreground">Today's Date</div><div className="font-display font-bold text-primary-dark">{formatDate(date)}</div></div></CardContent></Card>
         <Card><CardContent className="flex items-center gap-3 p-5"><Save className="h-9 w-9 rounded-lg bg-success p-2 text-white" /><div><div className="text-xs text-muted-foreground">Your Updates</div><div className="font-display text-2xl font-bold text-primary-dark">{summary?.your_updates || 0}</div></div></CardContent></Card>
@@ -526,6 +522,9 @@ function MemberMarketPricesPage() {
       </div>
 
       <div className="mt-6 grid gap-4">
+        <div className="rounded-lg border border-saffron/40 bg-saffron/10 px-4 py-3 text-sm font-semibold text-primary-dark">
+        <span className="font-bold">{"\u0938\u0942\u091a\u0928\u093e: "}</span>{"\u0938\u0930\u094d\u0935 \u0905\u0921\u0924\u094d\u092f\u093e\u0902\u0928\u0940 \u0930\u094b\u091c \u0926\u0941\u092a\u093e\u0930\u0940 "}{deadlineHour > 12 ? deadlineHour - 12 : deadlineHour}{":00 \u0935\u093e\u091c\u0947\u092a\u0930\u094d\u092f\u0902\u0924 \u0936\u0947\u0924\u0915\u0930\u0940 \u092e\u093e\u0932\u093e\u091a\u0947 \u092c\u093e\u091c\u093e\u0930\u092d\u093e\u0935 \u0905\u092a\u0921\u0947\u091f \u0915\u0930\u0923\u0947 \u0906\u0935\u0936\u094d\u092f\u0915 \u0906\u0939\u0947. \u0926\u0941\u092a\u093e\u0930\u0940 1 \u0928\u0902\u0924\u0930 \u0938\u092c\u092e\u093f\u091f \u0915\u0947\u0932\u0947\u0932\u0947 \u092d\u093e\u0935 \u0938\u094d\u0935\u0940\u0915\u093e\u0930\u0932\u0947 \u091c\u093e\u0923\u093e\u0930 \u0928\u093e\u0939\u0940\u0924. "}{submissionClosed ? "\u0906\u091c\u091a\u0940 \u0938\u092c\u092e\u093f\u0936\u0928 \u0935\u0947\u0933 \u0938\u0902\u092a\u0932\u0940 \u0906\u0939\u0947." : "\u0938\u0927\u094d\u092f\u093e \u092d\u093e\u0935 \u0938\u092c\u092e\u093f\u091f \u0915\u0930\u0924\u093e \u092f\u0947\u0924\u0940\u0932."}
+        </div>
         <div className="sticky -top-8 z-40 -mx-3 space-y-4 bg-background px-3 pb-4 pt-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
           <CategoryTabs value={category} onChange={setCategory} />
           <Card className="border-border/60 shadow-sm">
