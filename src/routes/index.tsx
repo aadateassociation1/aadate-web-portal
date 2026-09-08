@@ -202,10 +202,15 @@ function Home() {
           details: en.details || "",
         };
   };
-  const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
+  const MARATHI_SHRI_PREFIX = "\u0936\u094d\u0930\u0940.";
+  const withMarathiShri = (name: string) => {
+    const cleanName = String(name || "").trim();
+    return /^\u0936\u094d\u0930\u0940\.?/.test(cleanName) ? cleanName : `${MARATHI_SHRI_PREFIX} ${cleanName}`;
+  };
+  const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? withMarathiShri(member.name_mr || member.full_name) : member.full_name;
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
   const displayChairmanName = (name?: string | null) => name && /sourabh\s+kunjir/i.test(name) ? "Shri. Sourabh Shekhar Kunjir" : name || "Shri. Sourabh Shekhar Kunjir";
-  const displayChairmanNameMr = (name?: string | null, englishName?: string | null) => englishName && /sourabh\s+kunjir/i.test(englishName) ? "\u0936\u094d\u0930\u0940. \u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930" : name || "\u0936\u094d\u0930\u0940. \u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930";
+  const displayChairmanNameMr = (name?: string | null, englishName?: string | null) => withMarathiShri(englishName && /sourabh\s+kunjir/i.test(englishName) ? "\u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930" : name || "\u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930");
   const chairmanCopy = lang === "mr"
     ? {
         current: "\u0938\u0927\u094d\u092f\u093e\u091a\u0947 \u0905\u0927\u094d\u092f\u0915\u094d\u0937",

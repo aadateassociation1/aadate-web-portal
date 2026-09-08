@@ -52,10 +52,15 @@ function Chairman() {
   const committeeMembers = members.filter((member) => member.id !== chairman?.id);
   const committeeGridMembers = committeeMembers.length % 3 === 2 && chairman ? [...committeeMembers, chairman] : committeeMembers;
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
-  const displayCommitteeName = (member: CommitteeMemberRecord) => isMr ? member.name_mr || member.full_name : member.full_name;
+  const MARATHI_SHRI_PREFIX = "\u0936\u094d\u0930\u0940.";
+  const withMarathiShri = (name: string) => {
+    const cleanName = String(name || "").trim();
+    return /^\u0936\u094d\u0930\u0940\.?/.test(cleanName) ? cleanName : `${MARATHI_SHRI_PREFIX} ${cleanName}`;
+  };
+  const displayCommitteeName = (member: CommitteeMemberRecord) => isMr ? withMarathiShri(member.name_mr || member.full_name) : member.full_name;
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => isMr ? member.designation_mr || member.designation : member.designation;
   const displayChairmanName = (name?: string | null) => name && /sourabh\s+kunjir/i.test(name) ? "Shri. Sourabh Shekhar Kunjir" : name || "Shri. Sourabh Shekhar Kunjir";
-  const displayChairmanNameMr = (name?: string | null, englishName?: string | null) => englishName && /sourabh\s+kunjir/i.test(englishName) ? "\u0936\u094d\u0930\u0940. \u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930" : name || "\u0936\u094d\u0930\u0940. \u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930";
+  const displayChairmanNameMr = (name?: string | null, englishName?: string | null) => withMarathiShri(englishName && /sourabh\s+kunjir/i.test(englishName) ? "\u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930" : name || "\u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930");
   const chairmanCopy = isMr
     ? {
         current: "\u0938\u0927\u094d\u092f\u093e\u091a\u0947 \u0905\u0927\u094d\u092f\u0915\u094d\u0937",

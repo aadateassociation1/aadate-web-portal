@@ -2865,7 +2865,12 @@ export function AdminCommitteePage() {
   };
 
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
-  const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
+  const MARATHI_SHRI_PREFIX = "\u0936\u094d\u0930\u0940.";
+  const withMarathiShri = (name: string) => {
+    const cleanName = String(name || "").trim();
+    return /^\u0936\u094d\u0930\u0940\.?/.test(cleanName) ? cleanName : `${MARATHI_SHRI_PREFIX} ${cleanName}`;
+  };
+  const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? withMarathiShri(member.name_mr || member.full_name) : member.full_name;
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
   const previewPhoto = photoFile ? URL.createObjectURL(photoFile) : editing?.photo_url || "";
   const designationOptions = committeeDesignationOptions.includes(form.designation) ? committeeDesignationOptions : [form.designation, ...committeeDesignationOptions];
