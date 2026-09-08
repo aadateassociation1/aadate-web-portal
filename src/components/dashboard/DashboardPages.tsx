@@ -3283,6 +3283,8 @@ export function AdminAuditPage() {
 const me = OWNERS[0];
 const myComplaints = COMPLAINTS.filter((c) => c.ownerId === me.id);
 
+type AuthorizedLoginContact = { name: string; phone: string };
+
 type TraderProfile = {
   full_name: string;
   full_name_en?: string | null;
@@ -3306,6 +3308,7 @@ type TraderProfile = {
   pan_masked: string | null;
   blood_group: string | null;
   licence_number: string | null;
+  authorized_login_contacts?: AuthorizedLoginContact[] | string | null;
 };
 
 type TraderProfileDocument = {
@@ -3384,6 +3387,19 @@ function useTraderProfile() {
 function formatTraderAddress(profile: TraderProfile | null) {
   if (!profile) return "";
   return [profile.address_line1, profile.address_line2, profile.village_city, profile.taluka, profile.district, profile.pincode].filter(Boolean).join(", ");
+}
+
+function getAuthorizedLoginContacts(profile: TraderProfile | null): AuthorizedLoginContact[] {
+  const raw = profile?.authorized_login_contacts;
+  let parsed: unknown = raw;
+  if (typeof raw === "string") {
+    try { parsed = JSON.parse(raw); } catch { parsed = []; }
+  }
+  const contacts = Array.isArray(parsed) ? parsed : [];
+  return [0, 1, 2].map((index) => {
+    const contact = contacts[index] as Partial<AuthorizedLoginContact> | undefined;
+    return { name: String(contact?.name || ""), phone: String(contact?.phone || "") };
+  });
 }
 
 function localizedDashboardName(lang: string, marathiValue?: string | null, englishValue?: string | null) {
@@ -3574,6 +3590,7 @@ export function OwnerProfilePage() {
   }, [profile?.blood_group]);
   const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
   const displayBusinessName = localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
+  const authorizedContacts = getAuthorizedLoginContacts(profile);
   const initials = (displayFullName || "Member")
     .split(" ")
     .filter(Boolean)
@@ -3666,6 +3683,10 @@ export function OwnerProfilePage() {
           taluka: String(data.get("taluka") || "").trim() || null,
           district: String(data.get("district") || "").trim() || null,
           pincode: String(data.get("pincode") || "").trim() || null,
+          authorizedLoginContacts: [0, 1, 2].map((index) => ({
+            name: String(data.get(`authorizedContactName${index}`) || "").trim(),
+            phone: String(data.get(`authorizedContactPhone${index}`) || "").replace(/\D/g, ""),
+          })),
         }),
       });
       const result = await response.json();
@@ -3812,6 +3833,34 @@ export function OwnerProfilePage() {
               <div>
                 <Label>Pincode</Label>
                 <Input name="pincode" defaultValue={profile?.pincode || ""} inputMode="numeric" maxLength={6} pattern="\d{6}" placeholder="6 digit pincode" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 6); }} />
+              </div>
+              <div className="sm:col-span-2 rounded-xl border border-primary/15 bg-secondary/20 p-4">
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-primary-dark"><KeyRound className="h-5 w-5 text-primary" /> Authorized login persons</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">Add up to 3 trusted people who can use this main member login credential.</p>
+                  </div>
+                  <Badge variant="outline" className="border-primary/30 text-primary">3 persons</Badge>
+                </div>
+                <div className="grid gap-3 lg:grid-cols-3">
+                  {authorizedContacts.map((contact, index) => (
+                    <div key={index} className="rounded-lg border bg-background p-3 shadow-sm">
+                      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary-dark">
+                        <User className="h-4 w-4 text-primary" /> Person {index + 1}
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <Label>Name</Label>
+                          <Input name={`authorizedContactName${index}`} defaultValue={contact.name} placeholder="Full name" />
+                        </div>
+                        <div>
+                          <Label>Phone number</Label>
+                          <Input name={`authorizedContactPhone${index}`} defaultValue={contact.phone} type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10 digit mobile" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="sm:col-span-2 rounded-lg bg-secondary/50 p-3 text-sm text-muted-foreground">Current address: {formatTraderAddress(profile) || "-"}</div>
               <div className="sm:col-span-2 flex justify-end">

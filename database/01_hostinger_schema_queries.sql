@@ -131,6 +131,7 @@ CREATE TABLE traders (
     gala_id BIGINT UNSIGNED NULL,
     business_category_id BIGINT UNSIGNED NULL,
     alternate_mobile VARCHAR(20) NULL,
+    authorized_login_contacts JSON NULL,
     address_line1 VARCHAR(255) NOT NULL,
     address_line2 VARCHAR(255) NULL,
     village_city VARCHAR(120) NOT NULL,

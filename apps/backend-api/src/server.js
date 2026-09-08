@@ -1722,6 +1722,7 @@ async function ensurePlatformExtensions() {
   await addColumnIfMissing("traders", "aadhaar_hash", "aadhaar_hash CHAR(64) NULL");
   await addColumnIfMissing("traders", "blood_group", "blood_group VARCHAR(5) NULL");
   await addColumnIfMissing("traders", "licence_number", "licence_number VARCHAR(100) NULL");
+  await addColumnIfMissing("traders", "authorized_login_contacts", "authorized_login_contacts JSON NULL");
   await addColumnIfMissing("traders", "association_sequence_number", "association_sequence_number VARCHAR(50) NULL");
   await addColumnIfMissing("traders", "association_registration_number", "association_registration_number VARCHAR(50) NULL");
   await pool.query(`
@@ -4858,6 +4859,16 @@ app.get("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => {
   });
 });
 
+function normalizeAuthorizedLoginContacts(input) {
+  const source = Array.isArray(input) ? input : [];
+  return [0, 1, 2].map((index) => {
+    const item = source[index] || {};
+    const name = String(item.name || "").trim().slice(0, 120);
+    const phone = String(item.phone || "").replace(/\D/g, "").slice(0, 10);
+    return { name, phone };
+  });
+}
+
 app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => {
   if (!req.user.trader_id) {
     res.status(404).json({ ok: false, error: "Member profile not found." });
@@ -4875,11 +4886,13 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
     pan = null,
     bloodGroup = null,
     licenceNumber = null,
+    authorizedLoginContacts = [],
   } = req.body || {};
   const cleanAadhaar = String(aadhaar || "").replace(/\D/g, "");
   const cleanPan = normalizePan(pan);
   const cleanBloodGroup = String(bloodGroup || "").trim().toUpperCase();
   const cleanLicenceNumber = String(licenceNumber || "").trim();
+  const cleanAuthorizedLoginContacts = normalizeAuthorizedLoginContacts(authorizedLoginContacts);
   if (cleanAadhaar && !isValidAadhaar(cleanAadhaar)) {
     res.status(400).json({ ok: false, error: "Please enter a valid Aadhaar number." });
     return;
@@ -4890,6 +4903,16 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
   }
   if (cleanBloodGroup && !/^(A|B|AB|O)[+-]$/.test(cleanBloodGroup)) {
     res.status(400).json({ ok: false, error: "Select a valid blood group." });
+    return;
+  }
+  const incompleteContact = cleanAuthorizedLoginContacts.find((contact) => (contact.name && !contact.phone) || (!contact.name && contact.phone));
+  if (incompleteContact) {
+    res.status(400).json({ ok: false, error: "Enter both name and 10 digit phone number for authorized login persons." });
+    return;
+  }
+  const invalidContact = cleanAuthorizedLoginContacts.find((contact) => contact.phone && !/^\d{10}$/.test(contact.phone));
+  if (invalidContact) {
+    res.status(400).json({ ok: false, error: "Authorized login person phone number must be 10 digits." });
     return;
   }
   await pool.query(
@@ -4906,6 +4929,7 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
             pan_masked = COALESCE(:panMasked, pan_masked),
             pan_hash = COALESCE(:panHash, pan_hash),
             blood_group = COALESCE(:bloodGroup, blood_group),
+            authorized_login_contacts = :authorizedLoginContacts,
             licence_number = COALESCE(:licenceNumber, licence_number),
             market_registration_number = COALESCE(:licenceNumber, market_registration_number)
       WHERE id = :traderId`,
@@ -4922,6 +4946,7 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
       panMasked: cleanPan ? maskIdentifier(cleanPan) : null,
       panHash: cleanPan ? hashIdentifier(cleanPan) : null,
       bloodGroup: cleanBloodGroup || null,
+      authorizedLoginContacts: JSON.stringify(cleanAuthorizedLoginContacts),
       licenceNumber: cleanLicenceNumber || null,
       traderId: req.user.trader_id,
     },
