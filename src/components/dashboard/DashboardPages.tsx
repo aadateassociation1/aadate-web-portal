@@ -5237,6 +5237,7 @@ export function OwnerComplaintsPage() {
   const [feedbackRequests, setFeedbackRequests] = useState<ComplaintFeedbackRequest[]>([]);
   const [activeFeedback, setActiveFeedback] = useState<ComplaintFeedbackRequest | null>(null);
   const [loading, setLoading] = useState(true);
+  const { lang } = useI18n();
   const isMr = lang === "mr";
 
   const loadComplaints = async () => {
