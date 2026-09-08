@@ -2041,6 +2041,28 @@ async function ensureMarketPriceTables() {
       CONSTRAINT chk_market_prices_range CHECK (max_price >= min_price)
     ) ENGINE=InnoDB
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS member_market_prices (
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      user_id BIGINT UNSIGNED NOT NULL,
+      market_item_id BIGINT UNSIGNED NOT NULL,
+      price_date DATE NOT NULL,
+      min_price DECIMAL(10,2) NOT NULL,
+      max_price DECIMAL(10,2) NOT NULL,
+      avg_price DECIMAL(10,2) NOT NULL,
+      unit VARCHAR(40) NOT NULL,
+      status ENUM('draft','submitted') NOT NULL DEFAULT 'submitted',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      UNIQUE KEY uq_member_market_price_user_item_date (user_id, market_item_id, price_date),
+      INDEX idx_member_market_prices_date_item_status (price_date, market_item_id, status),
+      INDEX idx_member_market_prices_user_date (user_id, price_date),
+      CONSTRAINT fk_member_market_prices_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      CONSTRAINT fk_member_market_prices_item FOREIGN KEY (market_item_id) REFERENCES market_items(id) ON DELETE CASCADE,
+      CONSTRAINT chk_member_market_prices_non_negative CHECK (min_price >= 0 AND max_price >= 0 AND avg_price >= 0),
+      CONSTRAINT chk_member_market_prices_range CHECK (max_price >= min_price)
+    ) ENGINE=InnoDB
+  `);
   for (const statement of [
     "ALTER TABLE market_items ADD COLUMN parent_id BIGINT UNSIGNED NULL AFTER variety",
     "ALTER TABLE market_items ADD COLUMN item_type ENUM('main','subtype') NOT NULL DEFAULT 'main' AFTER parent_id",
@@ -3340,6 +3362,89 @@ async function getMarketSummary(date) {
   );
   return summary || { total_items: 0, updated_today: 0, pending_update: 0, last_published: null };
 }
+
+const MIN_SUBMISSIONS_FOR_PUBLIC_PRICE = Math.max(1, Number(process.env.MIN_SUBMISSIONS_FOR_PUBLIC_PRICE || 3));
+const MAX_REASONABLE_MEMBER_PRICE = Math.max(1000, Number(process.env.MAX_REASONABLE_MEMBER_PRICE || 100000));
+
+function percentile(sortedValues, percentileRank) {
+  if (sortedValues.length === 0) return 0;
+  const index = (sortedValues.length - 1) * percentileRank;
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  if (lower === upper) return sortedValues[lower];
+  return sortedValues[lower] + (sortedValues[upper] - sortedValues[lower]) * (index - lower);
+}
+
+function filterMarketOutliers(submissions) {
+  if (submissions.length < 4) return submissions;
+  const averages = submissions.map((row) => Number(row.avg_price)).sort((a, b) => a - b);
+  const q1 = percentile(averages, 0.25);
+  const q3 = percentile(averages, 0.75);
+  const iqr = q3 - q1;
+  if (iqr <= 0) return submissions;
+  const minAllowed = q1 - iqr * 1.5;
+  const maxAllowed = q3 + iqr * 1.5;
+  return submissions.filter((row) => Number(row.avg_price) >= minAllowed && Number(row.avg_price) <= maxAllowed);
+}
+
+async function recalculateMemberMarketAggregate({ connection = pool, date, itemIds, userId = null }) {
+  const uniqueItemIds = Array.from(new Set(itemIds.map(Number).filter((id) => Number.isInteger(id) && id > 0)));
+  for (const itemId of uniqueItemIds) {
+    const [submissions] = await connection.query(
+      `SELECT user_id, min_price, max_price, avg_price, unit
+         FROM member_market_prices
+        WHERE market_item_id = :itemId
+          AND price_date = :date
+          AND status = 'submitted'
+        ORDER BY updated_at DESC`,
+      { itemId, date },
+    );
+    const rawSubmissionCount = submissions.length;
+    const validSubmissions = filterMarketOutliers(submissions);
+    const validSubmissionCount = validSubmissions.length;
+    if (validSubmissionCount < MIN_SUBMISSIONS_FOR_PUBLIC_PRICE) continue;
+    const marketMin = Math.min(...validSubmissions.map((row) => Number(row.min_price)));
+    const marketMax = Math.max(...validSubmissions.map((row) => Number(row.max_price)));
+    const marketAvg = Number((validSubmissions.reduce((sum, row) => sum + Number(row.avg_price), 0) / validSubmissionCount).toFixed(2));
+    const unitCounts = validSubmissions.reduce((map, row) => {
+      const unit = String(row.unit || "Kg");
+      map.set(unit, (map.get(unit) || 0) + 1);
+      return map;
+    }, new Map());
+    const unit = Array.from(unitCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || "Kg";
+    await connection.query(
+      `INSERT INTO market_prices (
+         market_item_id, price_date, min_price, max_price, modal_price, unit,
+         quality_grade, notes, status, created_by, updated_by, published_by, published_at
+       ) VALUES (
+         :itemId, :date, :marketMin, :marketMax, :marketAvg, :unit,
+         :qualityGrade, :notes, 'published', :userId, :userId, :userId, NOW()
+       )
+       ON DUPLICATE KEY UPDATE
+         min_price = VALUES(min_price),
+         max_price = VALUES(max_price),
+         modal_price = VALUES(modal_price),
+         unit = VALUES(unit),
+         quality_grade = VALUES(quality_grade),
+         notes = VALUES(notes),
+         status = 'published',
+         updated_by = VALUES(updated_by),
+         published_by = VALUES(published_by),
+         published_at = NOW()`,
+      {
+        itemId,
+        date,
+        marketMin,
+        marketMax,
+        marketAvg,
+        unit,
+        userId,
+        qualityGrade: `Member aggregate (${validSubmissionCount}/${rawSubmissionCount})`,
+        notes: `Auto-calculated from ${validSubmissionCount} valid member submissions. Minimum required: ${MIN_SUBMISSIONS_FOR_PUBLIC_PRICE}.`,
+      },
+    );
+  }
+}
 app.get("/api/v1/public/market-prices/today", async (_req, res) => {
   const date = todayMarketDate();
   const prices = await getMarketPriceRows({ date, publicOnly: true });
@@ -3380,6 +3485,115 @@ app.get("/api/v1/public/market-prices/:itemId/history", async (req, res) => {
   res.json({ ok: true, history: decorateMarketPriceRows(rows) });
 });
 
+
+app.get("/api/v1/trader/market-prices", requireRoles("TRADER"), async (req, res) => {
+  const date = normalizeMarketDate(req.query.date || todayMarketDate());
+  const category = String(req.query.category || "all").toLowerCase();
+  const safeCategory = category === "all" ? "all" : validateMarketCategory(category);
+  const prices = await getMarketPriceRows({ date, category: safeCategory, search: req.query.search || "", publicOnly: true });
+  const priceableRows = prices.filter((row) => !Number(row.has_children || 0));
+  const [memberRows] = await pool.query(
+    `SELECT market_item_id, min_price, max_price, avg_price, unit, status, updated_at
+       FROM member_market_prices
+      WHERE user_id = :userId
+        AND price_date = :date`,
+    { userId: req.user.id, date },
+  );
+  const memberByItem = new Map(memberRows.map((row) => [Number(row.market_item_id), row]));
+  const [[summary]] = await pool.query(
+    `SELECT
+       (SELECT COUNT(*) FROM member_market_prices WHERE user_id = :userId AND price_date = :date AND status = 'submitted') AS your_updates,
+       (SELECT COUNT(DISTINCT market_item_id) FROM market_prices WHERE price_date = :date AND status = 'published') AS market_items_updated,
+       (SELECT COUNT(DISTINCT user_id) FROM member_market_prices WHERE price_date = :date AND status = 'submitted') AS members_contributed,
+       (SELECT MAX(updated_at) FROM member_market_prices WHERE price_date = :date AND status = 'submitted') AS last_market_update`,
+    { userId: req.user.id, date },
+  );
+  res.json({
+    ok: true,
+    date,
+    minimumSubmissions: MIN_SUBMISSIONS_FOR_PUBLIC_PRICE,
+    summary: summary || {},
+    prices: priceableRows.map((row) => {
+      const member = memberByItem.get(Number(row.item_id));
+      return {
+        ...row,
+        member_min_price: member?.min_price === undefined ? null : Number(member.min_price),
+        member_max_price: member?.max_price === undefined ? null : Number(member.max_price),
+        member_avg_price: member?.avg_price === undefined ? null : Number(member.avg_price),
+        member_unit: member?.unit || row.default_unit,
+        member_status: member?.status || null,
+        member_updated_at: member?.updated_at || null,
+      };
+    }),
+  });
+});
+
+app.post("/api/v1/trader/market-prices/bulk-save", requireRoles("TRADER"), async (req, res) => {
+  const date = normalizeMarketDate(req.body?.date || todayMarketDate());
+  const status = req.body?.status === "draft" ? "draft" : "submitted";
+  const records = Array.isArray(req.body?.records) ? req.body.records : [];
+  if (records.length === 0) {
+    res.status(400).json({ ok: false, error: "At least one price record is required." });
+    return;
+  }
+  const normalized = [];
+  const errors = [];
+  for (const [index, record] of records.entries()) {
+    try {
+      const itemId = Number(record.itemId);
+      if (!Number.isInteger(itemId) || itemId <= 0) throw new Error("Item required.");
+      const minPrice = parseMarketNumber(record.minPrice, "Minimum price");
+      const maxPrice = parseMarketNumber(record.maxPrice, "Maximum price");
+      if (maxPrice < minPrice) throw new Error("Maximum price cannot be below minimum price.");
+      if (maxPrice > MAX_REASONABLE_MEMBER_PRICE) throw new Error(`Maximum price must be ${MAX_REASONABLE_MEMBER_PRICE} or below.`);
+      normalized.push({
+        itemId,
+        minPrice,
+        maxPrice,
+        avgPrice: Number(((minPrice + maxPrice) / 2).toFixed(2)),
+        unit: validateMarketUnit(record.unit || "Kg"),
+      });
+    } catch (error) {
+      errors.push({ index, error: error.message });
+    }
+  }
+  if (errors.length > 0) {
+    res.status(400).json({ ok: false, error: "Please correct price rows.", rowErrors: errors });
+    return;
+  }
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    for (const record of normalized) {
+      const [[item]] = await connection.query(
+        "SELECT id FROM market_items WHERE id = :itemId AND deleted_at IS NULL AND is_active = 1 AND NOT EXISTS (SELECT 1 FROM market_items child WHERE child.parent_id = market_items.id AND child.deleted_at IS NULL AND child.is_active = 1)",
+        { itemId: record.itemId },
+      );
+      if (!item) throw new Error(`Market item ${record.itemId} is not active.`);
+      await connection.query(
+        `INSERT INTO member_market_prices (user_id, market_item_id, price_date, min_price, max_price, avg_price, unit, status)
+         VALUES (:userId, :itemId, :date, :minPrice, :maxPrice, :avgPrice, :unit, :status)
+         ON DUPLICATE KEY UPDATE
+           min_price = VALUES(min_price),
+           max_price = VALUES(max_price),
+           avg_price = VALUES(avg_price),
+           unit = VALUES(unit),
+           status = VALUES(status)`,
+        { ...record, userId: req.user.id, date, status },
+      );
+    }
+    if (status === "submitted") {
+      await recalculateMemberMarketAggregate({ connection, date, itemIds: normalized.map((record) => record.itemId), userId: req.user.id });
+    }
+    await connection.commit();
+    res.json({ ok: true, saved: normalized.length, status, minimumSubmissions: MIN_SUBMISSIONS_FOR_PUBLIC_PRICE });
+  } catch (error) {
+    await connection.rollback();
+    res.status(400).json({ ok: false, error: error.message });
+  } finally {
+    connection.release();
+  }
+});
 app.get("/api/v1/admin/market-items", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (_req, res) => {
   const [items] = await pool.query(
     `SELECT id, category, name_en, name_mr, variety, default_unit, display_order, is_active, created_at, updated_at

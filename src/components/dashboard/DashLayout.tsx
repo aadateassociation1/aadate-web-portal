@@ -20,7 +20,7 @@ const OWNER_NAV = [
   { to: "/member/kyc", label: "Customer KYC", icon: IdCard },
   { to: "/member/new-complaint", label: "Raise Complaint", icon: ClipboardList },
   { to: "/member/complaints", label: "My Complaints", icon: MessageSquare },
-  { to: "/member/market-prices", label: "Market Prices", icon: IndianRupee },
+  { to: "/member/market-prices", label: "Daily Market Prices", icon: IndianRupee },
   { to: "/member/updates", label: "Market Updates", icon: Newspaper },
   { to: "/member/notices", label: "Notices & Documents", icon: FileText },
   { to: "/member/profile", label: "My Profile", icon: User },

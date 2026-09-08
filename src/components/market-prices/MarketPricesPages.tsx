@@ -46,6 +46,12 @@ type MarketPriceRow = {
   quality_grade: string | null;
   notes: string | null;
   status: "draft" | "published" | null;
+  member_min_price?: number | null;
+  member_max_price?: number | null;
+  member_avg_price?: number | null;
+  member_unit?: string | null;
+  member_status?: "draft" | "submitted" | null;
+  member_updated_at?: string | null;
   published_at: string | null;
   price_updated_at: string | null;
   previous_price: number | null;
@@ -59,6 +65,10 @@ type MarketSummary = {
   updated_today: number;
   pending_update: number;
   last_published: string | null;
+  your_updates?: number;
+  market_items_updated?: number;
+  members_contributed?: number;
+  last_market_update?: string | null;
 };
 
 type DraftRow = {
@@ -382,6 +392,191 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
   return <SiteLayout>{content}</SiteLayout>;
 }
 
+
+function MemberMarketPricesPage() {
+  const [date] = useState(todayInput());
+  const [category, setCategory] = useState("all");
+  const [search, setSearch] = useState("");
+  const [rows, setRows] = useState<MarketPriceRow[]>([]);
+  const [summary, setSummary] = useState<MarketSummary | null>(null);
+  const [drafts, setDrafts] = useState<Record<number, DraftRow>>({});
+  const [saving, setSaving] = useState(false);
+  const [historyItem, setHistoryItem] = useState<MarketPriceRow | null>(null);
+  const [history, setHistory] = useState<MarketPriceRow[]>([]);
+
+  const load = async () => {
+    const params = new URLSearchParams({ date });
+    if (category !== "all") params.set("category", category);
+    if (search.trim()) params.set("search", search.trim());
+    const response = await fetch(`/api/v1/trader/market-prices?${params.toString()}`, { credentials: "include" });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Market prices failed to load");
+    const priceableRows = dedupeMarketItems(result.prices || []).filter(isPriceableRow);
+    setRows(priceableRows);
+    setSummary({
+      total_items: priceableRows.length,
+      updated_today: Number(result.summary?.your_updates || 0),
+      pending_update: Math.max(0, priceableRows.length - Number(result.summary?.your_updates || 0)),
+      last_published: result.summary?.last_market_update || null,
+      your_updates: Number(result.summary?.your_updates || 0),
+      market_items_updated: Number(result.summary?.market_items_updated || 0),
+      members_contributed: Number(result.summary?.members_contributed || 0),
+      last_market_update: result.summary?.last_market_update || null,
+    });
+    const nextDrafts: Record<number, DraftRow> = {};
+    priceableRows.forEach((row) => {
+      nextDrafts[row.item_id] = {
+        itemId: row.item_id,
+        minPrice: row.member_min_price?.toString() || "",
+        maxPrice: row.member_max_price?.toString() || "",
+        modalPrice: row.member_avg_price?.toString() || "",
+        unit: row.member_unit || row.unit || row.default_unit || "Kg",
+        arrivalQuantity: "",
+        arrivalUnit: row.default_unit || "Kg",
+        qualityGrade: "",
+        notes: "",
+      };
+    });
+    setDrafts(nextDrafts);
+  };
+
+  useEffect(() => { load().catch((error) => toast.error(error.message)); }, [category]);
+
+  const filtered = useMemo(() => rows.filter((row) => {
+    const q = search.toLowerCase();
+    return !q
+      || row.name_en.toLowerCase().includes(q)
+      || row.name_mr.includes(search)
+      || (row.variety || "").toLowerCase().includes(q)
+      || (row.parent_name_en || "").toLowerCase().includes(q)
+      || (row.parent_name_mr || "").includes(search);
+  }), [rows, search]);
+
+  const groups = useMemo(() => buildMarketGroups(filtered), [filtered]);
+
+  const setDraft = (itemId: number, field: keyof DraftRow, value: string) => {
+    setDrafts((current) => {
+      const row = current[itemId];
+      const next = { ...row, [field]: value };
+      if (field === "minPrice" || field === "maxPrice") {
+        const min = Number(next.minPrice);
+        const max = Number(next.maxPrice);
+        next.modalPrice = Number.isFinite(min) && Number.isFinite(max) && next.minPrice !== "" && next.maxPrice !== "" ? String(((min + max) / 2).toFixed(2).replace(/\.00$/, "")) : "";
+      }
+      return { ...current, [itemId]: next };
+    });
+  };
+
+  const saveRows = async (status: "draft" | "submitted") => {
+    const records = Object.values(drafts).filter((row) => row.minPrice !== "" && row.maxPrice !== "");
+    if (records.length === 0) {
+      toast.error("Enter minimum and maximum price for at least one item");
+      return;
+    }
+    setSaving(true);
+    try {
+      const response = await fetch("/api/v1/trader/market-prices/bulk-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ date, status, records }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Save failed");
+      toast.success(status === "submitted" ? "Today's prices submitted" : "Draft prices saved");
+      await load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openHistory = async (row: MarketPriceRow) => {
+    setHistoryItem(row);
+    const response = await fetch(`/api/v1/public/market-prices/${row.item_id}/history`, { credentials: "include" });
+    const result = await response.json();
+    if (result.ok) setHistory((result.history || []).slice(0, 5));
+  };
+
+  return (
+    <DashLayout kind="owner">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-primary-dark">Daily Market Prices</h1>
+          <p className="mt-1 text-sm font-semibold text-primary">{"\u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930\u092d\u093e\u0935"}</p>
+        </div>
+        <div className="text-sm text-muted-foreground">Today's Date: <span className="font-semibold text-primary-dark">{formatDate(date)}</span></div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <Card><CardContent className="flex items-center gap-3 p-5"><Calendar className="h-9 w-9 rounded-lg bg-secondary p-2 text-primary" /><div><div className="text-xs text-muted-foreground">Today's Date</div><div className="font-display font-bold text-primary-dark">{formatDate(date)}</div></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-3 p-5"><Save className="h-9 w-9 rounded-lg bg-success p-2 text-white" /><div><div className="text-xs text-muted-foreground">Your Updates</div><div className="font-display text-2xl font-bold text-primary-dark">{summary?.your_updates || 0}</div></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-3 p-5"><Store className="h-9 w-9 rounded-lg bg-primary p-2 text-white" /><div><div className="text-xs text-muted-foreground">Market Items Updated</div><div className="font-display text-2xl font-bold text-primary-dark">{summary?.market_items_updated || 0}</div></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-3 p-5"><BarChart3 className="h-9 w-9 rounded-lg bg-saffron p-2 text-primary-dark" /><div><div className="text-xs text-muted-foreground">Members Contributed</div><div className="font-display text-2xl font-bold text-primary-dark">{summary?.members_contributed || 0}</div></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-3 p-5"><IndianRupee className="h-9 w-9 rounded-lg bg-secondary p-2 text-primary" /><div><div className="text-xs text-muted-foreground">Pending Items</div><div className="font-display text-2xl font-bold text-primary-dark">{summary?.pending_update || 0}</div></div></CardContent></Card>
+      </div>
+
+      <div className="mt-6 grid gap-4">
+        <div className="sticky -top-8 z-40 -mx-3 space-y-4 bg-background px-3 pb-4 pt-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+          <CategoryTabs value={category} onChange={setCategory} />
+          <Card className="border-border/60 shadow-sm">
+            <CardContent className="grid gap-3 bg-white p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search English or Marathi commodity..." className="pl-9" />
+              </div>
+              <Button variant="outline" disabled={saving} onClick={() => saveRows("draft")}>Save Draft</Button>
+              <Button disabled={saving} onClick={() => saveRows("submitted")} className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Submit / Update Today's Prices</Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="overflow-hidden border-border/60">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto bg-white">
+              <table className="w-full min-w-[1060px] table-fixed text-sm">
+                <colgroup><col className="w-[230px]" /><col className="w-[95px]" /><col className="w-[95px]" /><col className="w-[95px]" /><col className="w-[95px]" /><col className="w-[110px]" /><col className="w-[130px]" /><col className="w-[130px]" /><col className="w-[90px]" /></colgroup>
+                <thead className="bg-secondary/60 text-left text-muted-foreground"><tr><th className="p-3">Item</th><th className="p-3">Yesterday</th><th className="p-3">Min</th><th className="p-3">Max</th><th className="p-3">Avg</th><th className="p-3">Unit</th><th className="p-3">Your Price</th><th className="p-3">Market Average</th><th className="p-3">History</th></tr></thead>
+                <tbody>
+                  {groups.map((group) => (
+                    <Fragment key={group.key}>
+                      {group.children.some((row) => row.parent_name_en) && <tr className="border-t bg-secondary/35"><td className="p-3" colSpan={9}><div className="font-display font-semibold text-primary-dark">{group.nameEn} / {group.nameMr}</div><div className="text-xs text-muted-foreground">{group.children.length} varieties</div></td></tr>}
+                      {group.children.map((row) => {
+                        const draft = drafts[row.item_id];
+                        const updated = row.member_status === "submitted";
+                        return (
+                          <tr key={row.item_id} className="border-t align-top">
+                            <td className="p-3"><div className="font-display font-semibold leading-snug text-primary-dark">{itemTitle(row)}</div><div className="text-xs text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div></td>
+                            <td className="whitespace-nowrap p-3">{currency(row.previous_price)}</td>
+                            <td className="p-3"><Input className="h-9 w-20 px-2" type="number" min="0" value={draft?.minPrice || ""} onChange={(event) => setDraft(row.item_id, "minPrice", event.target.value)} /></td>
+                            <td className="p-3"><Input className="h-9 w-20 px-2" type="number" min="0" value={draft?.maxPrice || ""} onChange={(event) => setDraft(row.item_id, "maxPrice", event.target.value)} /></td>
+                            <td className="p-3"><Input className="h-9 w-20 px-2 bg-secondary/40" readOnly value={draft?.modalPrice || ""} /></td>
+                            <td className="p-3"><Select value={draft?.unit || row.default_unit} onValueChange={(value) => setDraft(row.item_id, "unit", value)}><SelectTrigger className="h-9 w-24 px-2"><SelectValue /></SelectTrigger><SelectContent>{UNITS.map((unit) => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}</SelectContent></Select></td>
+                            <td className="p-3"><Badge className={updated ? "bg-success/15 text-success hover:bg-success/15" : row.member_status === "draft" ? "bg-saffron/20 text-primary-dark hover:bg-saffron/20" : "bg-muted text-muted-foreground hover:bg-muted"}>{updated ? "Updated" : row.member_status === "draft" ? "Draft" : "Pending"}</Badge></td>
+                            <td className="p-3"><div className="font-semibold text-primary-dark">{currency(row.modal_price)}</div><div className="text-xs text-muted-foreground">{row.price_id ? `${currency(row.min_price)} - ${currency(row.max_price)}` : "Insufficient updates"}</div></td>
+                            <td className="p-3"><Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button></td>
+                          </tr>
+                        );
+                      })}
+                    </Fragment>
+                  ))}
+                  {filtered.length === 0 && <tr><td className="p-8 text-center text-muted-foreground" colSpan={9}>No market items found.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Dialog open={!!historyItem} onOpenChange={(open) => !open && setHistoryItem(null)}>
+        <DialogContent className="max-w-xl">
+          {historyItem && <><DialogHeader><DialogTitle>{historyItem.name_en} / {historyItem.name_mr}</DialogTitle><DialogDescription>Market price history</DialogDescription></DialogHeader><div className="space-y-2">{history.map((row) => <div key={row.price_id} className="flex items-center justify-between rounded-lg border p-3"><div><div className="font-medium">{formatDate(row.price_date)}</div><div className="text-xs text-muted-foreground">{row.unit}</div></div><div className="text-right"><div className="font-display text-lg font-bold text-primary-dark">{currency(row.modal_price)}</div><div className="text-xs text-muted-foreground">{currency(row.min_price)} - {currency(row.max_price)}</div></div></div>)}{history.length === 0 && <div className="rounded-lg border p-3 text-sm text-muted-foreground">No published price history available.</div>}</div></>}
+        </DialogContent>
+      </Dialog>
+    </DashLayout>
+  );
+}
 export function PublicMarketPricesPage() {
   return <MarketPriceReadOnly mode="public" />;
 }
