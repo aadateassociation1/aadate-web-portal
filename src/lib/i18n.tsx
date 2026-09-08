@@ -7,7 +7,7 @@ const dict = {
   en: {
     "nav.home": "Home",
     "nav.about": "About",
-    "nav.chairman": "Lobby",
+    "nav.chairman": "Board of Directors",
     "nav.committee": "Committee",
     "nav.marketPrices": "Market Prices",
     "nav.updates": "Market Updates",

@@ -10,7 +10,7 @@ export const Route = createFileRoute("/chairman")({
   head: () => ({
     meta: [
       { title: "Chairman & Committee - Shree Chhatrapati Shivaji Market Yard Adte Association" },
-      { name: "description", content: "Meet our current chairman, lobby chairman, past chairmen and committee Members." },
+      { name: "description", content: "Meet our current chairman, board of directors, past chairmen and committee Members." },
       { property: "og:title", content: "Chairman & Committee - Shree Chhatrapati Shivaji Market Yard Adte Association" },
       { property: "og:description", content: "Leadership serving 850+ Members." },
     ],

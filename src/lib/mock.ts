@@ -269,7 +269,7 @@ export const CURRENT_CHAIRMAN = {
 
 export const LOBBY_CHAIRMAN = {
   name: "Shri. Ashok Deshmukh",
-  designation: "Lobby Chairman",
+  designation: "Board of Directors",
   intro: "Coordinates day-to-day trading operations and grievance handling on the market floor.",
 };
 
@@ -283,7 +283,7 @@ export const PAST_CHAIRMEN = [
 
 export const COMMITTEE: CommitteeMember[] = [
   { id: "C-1", name: "Shri. Sourabh Kunjir", designation: "Chairman" },
-  { id: "C-2", name: "Shri. Ashok Deshmukh", designation: "Lobby Chairman" },
+  { id: "C-2", name: "Shri. Ashok Deshmukh", designation: "Board of Directors" },
   { id: "C-3", name: "Shri. Vijay Salunke", designation: "Vice President", gala: "B-105" },
   { id: "C-4", name: "Shri. Rajaram Patil", designation: "Secretary", gala: "C-210" },
   { id: "C-5", name: "Shri. Shivaji Bhosale", designation: "Treasurer", gala: "A-115" },
