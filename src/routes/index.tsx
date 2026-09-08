@@ -446,7 +446,7 @@ function Home() {
 
           {/* Committee */}
           <div className="mt-14">
-            <h3 className="font-display text-2xl font-bold text-primary-dark">{t("section.committee")}</h3>
+            <h3 className="font-display text-2xl font-bold text-primary-dark">{lang === "mr" ? "\u0938\u0902\u091a\u093e\u0932\u0915 \u092e\u0902\u0921\u0933" : "Board of Directors"}</h3>
             <div className="mx-auto mt-6 grid max-w-6xl grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
               {committeeGridMembers.slice(0, 9).map((m) => (
                 <Card key={m.id} className="mx-auto w-full max-w-[19rem] overflow-hidden rounded-xl border-border/60 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
