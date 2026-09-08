@@ -95,22 +95,22 @@ function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 shadow-sm backdrop-blur-sm">
-      <div className="container-page flex min-h-[66px] items-center gap-3 py-2 xl:gap-5">
-        <Link to="/" className="flex min-w-0 shrink items-center sm:min-w-[220px] xl:shrink-0">
+      <div className="container-page flex min-h-[66px] items-center gap-2 py-2 xl:gap-3">
+        <Link to="/" className="flex min-w-0 shrink items-center sm:min-w-[150px] xl:shrink-0">
           <img
             src={logoSrc}
             alt={ASSOCIATION_NAME}
-            className="h-12 w-auto max-w-[190px] object-contain sm:h-14 sm:max-w-[230px]"
+            className="h-12 w-auto max-w-[170px] object-contain sm:h-14 sm:max-w-[190px]"
           />
         </Link>
 
-        <nav className="mx-auto hidden min-w-0 items-center justify-center gap-0.5 xl:flex">
+        <nav className="mx-auto hidden min-w-0 flex-1 items-center justify-center gap-0 xl:flex">
           {NAV.map((n) => (
             <Link
               key={n.to}
               to={n.to}
-              className="whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-medium text-foreground/75 transition hover:bg-secondary hover:text-primary xl:px-3"
-              activeProps={{ className: "whitespace-nowrap rounded-md bg-secondary px-2.5 py-2 text-sm font-semibold text-primary xl:px-3" }}
+              className="whitespace-nowrap rounded-md px-2 py-2 text-[13px] font-medium text-foreground/75 transition hover:bg-secondary hover:text-primary 2xl:px-3 2xl:text-sm"
+              activeProps={{ className: "whitespace-nowrap rounded-md bg-secondary px-2 py-2 text-[13px] font-semibold text-primary 2xl:px-3 2xl:text-sm" }}
               activeOptions={{ exact: n.to === "/" }}
             >
               {t(n.key)}
@@ -118,7 +118,7 @@ function Header() {
           ))}
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-2 xl:ml-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 xl:ml-1 2xl:gap-2">
           <div className="hidden sm:inline-flex">
             <LangSwitcher tone="light" />
           </div>
