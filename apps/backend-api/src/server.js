@@ -3365,7 +3365,33 @@ async function getMarketSummary(date) {
 
 const MIN_SUBMISSIONS_FOR_PUBLIC_PRICE = Math.max(1, Number(process.env.MIN_SUBMISSIONS_FOR_PUBLIC_PRICE || 3));
 const MAX_REASONABLE_MEMBER_PRICE = Math.max(1000, Number(process.env.MAX_REASONABLE_MEMBER_PRICE || 100000));
+const MARKET_PRICE_SUBMISSION_DEADLINE_HOUR = Math.min(23, Math.max(0, Number(process.env.MARKET_PRICE_SUBMISSION_DEADLINE_HOUR || 13)));
 
+
+function getIndiaDateParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date).reduce((acc, part) => {
+    acc[part.type] = part.value;
+    return acc;
+  }, {});
+  return {
+    date: `${parts.year}-${parts.month}-${parts.day}`,
+    hour: Number(parts.hour || 0),
+    minute: Number(parts.minute || 0),
+  };
+}
+
+function marketPriceSubmissionClosed(priceDate) {
+  const now = getIndiaDateParts();
+  return priceDate === now.date && now.hour >= MARKET_PRICE_SUBMISSION_DEADLINE_HOUR;
+}
 function percentile(sortedValues, percentileRank) {
   if (sortedValues.length === 0) return 0;
   const index = (sortedValues.length - 1) * percentileRank;
@@ -3512,6 +3538,8 @@ app.get("/api/v1/trader/market-prices", requireRoles("TRADER"), async (req, res)
     ok: true,
     date,
     minimumSubmissions: MIN_SUBMISSIONS_FOR_PUBLIC_PRICE,
+    submissionDeadlineHour: MARKET_PRICE_SUBMISSION_DEADLINE_HOUR,
+    submissionClosed: marketPriceSubmissionClosed(date),
     summary: summary || {},
     prices: priceableRows.map((row) => {
       const member = memberByItem.get(Number(row.item_id));
@@ -3532,6 +3560,10 @@ app.post("/api/v1/trader/market-prices/bulk-save", requireRoles("TRADER"), async
   const date = normalizeMarketDate(req.body?.date || todayMarketDate());
   const status = req.body?.status === "draft" ? "draft" : "submitted";
   const records = Array.isArray(req.body?.records) ? req.body.records : [];
+  if (status === "submitted" && marketPriceSubmissionClosed(date)) {
+    res.status(400).json({ ok: false, error: "Daily market prices must be submitted before 1:00 PM." });
+    return;
+  }
   if (records.length === 0) {
     res.status(400).json({ ok: false, error: "At least one price record is required." });
     return;

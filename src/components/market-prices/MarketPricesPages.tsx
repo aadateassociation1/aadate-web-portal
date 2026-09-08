@@ -403,6 +403,8 @@ function MemberMarketPricesPage() {
   const [saving, setSaving] = useState(false);
   const [historyItem, setHistoryItem] = useState<MarketPriceRow | null>(null);
   const [history, setHistory] = useState<MarketPriceRow[]>([]);
+  const [submissionClosed, setSubmissionClosed] = useState(false);
+  const [deadlineHour, setDeadlineHour] = useState(13);
 
   const load = async () => {
     const params = new URLSearchParams({ date });
@@ -413,6 +415,8 @@ function MemberMarketPricesPage() {
     if (!response.ok || !result.ok) throw new Error(result.error || "Market prices failed to load");
     const priceableRows = dedupeMarketItems(result.prices || []).filter(isPriceableRow);
     setRows(priceableRows);
+    setSubmissionClosed(Boolean(result.submissionClosed));
+    setDeadlineHour(Number(result.submissionDeadlineHour || 13));
     setSummary({
       total_items: priceableRows.length,
       updated_today: Number(result.summary?.your_updates || 0),
@@ -509,6 +513,10 @@ function MemberMarketPricesPage() {
         <div className="text-sm text-muted-foreground">Today's Date: <span className="font-semibold text-primary-dark">{formatDate(date)}</span></div>
       </div>
 
+      <div className="mb-4 rounded-lg border border-saffron/40 bg-saffron/10 px-4 py-3 text-sm font-semibold text-primary-dark">
+        {"\u0926\u0941\u092a\u093e\u0930\u0940 "}{deadlineHour > 12 ? deadlineHour - 12 : deadlineHour}{":00 \u0935\u093e\u091c\u0947\u092a\u0930\u094d\u092f\u0902\u0924 \u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930\u092d\u093e\u0935 \u091c\u092e\u093e \u0915\u0930\u093e. "}{submissionClosed ? "\u0906\u091c\u091a\u0940 \u0935\u0947\u0933 \u0938\u0902\u092a\u0932\u0940 \u0906\u0939\u0947." : "\u0935\u0947\u0933 \u0909\u092a\u0932\u092c\u094d\u0927 \u0906\u0939\u0947."}
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <Card><CardContent className="flex items-center gap-3 p-5"><Calendar className="h-9 w-9 rounded-lg bg-secondary p-2 text-primary" /><div><div className="text-xs text-muted-foreground">Today's Date</div><div className="font-display font-bold text-primary-dark">{formatDate(date)}</div></div></CardContent></Card>
         <Card><CardContent className="flex items-center gap-3 p-5"><Save className="h-9 w-9 rounded-lg bg-success p-2 text-white" /><div><div className="text-xs text-muted-foreground">Your Updates</div><div className="font-display text-2xl font-bold text-primary-dark">{summary?.your_updates || 0}</div></div></CardContent></Card>
@@ -527,7 +535,7 @@ function MemberMarketPricesPage() {
                 <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search English or Marathi commodity..." className="pl-9" />
               </div>
               <Button variant="outline" disabled={saving} onClick={() => saveRows("draft")}>Save Draft</Button>
-              <Button disabled={saving} onClick={() => saveRows("submitted")} className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Submit / Update Today's Prices</Button>
+              <Button disabled={saving || submissionClosed} onClick={() => saveRows("submitted")} className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Submit / Update Today's Prices</Button>
             </CardContent>
           </Card>
         </div>
