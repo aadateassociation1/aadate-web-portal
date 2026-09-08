@@ -528,6 +528,7 @@ export function AdminUsersPage() {
   const [accessReason, setAccessReason] = useState("");
   const [accessSaving, setAccessSaving] = useState(false);
   const { lang } = useI18n();
+  const adminLabel = (english: string, marathi: string) => lang === "mr" ? marathi : english;
   const memberName = (trader: Pick<ManagedTrader, "full_name" | "full_name_en"> | null | undefined) =>
     localizedKycName(lang, trader?.full_name, trader?.full_name_en);
   const businessName = (trader: Pick<ManagedTrader, "business_name" | "business_name_en"> | null | undefined) =>
@@ -703,7 +704,7 @@ export function AdminUsersPage() {
             <Button variant="outline"><Download className="mr-1 h-4 w-4" /> Export</Button>
           </div>
           <div className="overflow-x-auto">
-<Table className="min-w-[980px]">
+            <Table className="min-w-[980px]">
               <TableHeader><TableRow><TableHead>{adminLabel("Code", "\u0915\u094b\u0921")}</TableHead><TableHead>{adminLabel("Member", "\u0905\u0921\u0924\u093e")}</TableHead><TableHead>{adminLabel("Contact", "\u0938\u0902\u092a\u0930\u094d\u0915")}</TableHead><TableHead>{adminLabel("Gala", "\u0917\u093e\u0933\u093e")}</TableHead><TableHead>{adminLabel("Category", "\u0935\u093f\u092d\u093e\u0917")}</TableHead><TableHead className="whitespace-nowrap">{adminLabel("Status", "\u0938\u094d\u0925\u093f\u0924\u0940")}</TableHead><TableHead className="whitespace-nowrap">{adminLabel("Approved", "\u092e\u0902\u091c\u0942\u0930")}</TableHead><TableHead className="whitespace-nowrap text-right">{adminLabel("Actions", "\u0915\u0943\u0924\u0940")}</TableHead></TableRow></TableHeader>
               <TableBody>
                 {visibleTraders.map((o) => (
@@ -2948,7 +2949,7 @@ export function AdminCommitteePage() {
               <Button onClick={resetForm} size="sm" className="bg-primary text-white hover:bg-primary/90"><Plus className="mr-1 h-4 w-4" /> Add Member</Button>
             </div>
             <div className="overflow-x-auto">
-<Table className="min-w-[980px]">
+            <Table className="min-w-[980px]">
                 <TableHeader>
                   <TableRow className="bg-secondary/50">
                     <TableHead className="whitespace-nowrap">Photo</TableHead>
@@ -4597,6 +4598,7 @@ type AdminKycRecord = {
 
 export function AdminTraderKycPage() {
   const { lang } = useI18n();
+  const adminLabel = (english: string, marathi: string) => lang === "mr" ? marathi : english;
 
   type TraderKycRecord = {
     id: number;
@@ -4905,8 +4907,7 @@ export function AdminTraderKycPage() {
 }
 
 export function OwnerGalaPage() {
-  const { profile, galas, loading, reload } = useTraderProfile();
-  const { lang } = useI18n();
+  const { profile, galas, loading, reload } = useTraderProfile();
   const primaryGala = galas.find((gala) => gala.is_primary) || galas[0];
   const approvedCount = galas.filter((gala) => gala.status === "approved").length;
   const pendingCount = galas.filter((gala) => ["submitted", "under_review", "correction_required"].includes(gala.status)).length;
@@ -4967,8 +4968,7 @@ function parseDashboardPostContent(value?: string | null) {
   }
 }
 
-function OwnerDbContentPage({ title, subtitle, icon: Icon, items, attachmentBase = "/api/v1/public/content-attachments" }: { title: string; subtitle: string; icon: React.ElementType; items: DashboardPost[]; attachmentBase?: string }) {
-  const { lang } = useI18n();
+function OwnerDbContentPage({ title, subtitle, icon: Icon, items, attachmentBase = "/api/v1/public/content-attachments" }: { title: string; subtitle: string; icon: React.ElementType; items: DashboardPost[]; attachmentBase?: string }) {
   const isMr = lang === "mr";
   const displayPost = (item: DashboardPost) => {
     const en = item.parsed || parseDashboardPostContent(item.content_en);
@@ -5182,8 +5182,7 @@ export function OwnerComplaintsPage() {
     reopen_request_status?: string | null;
     parsed?: { category?: string; description?: string };
     history: Array<{ id: number; old_status: string | null; new_status: string; remarks: string | null; changed_by_name: string; created_at: string }>;
-  };
-  const { lang } = useI18n();
+  };
   const [complaints, setComplaints] = useState<TraderComplaint[]>([]);
   const [feedbackRequests, setFeedbackRequests] = useState<ComplaintFeedbackRequest[]>([]);
   const [activeFeedback, setActiveFeedback] = useState<ComplaintFeedbackRequest | null>(null);
@@ -5296,8 +5295,7 @@ export function OwnerNewComplaintPage() {
 export function OwnerPostPage() {
   const { profile } = useTraderProfile();
   const { logout } = useAuth();
-  const router = useRouter();
-  const { lang } = useI18n();
+  const router = useRouter();
   const [postCategory, setPostCategory] = useState("Market Rate Update");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
@@ -5698,8 +5696,7 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
 }
 
 export function MobileChangeApplicationForm({ compact = false }: { compact?: boolean }) {
-  const { profile } = useTraderProfile();
-  const { lang } = useI18n();
+  const { profile } = useTraderProfile();
   const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
 
   return (
@@ -5790,8 +5787,7 @@ export function MobileChangeApplicationForm({ compact = false }: { compact?: boo
 }
 
 export function OwnerMobileChangePage() {
-  const { profile } = useTraderProfile();
-  const { lang } = useI18n();
+  const { profile } = useTraderProfile();
   const section = profile?.business_category ? `${profile.business_category} Section` : "";
   const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
   const displayBusinessName = localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
