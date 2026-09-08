@@ -1,4 +1,4 @@
-const textTranslations: Record<string, string> = {
+﻿const textTranslations: Record<string, string> = {
   "Home": "\u092e\u0941\u0916\u094d\u092f\u092a\u0943\u0937\u094d\u0920",
   "About": "\u0906\u092e\u091a\u094d\u092f\u093e\u092c\u0926\u094d\u0926\u0932",
   "Lobby": "\u0938\u0902\u091a\u093e\u0932\u0915 \u092e\u0902\u0921\u0933",
@@ -611,8 +611,12 @@ const wordTranslations: Record<string, string> = {
   today: "\u0906\u091c",
   tomorrow: "\u0909\u0926\u094d\u092f\u093e",
   total: "\u090f\u0915\u0942\u0923",
-  Member: "\u0935\u094d\u092f\u093e\u092a\u093e\u0930\u0940",
-  Members: "\u0935\u094d\u092f\u093e\u092a\u093e\u0930\u0940",
+  member: "\u0905\u0921\u0924\u0947",
+  members: "\u0905\u0921\u0924\u0947",
+  trader: "\u0905\u0921\u0924\u093e",
+  traders: "\u0905\u0921\u0924\u0947",
+  Member: "\u0905\u0921\u0924\u093e",
+  Members: "\u0905\u0921\u0924\u0947",
   transformation: "\u092a\u0930\u093f\u0935\u0930\u094d\u0924\u0928",
   transparent: "\u092a\u093e\u0930\u0926\u0930\u094d\u0936\u0915",
   trusted: "\u0935\u093f\u0936\u094d\u0935\u093e\u0938\u093e\u0930\u094d\u0939",
@@ -673,6 +677,13 @@ function shouldSkipWordFallback(value: string) {
   return false;
 }
 
+function normalizeAdteLabel(value: string) {
+  return value
+    .replace(/\u0935\u094d\u092f\u093e\u092a\u093e\u0930\u0940/g, "\u0905\u0921\u0924\u0947")
+    .replace(/\u0935\u094d\u092f\u093e\u092a\u093e\u0931\u094d\u092f\u093e/g, "\u0905\u0921\u0924\u094d\u092f\u093e")
+    .replace(/\u0935\u094d\u092f\u093e\u092a\u093e\u0931\u094d\u092f\u093e\u0902/g, "\u0905\u0921\u0924\u094d\u092f\u093e\u0902");
+}
+
 function translateKnownWords(value: string) {
   if (shouldSkipWordFallback(value)) return value;
 
@@ -692,14 +703,14 @@ export function translateToMarathi(value: string) {
 
   const direct = textTranslations[normalized] || textTranslations[toTitleCase(normalized.replace(/_/g, " "))];
   if (direct) {
-    return restoreWhitespace(value, direct);
+    return restoreWhitespace(value, normalizeAdteLabel(direct));
   }
   if (/^market\s+(reports?|updates?)$/i.test(normalized)) {
-    return restoreWhitespace(value, "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940");
+    return restoreWhitespace(value, normalizeAdteLabel("\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940"));
   }
 
   if (/^daily\s+market\s+updates?$/i.test(normalized)) {
-    return restoreWhitespace(value, "\u0926\u0948\u0928\u0902\u0926\u093f\u0928 \u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940");
+    return restoreWhitespace(value, normalizeAdteLabel("\u0926\u0948\u0928\u0902\u0926\u093f\u0928 \u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940"));
   }
 
   if (/^\d+\s+views$/i.test(normalized)) {
@@ -729,7 +740,7 @@ export function translateToMarathi(value: string) {
 
   const withWordFallback = translateKnownWords(translated);
 
-  return withWordFallback === normalized ? value : restoreWhitespace(value, withWordFallback);
+  return withWordFallback === normalized ? value : restoreWhitespace(value, normalizeAdteLabel(withWordFallback));
 }
 
 const originalText = new WeakMap<Text, string>();
