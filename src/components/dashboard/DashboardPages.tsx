@@ -676,9 +676,9 @@ export function AdminUsersPage() {
 
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Member Management" subtitle="Search, verify, approve, reject, suspend, and manage all Member accounts." action={<Button variant="outline" onClick={loadTraders}>Refresh</Button>} />
+      <PageTitle title={adminLabel("Member Management", "\u0905\u0921\u0924\u0947 \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u0928")} subtitle={adminLabel("Search, verify, approve, reject, suspend, and manage all Member accounts.", "\u0938\u0930\u094d\u0935 \u0905\u0921\u0924\u0947 \u0916\u093e\u0924\u0940 \u0936\u094b\u0927\u093e, \u092a\u0921\u0924\u093e\u0933\u093e, \u092e\u0902\u091c\u0942\u0930, \u0928\u093e\u0915\u093e\u0930, \u0938\u094d\u0925\u0917\u093f\u0924 \u0906\u0923\u093f \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u093f\u0924 \u0915\u0930\u093e.")} action={<Button variant="outline" onClick={loadTraders}>{adminLabel("Refresh", "\u0930\u093f\u092b\u094d\u0930\u0947\u0936")}</Button>} />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Users} label="Total Members" value={stats.total} />
+        <StatCard icon={Users} label={adminLabel("Total Members", "\u090f\u0915\u0942\u0923 \u0905\u0921\u0924\u0947")} value={stats.total} />
         <StatCard icon={CheckCircle2} label="Approved" value={stats.approved} tone="success" />
         <StatCard icon={ClipboardList} label="Pending" value={stats.pending} tone="warning" />
         <StatCard icon={ShieldAlert} label="Rejected / suspended" value={stats.rejected + stats.suspended} tone="danger" />
@@ -702,8 +702,9 @@ export function AdminUsersPage() {
             </Select>
             <Button variant="outline"><Download className="mr-1 h-4 w-4" /> Export</Button>
           </div>
-          <div className="overflow-x-auto">`r`n              <Table className="min-w-[980px]">
-              <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Member</TableHead><TableHead>Contact</TableHead><TableHead>Gala</TableHead><TableHead>Category</TableHead><TableHead className="whitespace-nowrap">Status</TableHead><TableHead className="whitespace-nowrap">Approved</TableHead><TableHead className="whitespace-nowrap text-right">Actions</TableHead></TableRow></TableHeader>
+          <div className="overflow-x-auto">
+<Table className="min-w-[980px]">
+              <TableHeader><TableRow><TableHead>{adminLabel("Code", "\u0915\u094b\u0921")}</TableHead><TableHead>{adminLabel("Member", "\u0905\u0921\u0924\u093e")}</TableHead><TableHead>{adminLabel("Contact", "\u0938\u0902\u092a\u0930\u094d\u0915")}</TableHead><TableHead>{adminLabel("Gala", "\u0917\u093e\u0933\u093e")}</TableHead><TableHead>{adminLabel("Category", "\u0935\u093f\u092d\u093e\u0917")}</TableHead><TableHead className="whitespace-nowrap">{adminLabel("Status", "\u0938\u094d\u0925\u093f\u0924\u0940")}</TableHead><TableHead className="whitespace-nowrap">{adminLabel("Approved", "\u092e\u0902\u091c\u0942\u0930")}</TableHead><TableHead className="whitespace-nowrap text-right">{adminLabel("Actions", "\u0915\u0943\u0924\u0940")}</TableHead></TableRow></TableHeader>
               <TableBody>
                 {visibleTraders.map((o) => (
                   <TableRow key={o.id}>
@@ -722,8 +723,8 @@ export function AdminUsersPage() {
                 ))}
               </TableBody>
             </Table>
-            {!loading && visibleTraders.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No Members found for this view.</div>}
-            {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading Members from database...</div>}
+            {!loading && visibleTraders.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">{adminLabel("No Members found for this view.", "\u0905\u0921\u0924\u0947 \u0928\u094b\u0902\u0926\u0940 \u0906\u0922\u0933\u0932\u0940 \u0928\u093e\u0939\u0940.")}</div>}
+            {loading && <div className="py-8 text-center text-sm text-muted-foreground">{adminLabel("Loading Members from database...", "\u0905\u0921\u0924\u0947 \u0928\u094b\u0902\u0926\u0940 \u0932\u094b\u0921 \u0939\u094b\u0924 \u0906\u0939\u0947\u0924...")}</div>}
           </div>
         </CardContent>
       </Card>
@@ -2946,7 +2947,8 @@ export function AdminCommitteePage() {
               <h2 className="font-display text-xl font-bold text-primary-dark">Committee Members ({members.length})</h2>
               <Button onClick={resetForm} size="sm" className="bg-primary text-white hover:bg-primary/90"><Plus className="mr-1 h-4 w-4" /> Add Member</Button>
             </div>
-            <div className="overflow-x-auto">`r`n              <Table className="min-w-[980px]">
+            <div className="overflow-x-auto">
+<Table className="min-w-[980px]">
                 <TableHeader>
                   <TableRow className="bg-secondary/50">
                     <TableHead className="whitespace-nowrap">Photo</TableHead>
@@ -4739,9 +4741,9 @@ export function AdminTraderKycPage() {
 
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Member KYC" subtitle="Review member verification records and documents. Customer KYC is managed in a separate module." />
+      <PageTitle title={adminLabel("Member KYC", "\u0905\u0921\u0924\u0947 \u092a\u0921\u0924\u093e\u0933\u0923\u0940")} subtitle={adminLabel("Review member verification records and documents. Customer KYC is managed in a separate module.", "\u0905\u0921\u0924\u0947 \u092a\u0921\u0924\u093e\u0933\u0923\u0940 \u0928\u094b\u0902\u0926\u0940 \u0906\u0923\u093f \u0915\u093e\u0917\u0926\u092a\u0924\u094d\u0930\u0947 \u0924\u092a\u093e\u0938\u093e. \u0917\u094d\u0930\u093e\u0939\u0915 \u092a\u0921\u0924\u093e\u0933\u0923\u0940 \u0935\u0947\u0917\u0933\u094d\u092f\u093e \u092e\u0949\u0921\u094d\u092f\u0942\u0932\u092e\u0927\u094d\u092f\u0947 \u0906\u0939\u0947.")} />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon={IdCard} label="Total Members" value={counts.total} />
+        <StatCard icon={IdCard} label={adminLabel("Total Members", "\u090f\u0915\u0942\u0923 \u0905\u0921\u0924\u0947")} value={counts.total} />
         <StatCard icon={CheckCircle2} label="Approved" value={counts.approved} tone="success" />
         <StatCard icon={Users} label="Pending Review" value={counts.pending} tone="saffron" />
         <StatCard icon={ThumbsDown} label="Rejected" value={counts.rejected} tone="danger" />

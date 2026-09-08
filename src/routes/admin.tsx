@@ -128,6 +128,7 @@ function AdminDash() {
   const [notices, setNotices] = useState<ContentRow[]>([]);
   const [mobileRequests, setMobileRequests] = useState<MobileRequestRow[]>([]);
   const { lang } = useI18n();
+  const adminLabel = (english: string, marathi: string) => lang === "mr" ? marathi : english;
   const memberName = (trader: Pick<AdminTrader, "full_name" | "full_name_en"> | null | undefined) =>
     lang === "en" ? trader?.full_name_en || trader?.full_name || "" : trader?.full_name || trader?.full_name_en || "";
   const businessName = (trader: Pick<AdminTrader, "business_name" | "business_name_en"> | null | undefined) =>
@@ -217,7 +218,7 @@ function AdminDash() {
       <Tabs defaultValue="overview">
         <TabsList className="w-full flex-wrap justify-start h-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="owners">Members</TabsTrigger>
+          <TabsTrigger value="owners">{adminLabel("Members", "\u0905\u0921\u0924\u0947")}</TabsTrigger>
           <TabsTrigger value="complaints">Complaints</TabsTrigger>
           <TabsTrigger value="updates">Market Updates</TabsTrigger>
           <TabsTrigger value="notices">Notices</TabsTrigger>
@@ -239,7 +240,7 @@ function AdminDash() {
         <TabsContent value="overview" className="mt-6 space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { icon: Users, label: "Total Members", value: dashboardStats.total, color: "bg-primary text-white" },
+              { icon: Users, label: adminLabel("Total Members", "\u090f\u0915\u0942\u0923 \u0905\u0921\u0924\u0947"), value: dashboardStats.total, color: "bg-primary text-white" },
               { icon: CheckCircle2, label: "Approved", value: dashboardStats.approved, color: "bg-success text-white" },
               { icon: ClipboardList, label: "Pending", value: dashboardStats.pending, color: "bg-warning text-white" },
               { icon: Ban, label: "Rejected / Suspended", value: dashboardStats.rejected + dashboardStats.suspended, color: "bg-destructive text-white" },
@@ -365,8 +366,8 @@ function AdminDash() {
                     ))}
                   </TableBody>
                 </Table>
-                {!loadingTraders && filteredOwners.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No Members found in database.</div>}
-                {loadingTraders && <div className="py-8 text-center text-sm text-muted-foreground">Loading Members from database...</div>}
+                {!loadingTraders && filteredOwners.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">{adminLabel("No Members found in database.", "\u0905\u0921\u0924\u0947 \u0928\u094b\u0902\u0926\u0940 \u0906\u0922\u0933\u0932\u0940 \u0928\u093e\u0939\u0940.")}</div>}
+                {loadingTraders && <div className="py-8 text-center text-sm text-muted-foreground">{adminLabel("Loading Members from database...", "\u0905\u0921\u0924\u0947 \u0928\u094b\u0902\u0926\u0940 \u0932\u094b\u0921 \u0939\u094b\u0924 \u0906\u0939\u0947\u0924...")}</div>}
               </div>
             </CardContent>
           </Card>

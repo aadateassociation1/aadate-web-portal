@@ -34,8 +34,8 @@ const OWNER_NAV = [
 
 const ADMIN_NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/admin/users", label: "Member Management", icon: Users },
-  { to: "/admin/kyc", label: "Member KYC", icon: IdCard },
+  { to: "/admin/users", label: "Member Management", mrLabel: "\u0905\u0921\u0924\u0947 \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u0928", icon: Users },
+  { to: "/admin/kyc", label: "Member KYC", mrLabel: "\u0905\u0921\u0924\u0947 \u092a\u0921\u0924\u093e\u0933\u0923\u0940", icon: IdCard },
   { to: "/admin/registrations", label: "Registration Approvals", icon: ClipboardList },
   { to: "/admin/complaints", label: "Complaint Management", icon: MessageSquare },
   { to: "/admin/posts", label: "Owner Posts", icon: ImagePlus },
@@ -293,7 +293,7 @@ export function DashLayout({ kind, children }: Props) {
                 }`}
               >
                 <n.icon className="h-4 w-4 shrink-0 opacity-90" />
-                <span className="min-w-0 flex-1 truncate">{displayText(n.label)}</span>
+                <span className="min-w-0 flex-1 truncate">{lang === "mr" && "mrLabel" in n ? n.mrLabel : displayText(n.label)}</span>
                 {count > 0 && (
                   <span className={`ml-auto grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold ${active || activeExact ? "bg-primary text-white" : "bg-saffron text-primary-dark"}`}>
                     {count > 99 ? "99+" : count}
