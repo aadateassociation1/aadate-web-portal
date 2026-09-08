@@ -582,7 +582,7 @@ export function PublicMarketPricesPage() {
 }
 
 export function TraderMarketPricesPage() {
-  return <MarketPriceReadOnly mode="trader" />;
+  return <MemberMarketPricesPage />;
 }
 
 export function AdminMarketPricesPage() {
