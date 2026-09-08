@@ -702,9 +702,8 @@ export function AdminUsersPage() {
             </Select>
             <Button variant="outline"><Download className="mr-1 h-4 w-4" /> Export</Button>
           </div>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Member</TableHead><TableHead>Contact</TableHead><TableHead>Gala</TableHead><TableHead>Category</TableHead><TableHead className="whitespace-nowrap">Status</TableHead><TableHead className="whitespace-nowrap">Approved</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+          <div className="overflow-x-auto">`r`n              <Table className="min-w-[980px]">
+              <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Member</TableHead><TableHead>Contact</TableHead><TableHead>Gala</TableHead><TableHead>Category</TableHead><TableHead className="whitespace-nowrap">Status</TableHead><TableHead className="whitespace-nowrap">Approved</TableHead><TableHead className="whitespace-nowrap text-right">Actions</TableHead></TableRow></TableHeader>
               <TableBody>
                 {visibleTraders.map((o) => (
                   <TableRow key={o.id}>
@@ -1105,7 +1104,7 @@ export function AdminRegistrationsPage() {
                 <h3 className="font-display font-semibold text-primary-dark">Linked Galas / Shops</h3>
                 <div className="mt-3 overflow-x-auto rounded-lg border">
                   <Table>
-                    <TableHeader><TableRow><TableHead>Gala</TableHead><TableHead>Business</TableHead><TableHead>Section</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Review</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow><TableHead>Gala</TableHead><TableHead>Business</TableHead><TableHead>Section</TableHead><TableHead className="whitespace-nowrap">Status</TableHead><TableHead className="text-right">Review</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {details.galas.map((gala) => (
                         <TableRow key={gala.id}>
@@ -1140,7 +1139,7 @@ export function AdminRegistrationsPage() {
                 <h3 className="font-display font-semibold text-primary-dark">Uploaded documents</h3>
                 <div className="mt-3 overflow-x-auto rounded-lg border">
                   <Table>
-                    <TableHeader><TableRow><TableHead>Type</TableHead><TableHead>File</TableHead><TableHead>Size</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Review</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow><TableHead>Type</TableHead><TableHead>File</TableHead><TableHead>Size</TableHead><TableHead className="whitespace-nowrap">Status</TableHead><TableHead className="text-right">Review</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {details.documents.map((document) => (
                         <TableRow key={document.id}>
@@ -2877,19 +2876,19 @@ export function AdminCommitteePage() {
           <CardContent className="p-5 sm:p-6">
             <h2 className="font-display text-xl font-bold text-primary-dark">{editing ? "Edit Committee Member" : "Add Committee Member"}</h2>
             <form className="mt-5 space-y-5" onSubmit={saveMember}>
-              <div className="grid gap-5 lg:grid-cols-[100px_minmax(0,1fr)]">
-                <div>
-                  <Label>Photo</Label>
-                  <div className="mt-2 grid h-24 w-24 place-items-center overflow-hidden rounded-full border bg-secondary text-primary shadow-sm">
-                    {previewPhoto ? <img src={previewPhoto} alt="Committee member preview" className="h-full w-full object-cover object-top" /> : <Camera className="h-7 w-7" />}
+              <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+                <div className="rounded-lg border border-border/70 bg-secondary/30 p-4">
+                  <Label className="text-sm font-semibold">Photo</Label>
+                  <div className="mx-auto mt-3 grid h-28 w-28 place-items-center overflow-hidden rounded-full border bg-white text-primary shadow-sm ring-1 ring-border/70">
+                    {previewPhoto ? <img src={previewPhoto} alt="Committee member preview" className="h-full w-full object-cover object-top" /> : <Camera className="h-8 w-8" />}
                   </div>
-                  <label className="mt-3 inline-flex cursor-pointer items-center rounded-md bg-primary px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-primary/90">
+                  <label className="mt-4 flex w-full cursor-pointer items-center justify-center rounded-md bg-primary px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">
                     Upload Photo
                     <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => setPhotoFile(event.target.files?.[0] || null)} />
                   </label>
-                  <div className="mt-2 text-xs text-muted-foreground">Recommended 400 x 400 px JPG/PNG</div>
+                  <div className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">Recommended<br />400 x 400 px<br />JPG/PNG</div>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
                   <div className="space-y-2">
                     <Label>Full Name (English) *</Label>
                     <Input value={form.fullName} onChange={(event) => setForm({ ...form, fullName: event.target.value })} required placeholder="Shri. Full Name" />
@@ -2920,7 +2919,7 @@ export function AdminCommitteePage() {
                     <Input value={form.galaNumber} onChange={(event) => setForm({ ...form, galaNumber: event.target.value })} required placeholder="B-12" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Order / Display Sequence</Label>
+                    <Label className="leading-tight">Order / Display Sequence</Label>
                     <Input type="number" value={form.displayOrder} onChange={(event) => setForm({ ...form, displayOrder: event.target.value })} min={1} />
                   </div>
                   <div className="flex items-end gap-2 pb-2">
@@ -2947,17 +2946,16 @@ export function AdminCommitteePage() {
               <h2 className="font-display text-xl font-bold text-primary-dark">Committee Members ({members.length})</h2>
               <Button onClick={resetForm} size="sm" className="bg-primary text-white hover:bg-primary/90"><Plus className="mr-1 h-4 w-4" /> Add Member</Button>
             </div>
-            <div className="overflow-x-auto">
-              <Table>
+            <div className="overflow-x-auto">`r`n              <Table className="min-w-[980px]">
                 <TableHeader>
                   <TableRow className="bg-secondary/50">
-                    <TableHead>Photo</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Designation</TableHead>
-                    <TableHead>Gala No.</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="whitespace-nowrap">Photo</TableHead>
+                    <TableHead className="whitespace-nowrap">Name</TableHead>
+                    <TableHead className="whitespace-nowrap">Designation</TableHead>
+                    <TableHead className="whitespace-nowrap">Gala No.</TableHead>
+                    <TableHead className="whitespace-nowrap">Phone</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="whitespace-nowrap text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -4768,7 +4766,7 @@ export function AdminTraderKycPage() {
                   <TableHead>Member</TableHead>
                   <TableHead>Business</TableHead>
                   <TableHead>Mobile</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="whitespace-nowrap">Status</TableHead>
                   <TableHead>Applied</TableHead>
                   <TableHead className="text-right">Action</TableHead>
                 </TableRow>
@@ -4856,7 +4854,7 @@ export function AdminTraderKycPage() {
                         <TableHead>Type</TableHead>
                         <TableHead>File</TableHead>
                         <TableHead>Size</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead className="whitespace-nowrap">Status</TableHead>
                         <TableHead className="text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
