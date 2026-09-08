@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ClipboardList, FileText, Newspaper, Phone, MessageSquare, Clock, ImagePlus, IdCard,
-  Star, Store, CheckCircle2,
+  Star, Store, CheckCircle2, IndianRupee,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
@@ -111,6 +111,7 @@ function OwnerDash() {
   const galaBusinessName = (gala: { business_name: string; business_name_en?: string | null }) =>
     lang === "en" ? gala.business_name_en || gala.business_name : gala.business_name || gala.business_name_en || "";
   const quickActions = [
+    { to: "/member/market-prices", icon: IndianRupee, label: lang === "mr" ? "\u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930\u092d\u093e\u0935" : "Add Daily Prices", highlight: true },
     { to: "/member/new-complaint", icon: ClipboardList, label: "Raise Complaint" },
     { to: "/member/kyc", icon: IdCard, label: "Customer KYC" },
     { to: "/member/post", icon: ImagePlus, label: "Submit Post" },
@@ -238,7 +239,7 @@ function OwnerDash() {
           </div>
           <div className="grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
             {quickActions.map((a) => (
-              <Button key={a.to} asChild variant="outline" className="h-14 min-w-0 justify-start px-4 py-3 sm:h-16">
+              <Button key={a.to} asChild variant="outline" className={`h-14 min-w-0 justify-start px-4 py-3 sm:h-16 ${a.highlight ? "border-primary bg-secondary/60 text-primary-dark shadow-sm" : ""}`}>
                 <Link to={a.to} className="min-w-0">
                   <a.icon className="mr-2 h-5 w-5 shrink-0 text-primary" />
                   <span className="min-w-0 whitespace-normal text-left leading-snug">{a.label}</span>
