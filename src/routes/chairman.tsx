@@ -86,7 +86,7 @@ function Chairman() {
       };
   const labels = isMr
     ? { section: "\u0938\u092e\u093f\u0924\u0940 \u0938\u0926\u0938\u094d\u092f", fullName: "\u092a\u0942\u0930\u094d\u0923 \u0928\u093e\u0935", phone: "\u092b\u094b\u0928 \u0928\u0902\u092c\u0930", designation: "\u092a\u0926", gala: "\u0917\u093e\u0933\u093e \u0928\u0902\u092c\u0930", notPublished: "\u0938\u0927\u094d\u092f\u093e \u0915\u094b\u0923\u0924\u0947\u0939\u0940 \u0938\u092e\u093f\u0924\u0940 \u0938\u0926\u0938\u094d\u092f \u092a\u094d\u0930\u0915\u093e\u0936\u093f\u0924 \u0928\u093e\u0939\u0940\u0924.", quote: "\u092c\u0933\u0915\u091f \u092e\u093e\u0930\u094d\u0915\u0947\u091f \u092f\u093e\u0930\u094d\u0921\u0938\u093e\u0920\u0940 \u090f\u0915\u0924\u094d\u0930 \u0915\u093e\u092e \u0915\u0930\u0924 \u0906\u0939\u094b\u0924" }
-    : { section: "Committee Members", fullName: "Full Name", phone: "Phone Number", designation: "Designation", gala: "Gala Number", notPublished: "No committee members published yet.", quote: "Working together for a stronger Market Yard" };
+    : { section: "Board of Directors", fullName: "Full Name", phone: "Phone Number", designation: "Designation", gala: "Gala Number", notPublished: "No committee members published yet.", quote: "Working together for a stronger Market Yard" };
 
   const CommitteeAvatar = ({ member }: { member: CommitteeMemberRecord }) => {
     const [imageFailed, setImageFailed] = useState(false);
