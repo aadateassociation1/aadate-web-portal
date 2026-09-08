@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, BarChart3, Calendar, ChevronDown, ChevronRight, Cop
 import { toast } from "sonner";
 import { DashLayout } from "@/components/dashboard/DashLayout";
 import { SiteLayout } from "@/components/public/SiteLayout";
+import { useI18n } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -394,6 +395,7 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
 
 
 function MemberMarketPricesPage() {
+  const { lang } = useI18n();
   const [date] = useState(todayInput());
   const [category, setCategory] = useState("all");
   const [search, setSearch] = useState("");
@@ -523,7 +525,15 @@ function MemberMarketPricesPage() {
 
       <div className="mt-6 grid gap-4">
         <div className="rounded-lg border border-saffron/40 bg-saffron/10 px-4 py-3 text-sm font-semibold text-primary-dark">
-        <span className="font-bold">{"\u0938\u0942\u091a\u0928\u093e: "}</span>{"\u0938\u0930\u094d\u0935 \u0905\u0921\u0924\u094d\u092f\u093e\u0902\u0928\u0940 \u0930\u094b\u091c \u0926\u0941\u092a\u093e\u0930\u0940 "}{deadlineHour > 12 ? deadlineHour - 12 : deadlineHour}{":00 \u0935\u093e\u091c\u0947\u092a\u0930\u094d\u092f\u0902\u0924 \u0936\u0947\u0924\u0915\u0930\u0940 \u092e\u093e\u0932\u093e\u091a\u0947 \u092c\u093e\u091c\u093e\u0930\u092d\u093e\u0935 \u0905\u092a\u0921\u0947\u091f \u0915\u0930\u0923\u0947 \u0906\u0935\u0936\u094d\u092f\u0915 \u0906\u0939\u0947. \u0926\u0941\u092a\u093e\u0930\u0940 1 \u0928\u0902\u0924\u0930 \u0938\u092c\u092e\u093f\u091f \u0915\u0947\u0932\u0947\u0932\u0947 \u092d\u093e\u0935 \u0938\u094d\u0935\u0940\u0915\u093e\u0930\u0932\u0947 \u091c\u093e\u0923\u093e\u0930 \u0928\u093e\u0939\u0940\u0924. "}{submissionClosed ? "\u0906\u091c\u091a\u0940 \u0938\u092c\u092e\u093f\u0936\u0928 \u0935\u0947\u0933 \u0938\u0902\u092a\u0932\u0940 \u0906\u0939\u0947." : "\u0938\u0927\u094d\u092f\u093e \u092d\u093e\u0935 \u0938\u092c\u092e\u093f\u091f \u0915\u0930\u0924\u093e \u092f\u0947\u0924\u0940\u0932."}
+          {lang === "mr" ? (
+          <>
+            <span className="font-bold">{"\u0938\u0942\u091a\u0928\u093e: "}</span>{"\u0938\u0930\u094d\u0935 \u0905\u0921\u0924\u094d\u092f\u093e\u0902\u0928\u0940 \u0930\u094b\u091c \u0926\u0941\u092a\u093e\u0930\u0940 "}{deadlineHour > 12 ? deadlineHour - 12 : deadlineHour}{":00 \u0935\u093e\u091c\u0947\u092a\u0930\u094d\u092f\u0902\u0924 \u0936\u0947\u0924\u0915\u0930\u0940 \u092e\u093e\u0932\u093e\u091a\u0947 \u092c\u093e\u091c\u093e\u0930\u092d\u093e\u0935 \u0905\u092a\u0921\u0947\u091f \u0915\u0930\u0923\u0947 \u0906\u0935\u0936\u094d\u092f\u0915 \u0906\u0939\u0947. \u0926\u0941\u092a\u093e\u0930\u0940 1 \u0928\u0902\u0924\u0930 \u0938\u092c\u092e\u093f\u091f \u0915\u0947\u0932\u0947\u0932\u0947 \u092d\u093e\u0935 \u0938\u094d\u0935\u0940\u0915\u093e\u0930\u0932\u0947 \u091c\u093e\u0923\u093e\u0930 \u0928\u093e\u0939\u0940\u0924. "}{submissionClosed ? "\u0906\u091c\u091a\u0940 \u0938\u092c\u092e\u093f\u0936\u0928 \u0935\u0947\u0933 \u0938\u0902\u092a\u0932\u0940 \u0906\u0939\u0947." : "\u0938\u0927\u094d\u092f\u093e \u092d\u093e\u0935 \u0938\u092c\u092e\u093f\u091f \u0915\u0930\u0924\u093e \u092f\u0947\u0924\u0940\u0932."}
+          </>
+        ) : (
+          <>
+            <span className="font-bold">Note: </span>All members must update farmer produce market prices every day before {deadlineHour > 12 ? deadlineHour - 12 : deadlineHour}:00 PM. Prices submitted after 1:00 PM IST will not be accepted. {submissionClosed ? "Today's submission window is closed." : "Prices can be submitted now."}
+          </>
+          )}
         </div>
         <div className="sticky -top-8 z-40 -mx-3 space-y-4 bg-background px-3 pb-4 pt-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
           <CategoryTabs value={category} onChange={setCategory} />
