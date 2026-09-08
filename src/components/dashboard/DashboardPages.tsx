@@ -2741,6 +2741,7 @@ type CommitteeMemberRecord = {
   designation: string;
   designation_mr: string | null;
   gala_number: string | null;
+  phone_number: string | null;
   term_label: string | null;
   message: string | null;
   photo_url: string | null;
@@ -2752,22 +2753,35 @@ type CommitteeMemberRecord = {
 const emptyCommitteeForm = {
   fullName: "",
   nameMr: "",
-  designation: "",
+  designation: "Director",
   designationMr: "",
   galaNumber: "",
+  phoneNumber: "",
   termLabel: "",
   message: "",
   displayOrder: "100",
-  status: "active" as "active" | "inactive",
+  active: true,
 };
+
+const committeeDesignationOptions = [
+  "Chairman",
+  "Vice President",
+  "Vice President (Onion, Potato)",
+  "Director",
+  "Director (Vice President)",
+  "Secretary",
+  "Treasurer",
+  "Board of Directors",
+  "Committee Member",
+];
 
 export function AdminCommitteePage() {
   const [members, setMembers] = useState<CommitteeMemberRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<CommitteeMemberRecord | null>(null);
-  const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyCommitteeForm);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const { lang } = useI18n();
 
   const loadMembers = async () => {
     setLoading(true);
@@ -2787,11 +2801,10 @@ export function AdminCommitteePage() {
     loadMembers();
   }, []);
 
-  const openNew = () => {
+  const resetForm = () => {
     setEditing(null);
     setForm(emptyCommitteeForm);
     setPhotoFile(null);
-    setOpen(true);
   };
 
   const openEdit = (member: CommitteeMemberRecord) => {
@@ -2802,13 +2815,13 @@ export function AdminCommitteePage() {
       designation: member.designation,
       designationMr: member.designation_mr || "",
       galaNumber: member.gala_number || "",
+      phoneNumber: member.phone_number || "",
       termLabel: member.term_label || "",
       message: member.message || "",
       displayOrder: String(member.display_order ?? 100),
-      status: member.status,
+      active: member.status === "active",
     });
     setPhotoFile(null);
-    setOpen(true);
   };
 
   const saveMember = async (event: FormEvent<HTMLFormElement>) => {
@@ -2822,14 +2835,14 @@ export function AdminCommitteePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          status: form.active ? "active" : "inactive",
           photo: photoFile ? await fileToUploadPayload(photoFile) : undefined,
         }),
       });
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || "Unable to save committee member.");
       toast.success(editing ? "Committee member updated" : "Committee member added");
-      setOpen(false);
-      setPhotoFile(null);
+      resetForm();
       await loadMembers();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to save committee member.");
@@ -2843,6 +2856,7 @@ export function AdminCommitteePage() {
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || "Unable to delete committee member.");
       toast.success("Committee member deleted");
+      if (editing?.id === member.id) resetForm();
       await loadMembers();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to delete committee member.");
@@ -2850,129 +2864,137 @@ export function AdminCommitteePage() {
   };
 
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
-  const { lang } = useI18n();
   const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? member.name_mr || member.full_name : member.full_name;
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
+  const previewPhoto = photoFile ? URL.createObjectURL(photoFile) : editing?.photo_url || "";
+  const designationOptions = committeeDesignationOptions.includes(form.designation) ? committeeDesignationOptions : [form.designation, ...committeeDesignationOptions];
 
   return (
     <DashLayout kind="admin">
-      <PageTitle title="Chairman & Committee" subtitle="Maintain association leadership details shown on the public site." action={<Button onClick={openNew}><Plus className="mr-1 h-4 w-4" /> Add Member</Button>} />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {members.map((m) => (
-          <Card key={m.id} className="border-border/60">
-            <CardContent className="p-5 text-center">
-              <div className="mx-auto grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-secondary font-display text-lg font-bold text-primary">
-                {m.photo_url ? <img src={m.photo_url} alt={m.full_name} className="h-full w-full object-cover" /> : initials(m.full_name)}
+      <PageTitle title="Chairman & Committee" subtitle="Add, edit and publish association leadership details shown on the public website." action={<Button onClick={resetForm} variant="outline"><Plus className="mr-1 h-4 w-4" /> New Member</Button>} />
+      <div className="grid gap-4 xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.25fr)]">
+        <Card className="border-border/60 shadow-sm">
+          <CardContent className="p-5 sm:p-6">
+            <h2 className="font-display text-xl font-bold text-primary-dark">{editing ? "Edit Committee Member" : "Add Committee Member"}</h2>
+            <form className="mt-5 space-y-5" onSubmit={saveMember}>
+              <div className="grid gap-5 lg:grid-cols-[100px_minmax(0,1fr)]">
+                <div>
+                  <Label>Photo</Label>
+                  <div className="mt-2 grid h-24 w-24 place-items-center overflow-hidden rounded-full border bg-secondary text-primary shadow-sm">
+                    {previewPhoto ? <img src={previewPhoto} alt="Committee member preview" className="h-full w-full object-cover object-top" /> : <Camera className="h-7 w-7" />}
+                  </div>
+                  <label className="mt-3 inline-flex cursor-pointer items-center rounded-md bg-primary px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-primary/90">
+                    Upload Photo
+                    <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => setPhotoFile(event.target.files?.[0] || null)} />
+                  </label>
+                  <div className="mt-2 text-xs text-muted-foreground">Recommended 400 x 400 px JPG/PNG</div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Full Name (English) *</Label>
+                    <Input value={form.fullName} onChange={(event) => setForm({ ...form, fullName: event.target.value })} required placeholder="Shri. Full Name" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Designation *</Label>
+                    <Select value={form.designation} onValueChange={(value) => setForm({ ...form, designation: value })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {designationOptions.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Full Name (Marathi) *</Label>
+                    <Input value={form.nameMr} onChange={(event) => setForm({ ...form, nameMr: event.target.value })} required placeholder={"\u0936\u094d\u0930\u0940. \u092a\u0942\u0930\u094d\u0923 \u0928\u093e\u0935"} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Designation (Marathi)</Label>
+                    <Input value={form.designationMr} onChange={(event) => setForm({ ...form, designationMr: event.target.value })} placeholder={"\u092a\u0926"} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Phone Number *</Label>
+                    <Input value={form.phoneNumber} onChange={(event) => setForm({ ...form, phoneNumber: event.target.value.replace(/[^0-9+\s-]/g, "") })} required placeholder="9823012345" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Gala Number *</Label>
+                    <Input value={form.galaNumber} onChange={(event) => setForm({ ...form, galaNumber: event.target.value })} required placeholder="B-12" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Order / Display Sequence</Label>
+                    <Input type="number" value={form.displayOrder} onChange={(event) => setForm({ ...form, displayOrder: event.target.value })} min={1} />
+                  </div>
+                  <div className="flex items-end gap-2 pb-2">
+                    <input id="committee-active" type="checkbox" className="h-4 w-4 rounded border-border accent-primary" checked={form.active} onChange={(event) => setForm({ ...form, active: event.target.checked })} />
+                    <Label htmlFor="committee-active" className="cursor-pointer">Active</Label>
+                  </div>
+                </div>
               </div>
-              <h3 className="mt-3 font-display font-semibold text-primary-dark">{displayCommitteeName(m)}</h3>
-              {lang === "en" && m.name_mr && <div className="mt-0.5 text-xs text-muted-foreground">{m.name_mr}</div>}
-              <div className="mt-1 text-sm text-primary">{displayCommitteeDesignation(m)}</div>
-              {lang === "en" && m.designation_mr && <div className="text-xs text-muted-foreground">{m.designation_mr}</div>}
-              {m.gala_number && <div className="mt-1 text-xs text-muted-foreground">Gala {m.gala_number}</div>}
-              {m.term_label && <div className="mt-1 text-xs text-muted-foreground">Term {m.term_label}</div>}
-              <Badge className={`mt-3 ${m.status === "active" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{m.status}</Badge>
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <Button size="sm" variant="outline" onClick={() => openEdit(m)}>Edit</Button>
-                <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => deleteMember(m)}><Trash2 className="h-4 w-4" /></Button>
+              <div className="space-y-2">
+                <Label>Message / introduction</Label>
+                <Textarea value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} placeholder="Short member introduction or quote" rows={3} />
               </div>
-            </CardContent>
-          </Card>
-        ))}
-        {!loading && members.length === 0 && (
-          <Card className="border-border/60 sm:col-span-2 lg:col-span-4">
-            <CardContent className="p-8 text-center text-sm text-muted-foreground">No committee members in database yet.</CardContent>
-          </Card>
-        )}
-        {loading && (
-          <Card className="border-border/60 sm:col-span-2 lg:col-span-4">
-            <CardContent className="p-8 text-center text-sm text-muted-foreground">Loading committee members...</CardContent>
-          </Card>
-        )}
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
+                <Button type="submit" className="bg-primary text-white hover:bg-primary/90">Save Member</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/60 shadow-sm">
+          <CardContent className="p-0">
+            <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
+              <h2 className="font-display text-xl font-bold text-primary-dark">Committee Members ({members.length})</h2>
+              <Button onClick={resetForm} size="sm" className="bg-primary text-white hover:bg-primary/90"><Plus className="mr-1 h-4 w-4" /> Add Member</Button>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-secondary/50">
+                    <TableHead>Photo</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Designation</TableHead>
+                    <TableHead>Gala No.</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {members.map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell>
+                        <div className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-secondary font-display font-semibold text-primary">
+                          {member.photo_url ? <img src={member.photo_url} alt={member.full_name} className="h-full w-full object-cover object-top" /> : initials(member.full_name)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="min-w-48">
+                        <div className="font-semibold text-primary-dark">{displayCommitteeName(member)}</div>
+                        {member.name_mr && <div className="text-xs text-muted-foreground">{member.name_mr}</div>}
+                      </TableCell>
+                      <TableCell className="min-w-44">{displayCommitteeDesignation(member)}</TableCell>
+                      <TableCell><Badge variant="outline">{member.gala_number || "-"}</Badge></TableCell>
+                      <TableCell className="whitespace-nowrap">{member.phone_number || "-"}</TableCell>
+                      <TableCell><Badge className={member.status === "active" ? "bg-success/15 text-success hover:bg-success/15" : "bg-muted text-muted-foreground hover:bg-muted"}>{member.status === "active" ? "Active" : "Inactive"}</Badge></TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button size="icon" variant="outline" className="h-9 w-9 bg-blue-50 text-blue-700 hover:bg-blue-100" onClick={() => openEdit(member)}><Pencil className="h-4 w-4" /></Button>
+                          <Button size="icon" variant="outline" className="h-9 w-9 bg-red-50 text-destructive hover:bg-red-100 hover:text-destructive" onClick={() => deleteMember(member)}><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!loading && members.length === 0 && <TableRow><TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">No committee members in database yet.</TableCell></TableRow>}
+                  {loading && <TableRow><TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">Loading committee members...</TableCell></TableRow>}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editing ? "Edit committee member" : "Add committee member"}</DialogTitle>
-            <DialogDescription>Saved details are shown on the public website.</DialogDescription>
-          </DialogHeader>
-          <form className="space-y-4" onSubmit={saveMember}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2">
-                <Label>Profile photo</Label>
-                <label className={`flex min-h-28 cursor-pointer items-center gap-4 rounded-lg border-2 border-dashed p-4 transition hover:border-primary ${photoFile ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>
-                  <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-background text-primary shadow-sm">
-                    {photoFile ? (
-                      <img src={URL.createObjectURL(photoFile)} alt="Selected committee member" className="h-full w-full object-cover" />
-                    ) : editing?.photo_url ? (
-                      <img src={editing.photo_url} alt={editing.full_name} className="h-full w-full object-cover" />
-                    ) : (
-                      <Camera className="h-6 w-6" />
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-semibold text-primary-dark">{photoFile ? "Photo selected" : "Upload member photo"}</div>
-                    <div className={`mt-1 max-w-full truncate text-xs ${photoFile ? "font-medium text-success" : "text-muted-foreground"}`}>
-                      {photoFile?.name || editing?.photo_original_filename || "JPG, PNG, or WEBP up to 5 MB"}
-                    </div>
-                    <div className="mt-2 inline-flex rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white">Choose photo</div>
-                  </div>
-                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => setPhotoFile(event.target.files?.[0] || null)} />
-                </label>
-              </div>
-              <div className="space-y-2">
-                <Label>Full name *</Label>
-                <Input value={form.fullName} onChange={(event) => setForm({ ...form, fullName: event.target.value })} required placeholder="Shri. Full Name" />
-              </div>
-              <div className="space-y-2">
-                <Label>Name in Marathi</Label>
-                <Input value={form.nameMr} onChange={(event) => setForm({ ...form, nameMr: event.target.value })} placeholder={"\u092e\u0930\u093e\u0920\u0940 \u0928\u093e\u0935"} />
-              </div>
-              <div className="space-y-2">
-                <Label>Designation *</Label>
-                <Input value={form.designation} onChange={(event) => setForm({ ...form, designation: event.target.value })} required placeholder="Chairman, Secretary..." />
-              </div>
-              <div className="space-y-2">
-                <Label>Designation in Marathi</Label>
-                <Input value={form.designationMr} onChange={(event) => setForm({ ...form, designationMr: event.target.value })} placeholder={"\u0905\u0927\u094d\u092f\u0915\u094d\u0937, \u0938\u091a\u093f\u0935..."} />
-              </div>
-              <div className="space-y-2">
-                <Label>Gala number</Label>
-                <Input value={form.galaNumber} onChange={(event) => setForm({ ...form, galaNumber: event.target.value })} placeholder="A-101" />
-              </div>
-              <div className="space-y-2">
-                <Label>Term</Label>
-                <Input value={form.termLabel} onChange={(event) => setForm({ ...form, termLabel: event.target.value })} placeholder="2026-2031" />
-              </div>
-              <div className="space-y-2">
-                <Label>Display order</Label>
-                <Input type="number" value={form.displayOrder} onChange={(event) => setForm({ ...form, displayOrder: event.target.value })} min={1} />
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={form.status} onValueChange={(value) => setForm({ ...form, status: value as "active" | "inactive" })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active - show publicly</SelectItem>
-                    <SelectItem value="inactive">Inactive - hide publicly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Message / introduction</Label>
-              <Textarea value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} placeholder="Chairman message or member introduction" rows={4} />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Save Member</Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </DashLayout>
   );
 }
-
 type ReportAnalytics = {
   summary: {
     portal_logins_30d?: number;
