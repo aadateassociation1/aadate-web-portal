@@ -2872,7 +2872,7 @@ export function AdminCommitteePage() {
   return (
     <DashLayout kind="admin">
       <PageTitle title="Chairman & Committee" subtitle="Add, edit and publish association leadership details shown on the public website." action={<Button onClick={resetForm} variant="outline"><Plus className="mr-1 h-4 w-4" /> New Member</Button>} />
-      <div className="grid gap-4 xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.25fr)]">
+      <div className="grid gap-4">
         <Card className="border-border/60 shadow-sm">
           <CardContent className="p-5 sm:p-6">
             <h2 className="font-display text-xl font-bold text-primary-dark">{editing ? "Edit Committee Member" : "Add Committee Member"}</h2>
