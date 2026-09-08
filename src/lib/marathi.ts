@@ -5,6 +5,7 @@ const textTranslations: Record<string, string> = {
   "Board of Directors": "\u0938\u0902\u091a\u093e\u0932\u0915 \u092e\u0902\u0921\u0933",
   "Committee": "\u0938\u092e\u093f\u0924\u0940",
   "Market Updates": "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940",
+  "market reports": "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940",
   "Market reports": "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940",
   "Market Reports": "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940",
   "Market Prices": "\u092c\u093e\u091c\u093e\u0930 \u092d\u093e\u0935",
@@ -691,6 +692,13 @@ export function translateToMarathi(value: string) {
   const direct = textTranslations[normalized] || textTranslations[toTitleCase(normalized.replace(/_/g, " "))];
   if (direct) {
     return restoreWhitespace(value, direct);
+  }
+  if (/^market\s+(reports?|updates?)$/i.test(normalized)) {
+    return restoreWhitespace(value, "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940");
+  }
+
+  if (/^daily\s+market\s+updates?$/i.test(normalized)) {
+    return restoreWhitespace(value, "\u0926\u0948\u0928\u0902\u0926\u093f\u0928 \u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940");
   }
 
   if (/^\d+\s+views$/i.test(normalized)) {
