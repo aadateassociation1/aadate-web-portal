@@ -413,11 +413,11 @@ function Home() {
                       className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
                     />
                     <div className="absolute left-5 top-5">
-                      <Badge className="bg-saffron text-saffron-foreground hover:bg-saffron">{chairmanCopy.current}</Badge>
+                      <Badge className="px-3 py-1.5 text-sm font-bold bg-saffron text-saffron-foreground hover:bg-saffron">{chairmanCopy.current}</Badge>
                     </div>
                   </div>
                   <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
-                    <Badge variant="outline" className="w-fit border-primary text-primary">{chairmanCopy.role}</Badge>
+                    <Badge variant="outline" className="w-fit border-primary px-3 py-1.5 text-sm font-bold text-primary sm:text-base">{chairmanCopy.role}</Badge>
                     <h3 className="mt-4 font-display text-3xl font-bold text-primary-dark sm:text-4xl">{chairmanCopy.name}</h3>
                     {chairmanCopy.secondaryName && <div className="mt-1 text-base text-muted-foreground">{chairmanCopy.secondaryName}</div>}
                     {chairman?.term_label && <div className="mt-3 text-sm font-semibold text-primary">{chairmanCopy.term}: {chairman.term_label}</div>}
