@@ -192,7 +192,7 @@ function Footer() {
   const chairmanLine = isMr
     ? "अध्यक्ष, श्री छत्रपती शिवाजी मार्केट यार्ड अडते असोसिएशन"
     : "Chairman of Shree Chhatrapati Shivaji Market Yard Adte Association";
-  const launchingDateLine = isMr ? "लोकार्पण दिनांक: २१ सप्टेंबर २०२६" : "Launching Date: 21 September 2026";
+  const launchingDateLine = isMr ? "सुरू दिनांक: २१ सप्टेंबर २०२६" : "Launching Date: 21 September 2026";
   const marketUpdatesLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/market-prices" : user?.role === "owner" ? "/member/market-prices" : "/market-prices";
   const complaintLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/complaints" : user?.role === "owner" ? "/member/new-complaint" : "/login";
   return (
