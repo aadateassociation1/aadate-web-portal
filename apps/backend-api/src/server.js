@@ -6650,7 +6650,8 @@ app.delete("/api/v1/admin/posts/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), 
 });
 
 function csvEscape(value) { return `"${String(value ?? "").replace(/"/g, '""')}"`; }
-function formatExportDate(value) { return value ? new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-"; }
+function csvText(value) { return value === null || value === undefined || value === "" ? "" : `="${String(value).replace(/"/g, '""')}"`; }
+function formatExportDate(value) { return value ? new Date(value).toISOString().slice(0, 10) : "-"; }
 function formatExportTime(value) { return value ? new Date(value).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "-"; }
 function escapeHtml(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
 function complaintDisplayNumber(row) { return row.complaint_number || row.ticket_number || "-"; }
@@ -6797,12 +6798,12 @@ app.get("/api/v1/admin/complaints", requireRoles("MAIN_ADMIN", "USER_ADMIN"), as
 app.get("/api/v1/admin/complaints/export/list", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
   const rows = await loadAdminComplaintRows(req.query);
   const headers = ["Complaint No.", "Date", "Time", "Member Name", "Mobile Number", "Gala Number", "Category", "Title", "Priority", "Status", "Assigned To", "Resolved Date", "Current Stage"];
-  const csvRows = rows.map((row) => [complaintDisplayNumber(row), formatExportDate(row.created_at), formatExportTime(row.created_at), row.created_by_name, row.created_by_mobile, row.gala_number || "-", row.parsed?.category || "General", row.subject, row.priority, row.status, row.assigned_to_name || "-", row.resolved_at ? formatExportDate(row.resolved_at) : "-", row.status]);
+  const csvRows = rows.map((row) => [csvText(complaintDisplayNumber(row)), formatExportDate(row.created_at), formatExportTime(row.created_at), row.created_by_name, csvText(row.created_by_mobile), csvText(row.gala_number || "-"), row.parsed?.category || "General", row.subject, row.priority, row.status, row.assigned_to_name || "-", row.resolved_at ? formatExportDate(row.resolved_at) : "-", row.status]);
   const csv = [headers, ...csvRows].map((line) => line.map(csvEscape).join(",")).join("\n");
   const today = new Date().toISOString().slice(0, 10);
   res.setHeader("Content-Type", "text/csv;charset=utf-8");
   res.setHeader("Content-Disposition", `attachment; filename="complaints-list-${today}.csv"`);
-  res.send(csv);
+  res.send(`\uFEFF${csv}`);
 });
 
 app.get("/api/v1/admin/complaints/export/detailed", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
