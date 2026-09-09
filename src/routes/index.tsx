@@ -356,7 +356,7 @@ function Home() {
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-primary">About the Association</span>
             <h2 className="mt-3 font-display text-3xl font-bold text-primary-dark sm:text-4xl">
-              Connecting Market Yard Members with faster digital services
+              Connecting Market Yard Aadate Members with faster digital services
             </h2>
             <p className="mt-5 text-muted-foreground leading-relaxed">
               Shree Chhatrapati Shivaji Market Yard Adte Association brings market notices, member services, complaints, gallery updates and daily market information into one simple digital portal for traders, gala owners and administrators at Gultekdi, Pune.
