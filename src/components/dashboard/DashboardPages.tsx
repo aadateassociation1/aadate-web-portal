@@ -5779,7 +5779,6 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
           className="grid gap-4"
           onSubmit={submitComplaint}
         >
-          <ComplaintTimeWindowNotice lang={lang} />
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label>Complaint category *</Label>
