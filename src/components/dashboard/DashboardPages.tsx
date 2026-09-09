@@ -5284,6 +5284,16 @@ function ComplaintFeedbackModal({ request, lang, onClose, onSubmitted }: { reque
   );
 }
 
+function ComplaintTimeWindowNotice({ lang, className = "" }: { lang: string; className?: string }) {
+  const isMr = lang === "mr";
+  return (
+    <div className={`rounded-lg border border-saffron/40 bg-saffron/10 px-4 py-3 text-sm font-medium leading-6 text-primary-dark ${className}`}>
+      {isMr
+        ? "सूचना: तक्रारी दररोज फक्त पहाटे 3:00 ते दुपारी 1:00 वाजेपर्यंतच सबमिट करता येतील."
+        : "Notice: Complaints may be submitted daily only between 3:00 AM and 1:00 PM IST."}
+    </div>
+  );
+}
 export function OwnerComplaintsPage() {
   type TraderComplaint = {
     id: number;
@@ -5342,6 +5352,7 @@ export function OwnerComplaintsPage() {
   return (
     <DashLayout kind="owner">
       <PageTitle title={isMr ? "\u092e\u093e\u091d\u094d\u092f\u093e \u0924\u0915\u094d\u0930\u093e\u0930\u0940" : "My Complaints"} subtitle={isMr ? "\u0924\u0915\u094d\u0930\u093e\u0930\u0940\u091a\u0940 \u0938\u094d\u0925\u093f\u0924\u0940, \u0905\u200d\u0945\u0921\u092e\u093f\u0928 \u091f\u093f\u092a\u094d\u092a\u0923\u0940 \u0906\u0923\u093f \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u091f\u094d\u0930\u0945\u0915 \u0915\u0930\u093e." : "Track complaint status, admin comments, and resolution feedback."} action={<Button asChild><Link to="/owner/new-complaint"><Plus className="mr-1 h-4 w-4" /> New Complaint</Link></Button>} />
+      <ComplaintTimeWindowNotice lang={lang} className="mb-5" />
       {feedbackRequests.length > 0 && (
         <Card className="mb-5 border-saffron/50 bg-saffron/5">
           <CardContent className="p-4 sm:p-5">
@@ -5406,9 +5417,12 @@ export function OwnerComplaintsPage() {
 }
 
 export function OwnerNewComplaintPage() {
+  const { lang } = useI18n();
+  const isMr = lang === "mr";
   return (
     <DashLayout kind="owner">
-      <PageTitle title="Raise Complaint" subtitle="Submit a facility issue with priority, details, and supporting media." />
+      <PageTitle title={isMr ? "तक्रार नोंदवा" : "Raise Complaint"} subtitle={isMr ? "सुविधेशी संबंधित समस्या, प्राधान्य, तपशील आणि पुरावे सबमिट करा." : "Submit a facility issue with priority, details, and supporting media."} />
+      <ComplaintTimeWindowNotice lang={lang} className="mb-5" />
       <ComplaintForm />
     </DashLayout>
   );
@@ -5718,6 +5732,7 @@ export function OwnerSharedPostsPage() {
 }
 
 export function ComplaintForm({ compact = false }: { compact?: boolean }) {
+  const { lang } = useI18n();
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -5764,6 +5779,7 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
           className="grid gap-4"
           onSubmit={submitComplaint}
         >
+          <ComplaintTimeWindowNotice lang={lang} />
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label>Complaint category *</Label>

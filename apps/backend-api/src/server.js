@@ -6655,6 +6655,22 @@ function formatExportDate(value) { return value ? new Date(value).toISOString().
 function formatExportTime(value) { return value ? new Date(value).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "-"; }
 function escapeHtml(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
 function complaintDisplayNumber(row) { return row.complaint_number || row.ticket_number || "-"; }
+function currentIstMinutes() {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+  const hour = Number(parts.find((part) => part.type === "hour")?.value || 0);
+  const minute = Number(parts.find((part) => part.type === "minute")?.value || 0);
+  return hour * 60 + minute;
+}
+
+function isComplaintSubmissionWindowOpen() {
+  const minutes = currentIstMinutes();
+  return minutes >= 3 * 60 && minutes < 13 * 60;
+}
 function complaintStatusExportLabel(status, lang) {
   const value = String(status || "");
   if (lang === "mr") {
@@ -6755,6 +6771,10 @@ app.post("/api/v1/complaints", requireRoles("TRADER"), async (req, res) => {
   const { subject, description, priority = "medium", category = "general", visibility = "admin-only", payment = null, attachments = {} } = req.body || {};
   if (!subject) {
     res.status(400).json({ ok: false, error: "subject is required." });
+    return;
+  }
+  if (!isComplaintSubmissionWindowOpen()) {
+    res.status(409).json({ ok: false, error: "Complaints can be submitted only from 3:00 AM to 1:00 PM IST." });
     return;
   }
   const body = JSON.stringify({ category, visibility, description, payment });
