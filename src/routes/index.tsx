@@ -345,7 +345,7 @@ function Home() {
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-14 z-10 px-4 text-center sm:bottom-16 sm:px-10 lg:bottom-20 lg:px-16" data-no-translate>
           <h1 className="mx-auto max-w-[18rem] font-display text-lg font-bold leading-tight text-white drop-shadow-[0_3px_14px_rgba(0,0,0,0.75)] sm:max-w-4xl sm:text-3xl lg:text-4xl">
-            {lang === "mr" ? "\u0936\u094d\u0930\u0940 \u091b\u0924\u094d\u0930\u092a\u0924\u0940 \u0936\u093f\u0935\u093e\u091c\u0940 \u092e\u093e\u0930\u094d\u0915\u0947\u091f \u092f\u093e\u0930\u094d\u0921 \u0905\u0921\u0924\u0947 \u0938\u0902\u0918\u091f\u0928\u093e" : "Shree Chhatrapati Shivaji Market Yard Adte Association"}
+            {lang === "mr" ? "\u0936\u094d\u0930\u0940 \u091b\u0924\u094d\u0930\u092a\u0924\u0940 \u0936\u093f\u0935\u093e\u091c\u0940 \u092e\u093e\u0930\u094d\u0915\u0947\u091f \u092f\u093e\u0930\u094d\u0921 \u0906\u0921\u0924\u0947 \u0938\u0902\u0918\u091f\u0928\u093e" : "Shree Chhatrapati Shivaji Market Yard Adte Association"}
           </h1>
         </div>
       </section>

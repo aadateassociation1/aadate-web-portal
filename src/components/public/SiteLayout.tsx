@@ -26,7 +26,7 @@ const ASSOCIATION_NAME = "Shree Chhatrapati Shivaji Market Yard Adte Association
 const ASSOCIATION_REGISTRATION = "Registration No.: Maharashtra-1026/2013";
 const ASSOCIATION_PTR = "P.T.R. No.: F. 41841 / Pune";
 const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shree Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
-const ASSOCIATION_ADDRESS_MR = "पहिला मजला, पान बाजार बिल्डिंग, श्री छत्रपती शिवाजी मार्केट यार्ड अडते संघटना हॉल, गुलटेकडी, पुणे - ४११०३७.";
+const ASSOCIATION_ADDRESS_MR = "पहिला मजला, पान बाजार बिल्डिंग, श्री छत्रपती शिवाजी मार्केट यार्ड आडते संघटना हॉल, गुलटेकडी, पुणे - ४११०३७.";
 const ASSOCIATION_ADDRESS_2 = "Saurabh Shekhar Kunjir, Gala No. 321, 322, Fruit Section, Gultekadi, Market Yard, Pune.";
 const ASSOCIATION_ADDRESS_2_MR = "सौरभ शेखर कुंजिर, गाळा नं. ३२१, ३२२, फळ विभाग, गुलटेकडी, मार्केट यार्ड, पुणे.";
 const ASSOCIATION_EMAIL = "aadateassociation1@gmail.com";
@@ -194,7 +194,7 @@ function Footer() {
   const ideationPrefix = isMr ? "\u0938\u0902\u0915\u0932\u094d\u092a\u0928\u093e" : "Ideation by";
   const chairmanName = isMr ? "श्री. सौरभ शेखर कुंजीर" : "Shri. Sourabh Shekhar Kunjir";
   const chairmanLine = isMr
-    ? "अध्यक्ष, श्री छत्रपती शिवाजी मार्केट यार्ड अडते असोसिएशन"
+    ? "अध्यक्ष, श्री छत्रपती शिवाजी मार्केट यार्ड आडते असोसिएशन"
     : "Chairman of Shree Chhatrapati Shivaji Market Yard Adte Association";
   const launchingDateLine = isMr ? "सुरू दिनांक: २१ सप्टेंबर २०२६" : "Launching Date: 21 September 2026";
   const marketUpdatesLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/market-prices" : user?.role === "owner" ? "/member/market-prices" : "/market-prices";
