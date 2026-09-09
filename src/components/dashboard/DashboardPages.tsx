@@ -1343,7 +1343,7 @@ export function AdminComplaintsPage() {
   };
   const StatusControl = ({ complaint }: { complaint: AdminComplaint }) => (
     <Select value={complaint.status} onValueChange={(status) => updateComplaintStatus(complaint, status)}>
-      <SelectTrigger className={`h-9 w-full min-w-[150px] whitespace-nowrap font-semibold ${complaintStatusTriggerClasses[complaint.status] || "border-muted bg-muted text-muted-foreground"}`}>
+      <SelectTrigger className={`h-9 w-full min-w-[130px] whitespace-nowrap font-semibold ${complaintStatusTriggerClasses[complaint.status] || "border-muted bg-muted text-muted-foreground"}`}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -1357,7 +1357,6 @@ export function AdminComplaintsPage() {
   );
   const ComplaintPreview = ({ complaint }: { complaint: AdminComplaint }) => (
     <>
-      <div className="text-[11px] font-mono font-semibold uppercase tracking-wide text-primary">{complaintNo(complaint)}</div>
       <div className="line-clamp-2 whitespace-normal break-words font-semibold leading-snug text-primary-dark">{complaint.subject}</div>
       <div className="mt-1 line-clamp-2 whitespace-normal break-words text-xs leading-5 text-muted-foreground">
         {complaint.parsed?.category || "General"} - {complaint.parsed?.description || "No description provided."}
@@ -1377,37 +1376,40 @@ export function AdminComplaintsPage() {
       </div>
       <Card className="border-border/60">
         <CardContent className="p-6">
-          <div className="mb-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(260px,1fr)_160px_160px_150px_150px] 2xl:grid-cols-[minmax(260px,1fr)_160px_160px_150px_150px_auto_auto]">
-            <div className="relative min-w-0">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input className="pl-9" placeholder="Search complaints..." value={search} onChange={(event) => setSearch(event.target.value)} />
+          <div className="mb-5 space-y-3">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(280px,1fr)_160px_160px_150px_150px]">
+              <div className="relative min-w-0">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input className="pl-9" placeholder="Search complaints..." value={search} onChange={(event) => setSearch(event.target.value)} />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{statusOptions.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
+              </Select>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{priorityOptions.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
+              </Select>
+              <Input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} aria-label="From date" />
+              <Input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} aria-label="To date" />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{statusOptions.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
-            </Select>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{priorityOptions.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
-            </Select>
-            <Input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} aria-label="From date" />
-            <Input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} aria-label="To date" />
-            <Button type="button" variant="outline" className="w-full justify-center whitespace-nowrap 2xl:w-auto" onClick={downloadComplaintList}><Download className="mr-1 h-4 w-4" /> {isMr ? "तक्रार यादी" : "Complaint List"}</Button>
-            <Button type="button" className="w-full justify-center whitespace-nowrap bg-saffron text-saffron-foreground hover:bg-saffron/90 2xl:w-auto" onClick={downloadDetailedComplaints}><FileText className="mr-1 h-4 w-4" /> {isMr ? "सविस्तर रिपोर्ट" : "Detailed Report"}</Button>
+            <div className="flex flex-wrap justify-end gap-3">
+              <Button type="button" variant="outline" className="min-w-[170px] justify-center whitespace-nowrap" onClick={downloadComplaintList}><Download className="mr-1 h-4 w-4" /> {isMr ? "तक्रार यादी" : "Complaint List"}</Button>
+              <Button type="button" className="min-w-[170px] justify-center whitespace-nowrap bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={downloadDetailedComplaints}><FileText className="mr-1 h-4 w-4" /> {isMr ? "सविस्तर रिपोर्ट" : "Detailed Report"}</Button>
+            </div>
           </div>
-
           <div className="hidden overflow-x-auto lg:block">
-            <Table className="min-w-[1080px] table-fixed">
+            <Table className="min-w-[1220px] table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[90px] whitespace-nowrap">Complaint No.</TableHead>
-                  <TableHead className="w-[120px] whitespace-nowrap">Submitted</TableHead>
-                  <TableHead className="w-[160px] whitespace-nowrap">Member Name</TableHead>
-                  <TableHead className="w-[300px] whitespace-nowrap">Category / Title</TableHead>
-                  <TableHead className="w-[100px] whitespace-nowrap">Priority</TableHead>
-                  <TableHead className="w-[135px] whitespace-nowrap">Status</TableHead>
-                  <TableHead className="w-[115px] whitespace-nowrap">Assigned To</TableHead>
-                  <TableHead className="w-[70px] whitespace-nowrap text-right">Actions</TableHead>
+                  <TableHead className="w-[105px] whitespace-nowrap">Complaint No.</TableHead>
+                  <TableHead className="w-[135px] whitespace-nowrap">Submitted</TableHead>
+                  <TableHead className="w-[170px] whitespace-nowrap">Member Name</TableHead>
+                  <TableHead className="w-[340px] whitespace-nowrap">Category / Title</TableHead>
+                  <TableHead className="w-[115px] whitespace-nowrap">Priority</TableHead>
+                  <TableHead className="w-[160px] whitespace-nowrap">Status</TableHead>
+                  <TableHead className="w-[125px] whitespace-nowrap">Assigned To</TableHead>
+                  <TableHead className="w-[70px] whitespace-nowrap text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
