@@ -1431,6 +1431,60 @@ async function addIndexIfMissing(tableName, indexName, ddl) {
   if (!index) await pool.query(`ALTER TABLE ${tableName} ADD INDEX ${ddl}`);
 }
 
+function formatComplaintNumber(sequence) {
+  return `CMP ${String(Math.max(1, Number(sequence) || 1)).padStart(2, "0")}`;
+}
+
+function complaintNumberSequence(value) {
+  const match = String(value || "").match(/^CMP[-\s]*(\d+)$/i);
+  return match ? Number(match[1]) || 0 : 0;
+}
+
+async function nextComplaintNumber(connection = pool) {
+  const [[row]] = await connection.query(
+    `SELECT complaint_number
+       FROM support_tickets
+      WHERE complaint_number IS NOT NULL AND complaint_number <> ''
+      ORDER BY CAST(REPLACE(REPLACE(complaint_number, 'CMP-', ''), 'CMP ', '') AS UNSIGNED) DESC
+      LIMIT 1`,
+  );
+  return formatComplaintNumber(complaintNumberSequence(row?.complaint_number) + 1);
+}
+
+async function ensureComplaintNumbering() {
+  await addColumnIfMissing("support_tickets", "complaint_number", "complaint_number VARCHAR(40) NULL");
+  await addIndexIfMissing("support_tickets", "uq_support_tickets_complaint_number", "uq_support_tickets_complaint_number (complaint_number)");
+  const connection = await pool.getConnection();
+  try {
+    const [[lockRow]] = await connection.query("SELECT GET_LOCK('support_tickets_complaint_number', 10) AS lock_acquired");
+    if (Number(lockRow?.lock_acquired) !== 1) throw new Error("Could not lock complaint numbering.");
+    await connection.beginTransaction();
+    const [rows] = await connection.query(
+      `SELECT id
+         FROM support_tickets
+        WHERE complaint_number IS NULL OR complaint_number = ''
+        ORDER BY created_at ASC, id ASC`,
+    );
+    let current = complaintNumberSequence(await nextComplaintNumber(connection)) - 1;
+    for (const row of rows) {
+      current += 1;
+      await connection.query(
+        `UPDATE support_tickets
+            SET complaint_number = :complaintNumber
+          WHERE id = :id
+            AND (complaint_number IS NULL OR complaint_number = '')`,
+        { complaintNumber: formatComplaintNumber(current), id: row.id },
+      );
+    }
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    try { await connection.query("SELECT RELEASE_LOCK('support_tickets_complaint_number')"); } catch {}
+    connection.release();
+  }
+}
 async function removeStorageFiles(storageKeys = []) {
   await Promise.all(storageKeys.map(async (storageKey) => {
     const filePath = storageKey ? resolveStoredFilePath(storageKey) : null;
@@ -1775,6 +1829,7 @@ async function ensurePlatformExtensions() {
   await addIndexIfMissing("posts", "idx_posts_share_audience", "idx_posts_share_audience (share_audience, share_category_id, status, post_type)");
   await addColumnIfMissing("support_tickets", "resolved_at", "resolved_at DATETIME NULL");
   await addIndexIfMissing("support_tickets", "idx_tickets_status_resolved", "idx_tickets_status_resolved (status, resolved_at)");
+  await ensureComplaintNumbering();
   await pool.query(`
     CREATE TABLE IF NOT EXISTS complaint_feedback (
       id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -6594,13 +6649,74 @@ app.delete("/api/v1/admin/posts/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), 
   res.json({ ok: true, postId, status: "archived" });
 });
 
+function csvEscape(value) { return `"${String(value ?? "").replace(/"/g, '""')}"`; }
+function formatExportDate(value) { return value ? new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-"; }
+function formatExportTime(value) { return value ? new Date(value).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "-"; }
+function escapeHtml(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
+function complaintDisplayNumber(row) { return row.complaint_number || row.ticket_number || "-"; }
+function buildComplaintWhere(query = {}) {
+  const where = [];
+  const params = {};
+  const status = String(query.status || "all");
+  const priority = String(query.priority || "all");
+  const search = String(query.search || "").trim();
+  const from = String(query.from || "").trim();
+  const to = String(query.to || "").trim();
+  if (status !== "all") { where.push("st.status = :status"); params.status = status; }
+  if (priority !== "all") { where.push("st.priority = :priority"); params.priority = priority; }
+  if (from) { where.push("DATE(st.created_at) >= :from"); params.from = from; }
+  if (to) { where.push("DATE(st.created_at) <= :to"); params.to = to; }
+  if (search) {
+    where.push('(st.ticket_number LIKE :search OR st.complaint_number LIKE :search OR st.subject LIKE :search OR u.full_name LIKE :search OR u.mobile LIKE :search OR t.trader_code LIKE :search OR mg.gala_number LIKE :search OR JSON_UNQUOTE(JSON_EXTRACT(st.description, "$.category")) LIKE :search)');
+    params.search = `%${search}%`;
+  }
+  return { clause: where.length ? `WHERE ${where.join(" AND ")}` : "", params };
+}
+async function loadAdminComplaintRows(query = {}) {
+  const { clause, params } = buildComplaintWhere(query);
+  const [rows] = await pool.query(
+    `SELECT st.*, COALESCE(st.complaint_number, st.ticket_number) AS complaint_number,
+            u.full_name AS created_by_name, u.mobile AS created_by_mobile, r.code AS created_by_role,
+            assigned.full_name AS assigned_to_name,
+            t.trader_code, t.business_name, mg.gala_number
+       FROM support_tickets st
+       JOIN users u ON u.id = st.created_by_user_id
+       JOIN roles r ON r.id = u.role_id
+       LEFT JOIN users assigned ON assigned.id = st.assigned_to_user_id
+       LEFT JOIN traders t ON t.user_id = u.id
+       LEFT JOIN market_galas mg ON mg.id = t.gala_id
+      ${clause}
+      ORDER BY st.created_at ASC, st.id ASC
+      LIMIT 500`,
+    params,
+  );
+  return rows.map((row) => ({ ...row, parsed: parseComplaintPayload(row) }));
+}
+async function attachComplaintDetails(rows) {
+  const ids = rows.map((row) => row.id);
+  if (!ids.length) return rows;
+  const [attachments] = await pool.query(`SELECT id, complaint_id, attachment_type, storage_key, original_filename, mime_type, file_size_bytes, created_at FROM complaint_attachments WHERE complaint_id IN (:ids) ORDER BY created_at ASC, id ASC`, { ids });
+  const [history] = await pool.query(`SELECT csh.*, u.full_name AS changed_by_name FROM complaint_status_history csh JOIN users u ON u.id = csh.changed_by_user_id WHERE csh.complaint_id IN (:ids) ORDER BY csh.created_at ASC, csh.id ASC`, { ids });
+  const attachmentsByTicket = attachments.reduce((acc, item) => { acc[item.complaint_id] = acc[item.complaint_id] || []; acc[item.complaint_id].push(item); return acc; }, {});
+  const historyByTicket = history.reduce((acc, item) => { acc[item.complaint_id] = acc[item.complaint_id] || []; acc[item.complaint_id].push(item); return acc; }, {});
+  return rows.map((row) => ({ ...row, attachments: attachmentsByTicket[row.id] || [], history: historyByTicket[row.id] || [] }));
+}
+async function complaintImageDataUri(attachment) {
+  if (!String(attachment.mime_type || "").startsWith("image/")) return null;
+  try {
+    const filePath = await resolveExistingStoredFilePath(attachment.storage_key);
+    const allowedRoots = [PERSISTENT_UPLOAD_ROOT, path.resolve(process.cwd(), "uploads")];
+    if (!allowedRoots.some((root) => isPathInside(filePath, root))) return null;
+    const buffer = await fs.readFile(filePath);
+    return `data:${attachment.mime_type};base64,${buffer.toString("base64")}`;
+  } catch { return null; }
+}
 app.post("/api/v1/complaints", requireRoles("TRADER"), async (req, res) => {
   const { subject, description, priority = "medium", category = "general", visibility = "admin-only", payment = null, attachments = {} } = req.body || {};
   if (!subject) {
     res.status(400).json({ ok: false, error: "subject is required." });
     return;
   }
-  const ticketNumber = `CMP-${Date.now().toString().slice(-8)}`;
   const body = JSON.stringify({ category, visibility, description, payment });
   const files = [
     ...(Array.isArray(attachments.images) ? attachments.images.map((file) => ({ type: "image", file })) : []),
@@ -6608,11 +6724,15 @@ app.post("/api/v1/complaints", requireRoles("TRADER"), async (req, res) => {
   ].slice(0, 8);
   const connection = await pool.getConnection();
   try {
+    const [[lockRow]] = await connection.query("SELECT GET_LOCK('support_tickets_complaint_number', 10) AS lock_acquired");
+    if (Number(lockRow?.lock_acquired) !== 1) throw new Error("Could not lock complaint numbering.");
     await connection.beginTransaction();
+    const complaintNumber = await nextComplaintNumber(connection);
+    const ticketNumber = complaintNumber.replace(/\s+/, "-");
     const [result] = await connection.query(
-      `INSERT INTO support_tickets (ticket_number, created_by_user_id, subject, description, priority, status)
-       VALUES (:ticketNumber, :userId, :subject, :body, :priority, 'open')`,
-      { ticketNumber, userId: req.user.id, subject, body, priority },
+      `INSERT INTO support_tickets (ticket_number, complaint_number, created_by_user_id, subject, description, priority, status)
+       VALUES (:ticketNumber, :complaintNumber, :userId, :subject, :body, :priority, 'open')`,
+      { ticketNumber, complaintNumber, userId: req.user.id, subject, body, priority },
     );
     for (const item of files) {
       if (!item.file?.dataUrl || !item.file?.originalFilename) continue;
@@ -6629,23 +6749,23 @@ app.post("/api/v1/complaints", requireRoles("TRADER"), async (req, res) => {
       { complaintId: result.insertId, userId: req.user.id },
     );
     await connection.commit();
-    await writeAudit({ req, action: "complaint.create", module: "complaints", entityType: "support_tickets", entityId: result.insertId, newValues: { ticketNumber, subject, category, visibility, payment, attachmentCount: files.length } });
-    res.status(201).json({ ok: true, complaintId: result.insertId, ticketNumber });
+    await writeAudit({ req, action: "complaint.create", module: "complaints", entityType: "support_tickets", entityId: result.insertId, newValues: { ticketNumber, complaintNumber, subject, category, visibility, payment, attachmentCount: files.length } });
+    res.status(201).json({ ok: true, complaintId: result.insertId, ticketNumber, complaintNumber });
   } catch (error) {
     await connection.rollback();
     throw error;
   } finally {
+    try { await connection.query("SELECT RELEASE_LOCK('support_tickets_complaint_number')"); } catch {}
     connection.release();
   }
 });
-
 app.get("/api/v1/trader/complaints", requireRoles("TRADER"), async (req, res) => {
   const [rows] = await pool.query(
     `SELECT st.*, cf.id AS feedback_id, cf.feedback_status, cf.reopen_requested, cf.reopen_request_status
        FROM support_tickets st
        LEFT JOIN complaint_feedback cf ON cf.complaint_id = st.id AND cf.member_user_id = st.created_by_user_id
       WHERE st.created_by_user_id = :userId
-      ORDER BY st.created_at DESC
+      ORDER BY st.created_at ASC, st.id ASC
       LIMIT 100`,
     { userId: req.user.id },
   );
@@ -6669,37 +6789,40 @@ app.get("/api/v1/trader/complaints", requireRoles("TRADER"), async (req, res) =>
   res.json({ ok: true, complaints: rows.map((row) => ({ ...row, parsed: JSON.parse(row.description || "{}"), history: historyByTicket[row.id] || [] })) });
 });
 
-app.get("/api/v1/admin/complaints", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (_req, res) => {
-  const [rows] = await pool.query(
-    `SELECT st.*, u.full_name AS created_by_name, u.mobile AS created_by_mobile, r.code AS created_by_role,
-            t.trader_code, t.business_name, mg.gala_number
-       FROM support_tickets st
-       JOIN users u ON u.id = st.created_by_user_id
-       JOIN roles r ON r.id = u.role_id
-       LEFT JOIN traders t ON t.user_id = u.id
-       LEFT JOIN market_galas mg ON mg.id = t.gala_id
-      ORDER BY st.created_at DESC
-      LIMIT 100`,
-  );
-  const ids = rows.map((row) => row.id);
-  let attachmentsByTicket = {};
-  if (ids.length > 0) {
-    const [attachments] = await pool.query(
-      `SELECT id, complaint_id, attachment_type, original_filename, mime_type, file_size_bytes, created_at
-         FROM complaint_attachments
-        WHERE complaint_id IN (:ids)
-        ORDER BY created_at ASC`,
-      { ids },
-    );
-    attachmentsByTicket = attachments.reduce((acc, item) => {
-      acc[item.complaint_id] = acc[item.complaint_id] || [];
-      acc[item.complaint_id].push(item);
-      return acc;
-    }, {});
-  }
-  res.json({ ok: true, complaints: rows.map((row) => ({ ...row, parsed: JSON.parse(row.description || "{}"), attachments: attachmentsByTicket[row.id] || [] })) });
+app.get("/api/v1/admin/complaints", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const rows = await attachComplaintDetails(await loadAdminComplaintRows(req.query));
+  res.json({ ok: true, complaints: rows });
 });
 
+app.get("/api/v1/admin/complaints/export/list", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const rows = await loadAdminComplaintRows(req.query);
+  const headers = ["Complaint No.", "Date", "Time", "Member Name", "Mobile Number", "Gala Number", "Category", "Title", "Priority", "Status", "Assigned To", "Resolved Date", "Current Stage"];
+  const csvRows = rows.map((row) => [complaintDisplayNumber(row), formatExportDate(row.created_at), formatExportTime(row.created_at), row.created_by_name, row.created_by_mobile, row.gala_number || "-", row.parsed?.category || "General", row.subject, row.priority, row.status, row.assigned_to_name || "-", row.resolved_at ? formatExportDate(row.resolved_at) : "-", row.status]);
+  const csv = [headers, ...csvRows].map((line) => line.map(csvEscape).join(",")).join("\n");
+  const today = new Date().toISOString().slice(0, 10);
+  res.setHeader("Content-Type", "text/csv;charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="complaints-list-${today}.csv"`);
+  res.send(csv);
+});
+
+app.get("/api/v1/admin/complaints/export/detailed", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const rows = await attachComplaintDetails(await loadAdminComplaintRows(req.query));
+  const sections = [];
+  for (const row of rows) {
+    const images = [];
+    for (const attachment of row.attachments || []) {
+      const dataUri = await complaintImageDataUri(attachment);
+      if (dataUri) images.push(`<figure><img src="${dataUri}" alt="${escapeHtml(attachment.original_filename)}"><figcaption>${escapeHtml(attachment.original_filename)}</figcaption></figure>`);
+      else if (String(attachment.attachment_type || "") === "image") images.push(`<div class="missing">Image unavailable: ${escapeHtml(attachment.original_filename)}</div>`);
+    }
+    const history = (row.history || []).map((item) => `<li><strong>${escapeHtml(item.old_status || "submitted")} -&gt; ${escapeHtml(item.new_status)}</strong><br>${escapeHtml(item.remarks || "-")}<br><span>${escapeHtml(item.changed_by_name)} - ${escapeHtml(formatExportDate(item.created_at))} ${escapeHtml(formatExportTime(item.created_at))}</span></li>`).join("");
+    const resolvedDate = row.resolved_at ? `${formatExportDate(row.resolved_at)}, ${formatExportTime(row.resolved_at)}` : "-";
+    sections.push(`<section class="complaint"><h2>${escapeHtml(complaintDisplayNumber(row))}</h2><div class="grid"><div><span>Member</span><strong>${escapeHtml(row.created_by_name || "-")}</strong></div><div><span>Gala No.</span><strong>${escapeHtml(row.gala_number || "-")}</strong></div><div><span>Submitted</span><strong>${escapeHtml(formatExportDate(row.created_at))}, ${escapeHtml(formatExportTime(row.created_at))}</strong></div><div><span>Category</span><strong>${escapeHtml(row.parsed?.category || "General")}</strong></div><div><span>Priority</span><strong>${escapeHtml(row.priority || "-")}</strong></div><div><span>Status</span><strong>${escapeHtml(row.status || "-")}</strong></div><div><span>Assigned To</span><strong>${escapeHtml(row.assigned_to_name || "-")}</strong></div><div><span>Resolved Date</span><strong>${escapeHtml(resolvedDate)}</strong></div></div><h3>${escapeHtml(row.subject || "-")}</h3><p>${escapeHtml(row.parsed?.description || row.description || "No description provided.")}</p><h4>Images</h4><div class="images">${images.length ? images.join("") : "<div class=\"missing\">No images uploaded.</div>"}</div><h4>Status History</h4><ul>${history || "<li>No status history available.</li>"}</ul></section>`);
+  }
+  res.setHeader("Content-Type", "text/html;charset=utf-8");
+  res.setHeader("Content-Disposition", `inline; filename="complaints-detailed-${new Date().toISOString().slice(0, 10)}.html"`);
+  res.send(`<!doctype html><html><head><meta charset="utf-8"><title>Detailed Complaints Report</title><style>body{font-family:Arial,sans-serif;color:#10231d;margin:32px;line-height:1.45}.toolbar{margin-bottom:24px}@media print{.toolbar{display:none}.complaint{page-break-after:always}}button{background:#004b36;color:#fff;border:0;border-radius:6px;padding:10px 16px;font-weight:700}h1{margin:0 0 8px;font-size:28px}h2{border-bottom:2px solid #004b36;padding-bottom:8px}.complaint{margin:0 0 32px;padding:0 0 24px;border-bottom:1px solid #d9e5dc}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}.grid div{border:1px solid #d9e5dc;border-radius:6px;padding:10px}.grid span{display:block;color:#66756d;font-size:12px}.grid strong{display:block;margin-top:4px}.images{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.images img{max-width:100%;max-height:320px;object-fit:contain;border:1px solid #d9e5dc;border-radius:6px}.images figure{margin:0}.images figcaption,.missing,li span{font-size:12px;color:#66756d}@media(max-width:700px){.grid,.images{grid-template-columns:1fr}}</style></head><body><div class="toolbar"><button onclick="window.print()">Print / Save PDF</button></div><h1>Detailed Complaints Report</h1><p>Generated ${escapeHtml(new Date().toLocaleString("en-IN"))}</p>${sections.join("") || "<p>No complaints found.</p>"}</body></html>`);
+});
 app.get("/api/v1/admin/complaint-attachments/:id/download", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
   const attachmentId = Number(req.params.id);
   const [[attachment]] = await pool.query("SELECT storage_key, original_filename, mime_type FROM complaint_attachments WHERE id = :attachmentId", { attachmentId });

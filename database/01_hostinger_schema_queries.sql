@@ -792,6 +792,7 @@ CREATE TABLE push_delivery_logs (
 CREATE TABLE support_tickets (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ticket_number VARCHAR(40) NOT NULL UNIQUE,
+    complaint_number VARCHAR(40) NULL UNIQUE,
     created_by_user_id BIGINT UNSIGNED NOT NULL,
     assigned_to_user_id BIGINT UNSIGNED NULL,
     subject VARCHAR(255) NOT NULL,

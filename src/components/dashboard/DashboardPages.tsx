@@ -1191,12 +1191,15 @@ export function AdminComplaintsPage() {
   type AdminComplaint = {
     id: number;
     ticket_number: string;
+    complaint_number?: string | null;
     subject: string;
     description: string;
     priority: string;
     status: string;
     created_by_name: string;
     created_by_mobile: string;
+    assigned_to_name?: string | null;
+    resolved_at?: string | null;
     gala_number: string | null;
     trader_code: string | null;
     created_at: string;
@@ -1204,6 +1207,7 @@ export function AdminComplaintsPage() {
     assigned_to_user_id?: number | null;
     parsed?: { category?: string; description?: string };
     attachments?: Array<{ id: number; attachment_type: string; original_filename: string; file_size_bytes: number; mime_type?: string | null }>;
+    history?: Array<{ id: number; old_status: string | null; new_status: string; remarks: string | null; changed_by_name: string; created_at: string }>;
   };
   type ComplaintAttachment = NonNullable<AdminComplaint["attachments"]>[number];
   const [complaints, setComplaints] = useState<AdminComplaint[]>([]);
@@ -1211,8 +1215,12 @@ export function AdminComplaintsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [selectedComplaint, setSelectedComplaint] = useState<AdminComplaint | null>(null);
   const [previewAttachment, setPreviewAttachment] = useState<ComplaintAttachment | null>(null);
+  const { lang } = useI18n();
+  const isMr = lang === "mr";
 
   const loadComplaints = async () => {
     setLoading(true);
@@ -1280,8 +1288,22 @@ export function AdminComplaintsPage() {
   };
   const attachmentUrl = (file: ComplaintAttachment, download = false) =>
     `/api/v1/admin/complaint-attachments/${file.id}/download${download ? "?download=1" : ""}`;
+  const complaintNo = (complaint: Pick<AdminComplaint, "complaint_number" | "ticket_number">) => complaint.complaint_number || complaint.ticket_number;
+  const exportQuery = () => {
+    const params = new URLSearchParams();
+    if (search.trim()) params.set("search", search.trim());
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (priorityFilter !== "all") params.set("priority", priorityFilter);
+    if (fromDate) params.set("from", fromDate);
+    if (toDate) params.set("to", toDate);
+    const query = params.toString();
+    return query ? `?${query}` : "";
+  };
+  const downloadComplaintList = () => window.open(`/api/v1/admin/complaints/export/list${exportQuery()}`, "_blank");
+  const downloadDetailedComplaints = () => window.open(`/api/v1/admin/complaints/export/detailed${exportQuery()}`, "_blank");
   const filteredComplaints = complaints.filter((item) => {
     const haystack = [
+      complaintNo(item),
       item.ticket_number,
       item.subject,
       item.parsed?.category,
@@ -1293,7 +1315,9 @@ export function AdminComplaintsPage() {
     ].filter(Boolean).join(" ").toLowerCase();
     return (!search.trim() || haystack.includes(search.trim().toLowerCase()))
       && (statusFilter === "all" || item.status === statusFilter)
-      && (priorityFilter === "all" || item.priority === priorityFilter || (priorityFilter === "urgent" && item.priority === "emergency"));
+      && (priorityFilter === "all" || item.priority === priorityFilter || (priorityFilter === "urgent" && item.priority === "emergency"))
+      && (!fromDate || item.created_at.slice(0, 10) >= fromDate)
+      && (!toDate || item.created_at.slice(0, 10) <= toDate);
   });
   const updateComplaintStatus = async (complaint: AdminComplaint, status: string) => {
     const remarks = `Complaint marked ${statusLabels[status] || status} by admin.`;
@@ -1306,7 +1330,7 @@ export function AdminComplaintsPage() {
       });
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || "Could not update complaint.");
-      toast.success(`${complaint.ticket_number} updated`);
+      toast.success(`${complaintNo(complaint)} updated`);
       await loadComplaints();
       setSelectedComplaint((current) => current && current.id === complaint.id ? { ...current, status, updated_at: new Date().toISOString() } : current);
     } catch (error) {
@@ -1329,6 +1353,7 @@ export function AdminComplaintsPage() {
   );
   const ComplaintPreview = ({ complaint }: { complaint: AdminComplaint }) => (
     <>
+      <div className="text-[11px] font-mono font-semibold uppercase tracking-wide text-primary">{complaintNo(complaint)}</div>
       <div className="line-clamp-2 whitespace-normal break-words font-semibold leading-snug text-primary-dark">{complaint.subject}</div>
       <div className="mt-1 line-clamp-2 whitespace-normal break-words text-xs leading-5 text-muted-foreground">
         {complaint.parsed?.category || "General"} - {complaint.parsed?.description || "No description provided."}
@@ -1348,7 +1373,7 @@ export function AdminComplaintsPage() {
       </div>
       <Card className="border-border/60">
         <CardContent className="p-6">
-          <div className="mb-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
+          <div className="mb-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_160px_160px_150px_150px_auto_auto]">
             <div className="relative min-w-0">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input className="pl-9" placeholder="Search complaints..." value={search} onChange={(event) => setSearch(event.target.value)} />
@@ -1361,43 +1386,47 @@ export function AdminComplaintsPage() {
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{priorityOptions.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
             </Select>
-          </div>
+            <Input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} aria-label="From date" />
+            <Input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} aria-label="To date" />
+            <Button type="button" variant="outline" className="whitespace-nowrap" onClick={downloadComplaintList}><Download className="mr-1 h-4 w-4" /> {isMr ? "तक्रार यादी डाउनलोड करा" : "Download Complaint List"}</Button>
+            <Button type="button" className="whitespace-nowrap bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={downloadDetailedComplaints}><FileText className="mr-1 h-4 w-4" /> {isMr ? "सविस्तर तक्रारी डाउनलोड करा" : "Download Detailed Complaints"}</Button>          </div>
 
           <div className="hidden overflow-x-auto lg:block">
-            <Table className="min-w-[1320px] table-fixed">
+            <Table className="min-w-[1480px] table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px] whitespace-nowrap">ID</TableHead>
-                  <TableHead className="w-[430px] whitespace-nowrap">Complaint</TableHead>
-                  <TableHead className="w-[170px] whitespace-nowrap">Owner</TableHead>
+                  <TableHead className="w-[120px] whitespace-nowrap">Complaint No.</TableHead>
+                  <TableHead className="w-[155px] whitespace-nowrap">Submitted</TableHead>
+                  <TableHead className="w-[190px] whitespace-nowrap">Member Name</TableHead>
+                  <TableHead className="w-[360px] whitespace-nowrap">Category / Title</TableHead>
                   <TableHead className="w-[125px] whitespace-nowrap">Priority</TableHead>
                   <TableHead className="w-[145px] whitespace-nowrap">Status</TableHead>
-                  <TableHead className="w-[150px] whitespace-nowrap">Assigned Date</TableHead>
-                  <TableHead className="w-[100px] whitespace-nowrap">View</TableHead>
-                  <TableHead className="w-[170px] whitespace-nowrap text-right">Action</TableHead>
+                  <TableHead className="w-[150px] whitespace-nowrap">Assigned To</TableHead>
+                  <TableHead className="w-[210px] whitespace-nowrap text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredComplaints.map((c) => (
                   <TableRow key={c.id} className="align-top">
-                    <TableCell className="break-words font-mono text-xs leading-5">{c.ticket_number}</TableCell>
-                    <TableCell><ComplaintPreview complaint={c} /></TableCell>
+                    <TableCell className="break-words font-mono text-xs font-semibold leading-5 text-primary-dark">{complaintNo(c)}</TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">{formatDateTime(c.created_at)}</TableCell>
                     <TableCell>
                       <div className="whitespace-normal break-words font-medium leading-snug">{c.created_by_name}</div>
                       <div className="text-xs text-muted-foreground">
                         {c.gala_number ? `Gala ${c.gala_number} - ${c.trader_code || c.created_by_mobile}` : `Admin - ${c.created_by_mobile}`}
                       </div>
                     </TableCell>
+                    <TableCell><ComplaintPreview complaint={c} /></TableCell>
                     <TableCell><Badge className={`inline-flex min-w-20 justify-center whitespace-nowrap rounded-full px-2.5 py-1 ${priorityClasses(c.priority)}`}>{priorityLabel(c.priority)}</Badge></TableCell>
                     <TableCell><span className="whitespace-nowrap"><StatusBadge status={c.status} /></span></TableCell>
-                    <TableCell className="whitespace-nowrap text-sm">{formatDate(c.updated_at || c.created_at)}</TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="outline" className="h-9 whitespace-nowrap" onClick={() => setSelectedComplaint(c)}>
-                        <Eye className="mr-1 h-4 w-4" /> View
-                      </Button>
-                    </TableCell>
+                    <TableCell className="whitespace-normal break-words text-sm">{c.assigned_to_name || "-"}</TableCell>
                     <TableCell className="text-right">
-                      <StatusControl complaint={c} />
+                      <div className="flex items-center justify-end gap-2">
+                        <Button size="sm" variant="outline" className="h-9 whitespace-nowrap" onClick={() => setSelectedComplaint(c)}>
+                          <Eye className="mr-1 h-4 w-4" /> View
+                        </Button>
+                        <StatusControl complaint={c} />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1409,14 +1438,14 @@ export function AdminComplaintsPage() {
             {filteredComplaints.map((c) => (
               <div key={c.id} className="rounded-lg border bg-background p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="font-mono text-xs text-muted-foreground">{c.ticket_number}</div>
+                  <div className="font-mono text-xs font-semibold text-primary-dark">{complaintNo(c)}</div>
                   <Badge className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 ${priorityClasses(c.priority)}`}>{priorityLabel(c.priority)}</Badge>
                 </div>
                 <div className="mt-3"><ComplaintPreview complaint={c} /></div>
                 <div className="mt-4 grid gap-2 text-sm">
                   <div><span className="text-muted-foreground">Owner:</span> <span className="font-medium">{c.created_by_name}</span></div>
                   <div><span className="text-muted-foreground">Status:</span> <StatusBadge status={c.status} /></div>
-                  <div><span className="text-muted-foreground">Date:</span> {formatDate(c.updated_at || c.created_at)}</div>
+                  <div><span className="text-muted-foreground">Submitted:</span> {formatDateTime(c.created_at)}</div>
                 </div>
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   <Button size="sm" variant="outline" onClick={() => setSelectedComplaint(c)}><Eye className="mr-1 h-4 w-4" /> View Complaint</Button>
@@ -1436,7 +1465,7 @@ export function AdminComplaintsPage() {
             <div className="flex max-h-[90vh] flex-col">
               <DialogHeader className="sticky top-0 z-10 border-b bg-background px-6 py-5">
                 <DialogTitle className="font-display text-2xl text-primary-dark">Complaint Details</DialogTitle>
-                <DialogDescription>{"\u0924\u0915\u094d\u0930\u093e\u0930 \u0924\u092a\u0936\u0940\u0932"} - {selectedComplaint.ticket_number}</DialogDescription>
+                <DialogDescription>{"\u0924\u0915\u094d\u0930\u093e\u0930 \u0915\u094d\u0930\u092e\u093e\u0902\u0915"} - {complaintNo(selectedComplaint)}</DialogDescription>
               </DialogHeader>
               <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
                 <div className="flex flex-wrap gap-2">
@@ -1461,6 +1490,7 @@ export function AdminComplaintsPage() {
                   <h3 className="font-display text-lg font-bold text-primary-dark">Complaint Information</h3>
                   <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {[
+                      ["Complaint No.", complaintNo(selectedComplaint)],
                       ["Submitted by", selectedComplaint.created_by_name],
                       ["Mobile", selectedComplaint.created_by_mobile],
                       ["Owner code", selectedComplaint.trader_code || "-"],
@@ -1468,7 +1498,8 @@ export function AdminComplaintsPage() {
                       ["Submitted date", formatDateTime(selectedComplaint.created_at)],
                       ["Assigned date", formatDateTime(selectedComplaint.updated_at || selectedComplaint.created_at)],
                       ["Last updated", formatDateTime(selectedComplaint.updated_at || selectedComplaint.created_at)],
-                      ["Assigned to", selectedComplaint.assigned_to_user_id ? "Admin team" : "-"],
+                      ["Assigned to", selectedComplaint.assigned_to_name || (selectedComplaint.assigned_to_user_id ? "Admin team" : "-")],
+                      ["Resolved date", selectedComplaint.resolved_at ? formatDateTime(selectedComplaint.resolved_at) : "-"],
                     ].map(([label, value]) => (
                       <div key={label} className="rounded-lg border bg-background p-3">
                         <div className="text-xs text-muted-foreground">{label}</div>
@@ -1511,6 +1542,19 @@ export function AdminComplaintsPage() {
                   </div>
                 </section>
 
+                <section>
+                  <h3 className="font-display text-lg font-bold text-primary-dark">Status History</h3>
+                  <div className="mt-3 grid gap-2">
+                    {(selectedComplaint.history || []).map((item) => (
+                      <div key={item.id} className="rounded-lg border bg-background p-3 text-sm">
+                        <div className="font-medium text-primary-dark">{item.old_status || "submitted"} {"->"} {item.new_status}</div>
+                        {item.remarks && <div className="mt-1 text-muted-foreground">{item.remarks}</div>}
+                        <div className="mt-1 text-xs text-muted-foreground">{item.changed_by_name} - {new Date(item.created_at).toLocaleString("en-IN")}</div>
+                      </div>
+                    ))}
+                    {(!selectedComplaint.history || selectedComplaint.history.length === 0) && <div className="rounded-lg border p-4 text-sm text-muted-foreground">No status history available.</div>}
+                  </div>
+                </section>
                 <section className="rounded-lg border bg-secondary/30 p-4">
                   <h3 className="font-display text-lg font-bold text-primary-dark">Status / Action</h3>
                   <div className="mt-3 max-w-xs"><StatusControl complaint={selectedComplaint} /></div>
@@ -4962,7 +5006,8 @@ export function AdminTraderKycPage() {
 
 export function OwnerGalaPage() {
   const { profile, galas, loading, reload } = useTraderProfile();
-  const { lang } = useI18n();
+  const { lang } = useI18n();
+
   const primaryGala = galas.find((gala) => gala.is_primary) || galas[0];
   const approvedCount = galas.filter((gala) => gala.status === "approved").length;
   const pendingCount = galas.filter((gala) => ["submitted", "under_review", "correction_required"].includes(gala.status)).length;
@@ -5023,7 +5068,8 @@ function parseDashboardPostContent(value?: string | null) {
   }
 }
 
-function OwnerDbContentPage({ title, subtitle, icon: Icon, items, attachmentBase = "/api/v1/public/content-attachments" }: { title: string; subtitle: string; icon: React.ElementType; items: DashboardPost[]; attachmentBase?: string }) {
+function OwnerDbContentPage({ title, subtitle, icon: Icon, items, attachmentBase = "/api/v1/public/content-attachments" }: { title: string; subtitle: string; icon: React.ElementType; items: DashboardPost[]; attachmentBase?: string }) {
+
   const isMr = lang === "mr";
   const displayPost = (item: DashboardPost) => {
     const en = item.parsed || parseDashboardPostContent(item.content_en);
@@ -5066,7 +5112,8 @@ type ComplaintFeedbackRequest = {
   id: number;
   complaint_id: number;
   ticket_number: string;
-  subject: string;
+    complaint_number?: string | null;
+    subject: string;
   complaint_status: string;
   resolved_at?: string | null;
   resolved_by_name?: string | null;
@@ -5227,6 +5274,7 @@ export function OwnerComplaintsPage() {
   type TraderComplaint = {
     id: number;
     ticket_number: string;
+    complaint_number?: string | null;
     subject: string;
     priority: string;
     status: string;
@@ -5237,7 +5285,8 @@ export function OwnerComplaintsPage() {
     reopen_request_status?: string | null;
     parsed?: { category?: string; description?: string };
     history: Array<{ id: number; old_status: string | null; new_status: string; remarks: string | null; changed_by_name: string; created_at: string }>;
-  };
+  };
+
   const [complaints, setComplaints] = useState<TraderComplaint[]>([]);
   const [feedbackRequests, setFeedbackRequests] = useState<ComplaintFeedbackRequest[]>([]);
   const [activeFeedback, setActiveFeedback] = useState<ComplaintFeedbackRequest | null>(null);
@@ -5268,6 +5317,8 @@ export function OwnerComplaintsPage() {
   };
 
   useEffect(() => { loadComplaints(); }, []);
+
+  const complaintNo = (complaint: Pick<TraderComplaint, "complaint_number" | "ticket_number">) => complaint.complaint_number || complaint.ticket_number;
 
   const feedbackByComplaint = feedbackRequests.reduce<Record<number, ComplaintFeedbackRequest>>((acc, item) => {
     acc[item.complaint_id] = item;
@@ -5309,7 +5360,8 @@ export function OwnerComplaintsPage() {
               <CardContent className="p-4 sm:p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="font-mono text-xs text-muted-foreground">{c.ticket_number} - {c.parsed?.category || "General"}</div>
+                    <div className="font-mono text-xs font-semibold text-primary-dark">{isMr ? "तक्रार क्रमांक" : "Complaint Number"}: {complaintNo(c)}</div>
+                    <div className="text-xs text-muted-foreground">{c.parsed?.category || "General"}</div>
                     <h2 className="whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{c.subject}</h2>
                     <p className="mt-1 whitespace-normal break-words text-sm leading-5 text-muted-foreground">{c.parsed?.description || ""}</p>
                     {status && <div className="mt-2"><Badge className="bg-primary/10 text-primary">{feedbackStatusLabel(status, lang)}</Badge></div>}
@@ -5352,7 +5404,8 @@ export function OwnerPostPage() {
   const { profile } = useTraderProfile();
   const { lang } = useI18n();
   const { logout } = useAuth();
-  const router = useRouter();
+  const router = useRouter();
+
   const [postCategory, setPostCategory] = useState("Market Rate Update");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
@@ -5678,7 +5731,8 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
       });
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || "Could not submit complaint.");
-      toast.success(`Complaint ${result.ticketNumber} sent to admin.`);
+      const submittedNumber = result.complaintNumber || result.ticketNumber;
+      toast.success(`Complaint Submitted Successfully. Complaint Number: ${submittedNumber}`);
       form.reset();
       setImageFiles([]);
       setVideoFiles([]);
@@ -5754,7 +5808,8 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
 
 export function MobileChangeApplicationForm({ compact = false }: { compact?: boolean }) {
   const { profile } = useTraderProfile();
-  const { lang } = useI18n();
+  const { lang } = useI18n();
+
   const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
 
   return (
@@ -5846,7 +5901,8 @@ export function MobileChangeApplicationForm({ compact = false }: { compact?: boo
 
 export function OwnerMobileChangePage() {
   const { profile } = useTraderProfile();
-  const { lang } = useI18n();
+  const { lang } = useI18n();
+
   const section = profile?.business_category ? `${profile.business_category} Section` : "";
   const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
   const displayBusinessName = localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
@@ -6329,15 +6385,3 @@ export function AdminChangePasswordPage() {
     </DashLayout>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
