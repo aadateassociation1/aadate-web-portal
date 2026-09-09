@@ -187,7 +187,10 @@ function Footer() {
   const { t, lang } = useI18n();
   const { user } = useAuth();
   const ideationPrefix = lang === "mr" ? "\u0938\u0902\u0915\u0932\u094d\u092a\u0928\u093e" : "Ideation by";
-  const chairmanLine = "Chairman of Shree Chhatrapati Shivaji Market Yard Adte Association";
+  const chairmanLine = lang === "mr"
+    ? "अध्यक्ष, श्री छत्रपती शिवाजी मार्केट यार्ड अडते असोसिएशन"
+    : "Chairman of Shree Chhatrapati Shivaji Market Yard Adte Association";
+  const launchingDateLine = lang === "mr" ? "लोकार्पण दिनांक: २१ सप्टेंबर २०२६" : "Launching Date: 21 September 2026";
   const marketUpdatesLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/market-prices" : user?.role === "owner" ? "/member/market-prices" : "/market-prices";
   const complaintLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/complaints" : user?.role === "owner" ? "/member/new-complaint" : "/login";
   return (
@@ -246,6 +249,10 @@ function Footer() {
           </div>
           <div className="mt-1 text-sm font-medium text-white/70 sm:text-base">
             {chairmanLine}
+          </div>
+          <div className="mt-3 inline-flex items-center justify-center gap-2 rounded-full border border-saffron/30 bg-saffron/10 px-4 py-1.5 text-xs font-semibold text-saffron sm:text-sm">
+            <Clock className="h-3.5 w-3.5" />
+            <span>{launchingDateLine}</span>
           </div>
         </div>
       </div>
