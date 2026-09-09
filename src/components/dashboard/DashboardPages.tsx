@@ -1286,6 +1286,10 @@ export function AdminComplaintsPage() {
     if (!value) return "-";
     return new Date(value).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   };
+  const formatCompactDateTime = (value?: string | null) => {
+    if (!value) return "-";
+    return new Date(value).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+  };
   const attachmentUrl = (file: ComplaintAttachment, download = false) =>
     `/api/v1/admin/complaint-attachments/${file.id}/download${download ? "?download=1" : ""}`;
   const complaintNo = (complaint: Pick<AdminComplaint, "complaint_number" | "ticket_number">) => complaint.complaint_number || complaint.ticket_number;
@@ -1373,7 +1377,7 @@ export function AdminComplaintsPage() {
       </div>
       <Card className="border-border/60">
         <CardContent className="p-6">
-          <div className="mb-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_160px_160px_150px_150px_auto_auto]">
+          <div className="mb-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(260px,1fr)_160px_160px_150px_150px] 2xl:grid-cols-[minmax(260px,1fr)_160px_160px_150px_150px_auto_auto]">
             <div className="relative min-w-0">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input className="pl-9" placeholder="Search complaints..." value={search} onChange={(event) => setSearch(event.target.value)} />
@@ -1388,28 +1392,29 @@ export function AdminComplaintsPage() {
             </Select>
             <Input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} aria-label="From date" />
             <Input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} aria-label="To date" />
-            <Button type="button" variant="outline" className="whitespace-nowrap" onClick={downloadComplaintList}><Download className="mr-1 h-4 w-4" /> {isMr ? "तक्रार यादी डाउनलोड करा" : "Download Complaint List"}</Button>
-            <Button type="button" className="whitespace-nowrap bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={downloadDetailedComplaints}><FileText className="mr-1 h-4 w-4" /> {isMr ? "सविस्तर तक्रारी डाउनलोड करा" : "Download Detailed Complaints"}</Button>          </div>
+            <Button type="button" variant="outline" className="w-full justify-center whitespace-nowrap 2xl:w-auto" onClick={downloadComplaintList}><Download className="mr-1 h-4 w-4" /> {isMr ? "तक्रार यादी" : "Complaint List"}</Button>
+            <Button type="button" className="w-full justify-center whitespace-nowrap bg-saffron text-saffron-foreground hover:bg-saffron/90 2xl:w-auto" onClick={downloadDetailedComplaints}><FileText className="mr-1 h-4 w-4" /> {isMr ? "सविस्तर रिपोर्ट" : "Detailed Report"}</Button>
+          </div>
 
           <div className="hidden overflow-x-auto lg:block">
-            <Table className="min-w-[1480px] table-fixed">
+            <Table className="min-w-[1080px] table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[120px] whitespace-nowrap">Complaint No.</TableHead>
-                  <TableHead className="w-[155px] whitespace-nowrap">Submitted</TableHead>
-                  <TableHead className="w-[190px] whitespace-nowrap">Member Name</TableHead>
-                  <TableHead className="w-[360px] whitespace-nowrap">Category / Title</TableHead>
-                  <TableHead className="w-[125px] whitespace-nowrap">Priority</TableHead>
-                  <TableHead className="w-[145px] whitespace-nowrap">Status</TableHead>
-                  <TableHead className="w-[150px] whitespace-nowrap">Assigned To</TableHead>
-                  <TableHead className="w-[210px] whitespace-nowrap text-right">Actions</TableHead>
+                  <TableHead className="w-[90px] whitespace-nowrap">Complaint No.</TableHead>
+                  <TableHead className="w-[120px] whitespace-nowrap">Submitted</TableHead>
+                  <TableHead className="w-[160px] whitespace-nowrap">Member Name</TableHead>
+                  <TableHead className="w-[300px] whitespace-nowrap">Category / Title</TableHead>
+                  <TableHead className="w-[100px] whitespace-nowrap">Priority</TableHead>
+                  <TableHead className="w-[135px] whitespace-nowrap">Status</TableHead>
+                  <TableHead className="w-[115px] whitespace-nowrap">Assigned To</TableHead>
+                  <TableHead className="w-[70px] whitespace-nowrap text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredComplaints.map((c) => (
                   <TableRow key={c.id} className="align-top">
-                    <TableCell className="break-words font-mono text-xs font-semibold leading-5 text-primary-dark">{complaintNo(c)}</TableCell>
-                    <TableCell className="whitespace-nowrap text-sm">{formatDateTime(c.created_at)}</TableCell>
+                    <TableCell className="whitespace-nowrap font-mono text-xs font-semibold leading-5 text-primary-dark">{complaintNo(c)}</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs leading-5">{formatCompactDateTime(c.created_at)}</TableCell>
                     <TableCell>
                       <div className="whitespace-normal break-words font-medium leading-snug">{c.created_by_name}</div>
                       <div className="text-xs text-muted-foreground">
@@ -1418,15 +1423,12 @@ export function AdminComplaintsPage() {
                     </TableCell>
                     <TableCell><ComplaintPreview complaint={c} /></TableCell>
                     <TableCell><Badge className={`inline-flex min-w-20 justify-center whitespace-nowrap rounded-full px-2.5 py-1 ${priorityClasses(c.priority)}`}>{priorityLabel(c.priority)}</Badge></TableCell>
-                    <TableCell><span className="whitespace-nowrap"><StatusBadge status={c.status} /></span></TableCell>
+                    <TableCell><StatusControl complaint={c} /></TableCell>
                     <TableCell className="whitespace-normal break-words text-sm">{c.assigned_to_name || "-"}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button size="sm" variant="outline" className="h-9 whitespace-nowrap" onClick={() => setSelectedComplaint(c)}>
-                          <Eye className="mr-1 h-4 w-4" /> View
-                        </Button>
-                        <StatusControl complaint={c} />
-                      </div>
+                      <Button size="icon" variant="outline" className="h-9 w-9 bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={() => setSelectedComplaint(c)} aria-label="View complaint">
+                        <Eye className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
