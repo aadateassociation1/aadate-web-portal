@@ -1221,6 +1221,7 @@ export function AdminComplaintsPage() {
   const [previewAttachment, setPreviewAttachment] = useState<ComplaintAttachment | null>(null);
   const { lang } = useI18n();
   const isMr = lang === "mr";
+  const [exportLang, setExportLang] = useState<"en" | "mr">(lang === "mr" ? "mr" : "en");
 
   const loadComplaints = async () => {
     setLoading(true);
@@ -1239,6 +1240,7 @@ export function AdminComplaintsPage() {
   useEffect(() => {
     loadComplaints();
   }, []);
+  useEffect(() => { setExportLang(lang === "mr" ? "mr" : "en"); }, [lang]);
 
   const activeCount = complaints.filter((item) => ["open", "in_progress", "waiting_user"].includes(item.status)).length;
   const resolvedCount = complaints.filter((item) => ["resolved", "closed"].includes(item.status)).length;
@@ -1300,6 +1302,7 @@ export function AdminComplaintsPage() {
     if (priorityFilter !== "all") params.set("priority", priorityFilter);
     if (fromDate) params.set("from", fromDate);
     if (toDate) params.set("to", toDate);
+    params.set("lang", exportLang);
     const query = params.toString();
     return query ? `?${query}` : "";
   };
@@ -1393,7 +1396,14 @@ export function AdminComplaintsPage() {
               <Input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} aria-label="From date" />
               <Input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} aria-label="To date" />
             </div>
-            <div className="flex flex-wrap justify-end gap-3">
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <Select value={exportLang} onValueChange={(value) => setExportLang(value as "en" | "mr")}>
+                <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="mr">मराठी</SelectItem>
+                </SelectContent>
+              </Select>
               <Button type="button" variant="outline" className="min-w-[170px] justify-center whitespace-nowrap" onClick={downloadComplaintList}><Download className="mr-1 h-4 w-4" /> {isMr ? "तक्रार यादी" : "Complaint List"}</Button>
               <Button type="button" className="min-w-[170px] justify-center whitespace-nowrap bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={downloadDetailedComplaints}><FileText className="mr-1 h-4 w-4" /> {isMr ? "सविस्तर रिपोर्ट" : "Detailed Report"}</Button>
             </div>

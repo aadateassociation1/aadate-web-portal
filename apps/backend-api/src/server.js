@@ -6655,6 +6655,45 @@ function formatExportDate(value) { return value ? new Date(value).toISOString().
 function formatExportTime(value) { return value ? new Date(value).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "-"; }
 function escapeHtml(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
 function complaintDisplayNumber(row) { return row.complaint_number || row.ticket_number || "-"; }
+function complaintStatusExportLabel(status, lang) {
+  const value = String(status || "");
+  if (lang === "mr") {
+    return ({ open: "\u0909\u0918\u0921\u0940", in_progress: "\u0915\u093e\u092e \u0938\u0941\u0930\u0942", waiting_user: "\u0938\u092d\u093e\u0938\u0926\u093e\u091a\u094d\u092f\u093e \u092a\u094d\u0930\u0924\u093f\u0938\u093e\u0926\u093e\u091a\u0940 \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e", resolved: "\u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u091d\u093e\u0932\u0947", closed: "\u092c\u0902\u0926" })[value] || value;
+  }
+  return ({ open: "Open", in_progress: "In progress", waiting_user: "Waiting user", resolved: "Resolved", closed: "Closed" })[value] || value;
+}
+
+function complaintPriorityExportLabel(priority, lang) {
+  const value = String(priority || "");
+  if (lang === "mr") {
+    return ({ low: "\u0915\u092e\u0940", medium: "\u092e\u0927\u094d\u092f\u092e", high: "\u0909\u091a\u094d\u091a", urgent: "\u0924\u093e\u0924\u0921\u0940\u091a\u0947", emergency: "\u0924\u093e\u0924\u0921\u0940\u091a\u0947" })[value] || value;
+  }
+  return value === "urgent" || value === "emergency" ? "Emergency" : value ? value[0].toUpperCase() + value.slice(1) : "-";
+}
+function complaintExportLabels(lang) {
+  const mr = lang === "mr";
+  return mr ? {
+    reportTitle: "\u0938\u0935\u093f\u0938\u094d\u0924\u0930 \u0924\u0915\u094d\u0930\u093e\u0930 \u0905\u0939\u0935\u093e\u0932",
+    generated: "\u0924\u092f\u093e\u0930 \u0915\u0947\u0932\u0947",
+    print: "\u092a\u094d\u0930\u093f\u0902\u091f / PDF \u091c\u0924\u0928 \u0915\u0930\u093e",
+    noRows: "\u0915\u094b\u0923\u0924\u094d\u092f\u093e\u0939\u0940 \u0924\u0915\u094d\u0930\u093e\u0930\u0940 \u0938\u093e\u092a\u0921\u0932\u094d\u092f\u093e \u0928\u093e\u0939\u0940\u0924.",
+    noImages: "\u0915\u094b\u0923\u0924\u0940\u0939\u0940 \u091b\u093e\u092f\u093e\u091a\u093f\u0924\u094d\u0930\u0947 \u0905\u092a\u0932\u094b\u0921 \u0915\u0947\u0932\u0947\u0932\u0940 \u0928\u093e\u0939\u0940\u0924.",
+    imageUnavailable: "\u091b\u093e\u092f\u093e\u091a\u093f\u0924\u094d\u0930 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u093e\u0939\u0940",
+    noHistory: "\u0938\u094d\u0925\u093f\u0924\u0940 \u0907\u0924\u093f\u0939\u093e\u0938 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u093e\u0939\u0940.",
+    headers: ["\u0924\u0915\u094d\u0930\u093e\u0930 \u0915\u094d\u0930\u092e\u093e\u0902\u0915", "\u0926\u093f\u0928\u093e\u0902\u0915", "\u0935\u0947\u0933", "\u0938\u092d\u093e\u0938\u0926 \u0928\u093e\u0935", "\u092e\u094b\u092c\u093e\u0908\u0932 \u0915\u094d\u0930\u092e\u093e\u0902\u0915", "\u0917\u093e\u0933\u093e \u0915\u094d\u0930\u092e\u093e\u0902\u0915", "\u092a\u094d\u0930\u0915\u093e\u0930", "\u0936\u0940\u0930\u094d\u0937\u0915", "\u092a\u094d\u0930\u093e\u0927\u093e\u0928\u094d\u092f", "\u0938\u094d\u0925\u093f\u0924\u0940", "\u0928\u093f\u092f\u0941\u0915\u094d\u0924 \u0935\u094d\u092f\u0915\u094d\u0924\u0940", "\u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u0926\u093f\u0928\u093e\u0902\u0915", "\u0938\u0927\u094d\u092f\u093e\u091a\u093e \u091f\u092a\u094d\u092a\u093e"],
+    fields: { member: "\u0938\u092d\u093e\u0938\u0926", gala: "\u0917\u093e\u0933\u093e \u0915\u094d\u0930\u092e\u093e\u0902\u0915", submitted: "\u0938\u092c\u092e\u093f\u091f \u0915\u0947\u0932\u0947", category: "\u092a\u094d\u0930\u0915\u093e\u0930", priority: "\u092a\u094d\u0930\u093e\u0927\u093e\u0928\u094d\u092f", status: "\u0938\u094d\u0925\u093f\u0924\u0940", assignedTo: "\u0928\u093f\u092f\u0941\u0915\u094d\u0924 \u0935\u094d\u092f\u0915\u094d\u0924\u0940", resolvedDate: "\u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u0926\u093f\u0928\u093e\u0902\u0915", images: "\u091b\u093e\u092f\u093e\u091a\u093f\u0924\u094d\u0930\u0947", history: "\u0938\u094d\u0925\u093f\u0924\u0940 \u0907\u0924\u093f\u0939\u093e\u0938" },
+  } : {
+    reportTitle: "Detailed Complaints Report",
+    generated: "Generated",
+    print: "Print / Save PDF",
+    noRows: "No complaints found.",
+    noImages: "No images uploaded.",
+    imageUnavailable: "Image unavailable",
+    noHistory: "No status history available.",
+    headers: ["Complaint No.", "Date", "Time", "Member Name", "Mobile Number", "Gala Number", "Category", "Title", "Priority", "Status", "Assigned To", "Resolved Date", "Current Stage"],
+    fields: { member: "Member", gala: "Gala No.", submitted: "Submitted", category: "Category", priority: "Priority", status: "Status", assignedTo: "Assigned To", resolvedDate: "Resolved Date", images: "Images", history: "Status History" },
+  };
+}
 function buildComplaintWhere(query = {}) {
   const where = [];
   const params = {};
@@ -6797,8 +6836,9 @@ app.get("/api/v1/admin/complaints", requireRoles("MAIN_ADMIN", "USER_ADMIN"), as
 
 app.get("/api/v1/admin/complaints/export/list", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
   const rows = await loadAdminComplaintRows(req.query);
-  const headers = ["Complaint No.", "Date", "Time", "Member Name", "Mobile Number", "Gala Number", "Category", "Title", "Priority", "Status", "Assigned To", "Resolved Date", "Current Stage"];
-  const csvRows = rows.map((row) => [csvText(complaintDisplayNumber(row)), formatExportDate(row.created_at), formatExportTime(row.created_at), row.created_by_name, csvText(row.created_by_mobile), csvText(row.gala_number || "-"), row.parsed?.category || "General", row.subject, row.priority, row.status, row.assigned_to_name || "-", row.resolved_at ? formatExportDate(row.resolved_at) : "-", row.status]);
+  const labels = complaintExportLabels(req.query.lang === "mr" ? "mr" : "en");
+  const headers = labels.headers;
+  const csvRows = rows.map((row) => [csvText(complaintDisplayNumber(row)), formatExportDate(row.created_at), formatExportTime(row.created_at), row.created_by_name, csvText(row.created_by_mobile), csvText(row.gala_number || "-"), row.parsed?.category || "General", row.subject, complaintPriorityExportLabel(row.priority, req.query.lang), complaintStatusExportLabel(row.status, req.query.lang), row.assigned_to_name || "-", row.resolved_at ? formatExportDate(row.resolved_at) : "-", complaintStatusExportLabel(row.status, req.query.lang)]);
   const csv = [headers, ...csvRows].map((line) => line.map(csvEscape).join(",")).join("\n");
   const today = new Date().toISOString().slice(0, 10);
   res.setHeader("Content-Type", "text/csv;charset=utf-8");
@@ -6808,21 +6848,22 @@ app.get("/api/v1/admin/complaints/export/list", requireRoles("MAIN_ADMIN", "USER
 
 app.get("/api/v1/admin/complaints/export/detailed", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
   const rows = await attachComplaintDetails(await loadAdminComplaintRows(req.query));
+  const labels = complaintExportLabels(req.query.lang === "mr" ? "mr" : "en");
   const sections = [];
   for (const row of rows) {
     const images = [];
     for (const attachment of row.attachments || []) {
       const dataUri = await complaintImageDataUri(attachment);
       if (dataUri) images.push(`<figure><img src="${dataUri}" alt="${escapeHtml(attachment.original_filename)}"><figcaption>${escapeHtml(attachment.original_filename)}</figcaption></figure>`);
-      else if (String(attachment.attachment_type || "") === "image") images.push(`<div class="missing">Image unavailable: ${escapeHtml(attachment.original_filename)}</div>`);
+      else if (String(attachment.attachment_type || "") === "image") images.push(`<div class="missing">${escapeHtml(labels.imageUnavailable)}: ${escapeHtml(attachment.original_filename)}</div>`);
     }
     const history = (row.history || []).map((item) => `<li><strong>${escapeHtml(item.old_status || "submitted")} -&gt; ${escapeHtml(item.new_status)}</strong><br>${escapeHtml(item.remarks || "-")}<br><span>${escapeHtml(item.changed_by_name)} - ${escapeHtml(formatExportDate(item.created_at))} ${escapeHtml(formatExportTime(item.created_at))}</span></li>`).join("");
     const resolvedDate = row.resolved_at ? `${formatExportDate(row.resolved_at)}, ${formatExportTime(row.resolved_at)}` : "-";
-    sections.push(`<section class="complaint"><h2>${escapeHtml(complaintDisplayNumber(row))}</h2><div class="grid"><div><span>Member</span><strong>${escapeHtml(row.created_by_name || "-")}</strong></div><div><span>Gala No.</span><strong>${escapeHtml(row.gala_number || "-")}</strong></div><div><span>Submitted</span><strong>${escapeHtml(formatExportDate(row.created_at))}, ${escapeHtml(formatExportTime(row.created_at))}</strong></div><div><span>Category</span><strong>${escapeHtml(row.parsed?.category || "General")}</strong></div><div><span>Priority</span><strong>${escapeHtml(row.priority || "-")}</strong></div><div><span>Status</span><strong>${escapeHtml(row.status || "-")}</strong></div><div><span>Assigned To</span><strong>${escapeHtml(row.assigned_to_name || "-")}</strong></div><div><span>Resolved Date</span><strong>${escapeHtml(resolvedDate)}</strong></div></div><h3>${escapeHtml(row.subject || "-")}</h3><p>${escapeHtml(row.parsed?.description || row.description || "No description provided.")}</p><h4>Images</h4><div class="images">${images.length ? images.join("") : "<div class=\"missing\">No images uploaded.</div>"}</div><h4>Status History</h4><ul>${history || "<li>No status history available.</li>"}</ul></section>`);
+    sections.push(`<section class="complaint"><h2>${escapeHtml(complaintDisplayNumber(row))}</h2><div class="grid"><div><span>${escapeHtml(labels.fields.member)}</span><strong>${escapeHtml(row.created_by_name || "-")}</strong></div><div><span>${escapeHtml(labels.fields.gala)}</span><strong>${escapeHtml(row.gala_number || "-")}</strong></div><div><span>${escapeHtml(labels.fields.submitted)}</span><strong>${escapeHtml(formatExportDate(row.created_at))}, ${escapeHtml(formatExportTime(row.created_at))}</strong></div><div><span>${escapeHtml(labels.fields.category)}</span><strong>${escapeHtml(row.parsed?.category || "General")}</strong></div><div><span>${escapeHtml(labels.fields.priority)}</span><strong>${escapeHtml(complaintPriorityExportLabel(row.priority, req.query.lang))}</strong></div><div><span>${escapeHtml(labels.fields.status)}</span><strong>${escapeHtml(complaintStatusExportLabel(row.status, req.query.lang))}</strong></div><div><span>${escapeHtml(labels.fields.assignedTo)}</span><strong>${escapeHtml(row.assigned_to_name || "-")}</strong></div><div><span>${escapeHtml(labels.fields.resolvedDate)}</span><strong>${escapeHtml(resolvedDate)}</strong></div></div><h3>${escapeHtml(row.subject || "-")}</h3><p>${escapeHtml(row.parsed?.description || row.description || "No description provided.")}</p><h4>${escapeHtml(labels.fields.images)}</h4><div class="images">${images.length ? images.join("") : `<div class=\"missing\">${escapeHtml(labels.noImages)}</div>`}</div><h4>${escapeHtml(labels.fields.history)}</h4><ul>${history || `<li>${escapeHtml(labels.noHistory)}</li>`}</ul></section>`);
   }
   res.setHeader("Content-Type", "text/html;charset=utf-8");
   res.setHeader("Content-Disposition", `inline; filename="complaints-detailed-${new Date().toISOString().slice(0, 10)}.html"`);
-  res.send(`<!doctype html><html><head><meta charset="utf-8"><title>Detailed Complaints Report</title><style>body{font-family:Arial,sans-serif;color:#10231d;margin:32px;line-height:1.45}.toolbar{margin-bottom:24px}@media print{.toolbar{display:none}.complaint{page-break-after:always}}button{background:#004b36;color:#fff;border:0;border-radius:6px;padding:10px 16px;font-weight:700}h1{margin:0 0 8px;font-size:28px}h2{border-bottom:2px solid #004b36;padding-bottom:8px}.complaint{margin:0 0 32px;padding:0 0 24px;border-bottom:1px solid #d9e5dc}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}.grid div{border:1px solid #d9e5dc;border-radius:6px;padding:10px}.grid span{display:block;color:#66756d;font-size:12px}.grid strong{display:block;margin-top:4px}.images{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.images img{max-width:100%;max-height:320px;object-fit:contain;border:1px solid #d9e5dc;border-radius:6px}.images figure{margin:0}.images figcaption,.missing,li span{font-size:12px;color:#66756d}@media(max-width:700px){.grid,.images{grid-template-columns:1fr}}</style></head><body><div class="toolbar"><button onclick="window.print()">Print / Save PDF</button></div><h1>Detailed Complaints Report</h1><p>Generated ${escapeHtml(new Date().toLocaleString("en-IN"))}</p>${sections.join("") || "<p>No complaints found.</p>"}</body></html>`);
+  res.send(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(labels.reportTitle)}</title><style>body{font-family:Arial,sans-serif;color:#10231d;margin:32px;line-height:1.45}.toolbar{margin-bottom:24px}@media print{.toolbar{display:none}.complaint{page-break-after:always}}button{background:#004b36;color:#fff;border:0;border-radius:6px;padding:10px 16px;font-weight:700}h1{margin:0 0 8px;font-size:28px}h2{border-bottom:2px solid #004b36;padding-bottom:8px}.complaint{margin:0 0 32px;padding:0 0 24px;border-bottom:1px solid #d9e5dc}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}.grid div{border:1px solid #d9e5dc;border-radius:6px;padding:10px}.grid span{display:block;color:#66756d;font-size:12px}.grid strong{display:block;margin-top:4px}.images{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.images img{max-width:100%;max-height:320px;object-fit:contain;border:1px solid #d9e5dc;border-radius:6px}.images figure{margin:0}.images figcaption,.missing,li span{font-size:12px;color:#66756d}@media(max-width:700px){.grid,.images{grid-template-columns:1fr}}</style></head><body><div class="toolbar"><button onclick="window.print()">${escapeHtml(labels.print)}</button></div><h1>${escapeHtml(labels.reportTitle)}</h1><p>${escapeHtml(labels.generated)} ${escapeHtml(new Date().toLocaleString("en-IN"))}</p>${sections.join("") || `<p>${escapeHtml(labels.noRows)}</p>`}</body></html>`);
 });
 app.get("/api/v1/admin/complaint-attachments/:id/download", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
   const attachmentId = Number(req.params.id);
