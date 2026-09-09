@@ -14,9 +14,12 @@ const ASSOCIATION_NAME = "Shree Chhatrapati Shivaji Market Yard Adte Association
 const ASSOCIATION_REGISTRATION = "Registration No.: Maharashtra-1026/2013";
 const ASSOCIATION_PTR = "P.T.R. No.: F. 41841 / Pune";
 const ASSOCIATION_ADDRESS = "First Floor, Pan Bazar Building, Shree Chhatrapati Shivaji Market Yard Adte Association Hall, Gultekdi, Pune - 411037.";
+const ASSOCIATION_ADDRESS_2 = "Saurabh Shekhar Kunjir, Gala No. 321, 322, Fruit Section, Gultekadi, Market Yard, Pune.";
+const ASSOCIATION_ADDRESS_2_MR = "सौरभ शेखर कुंजिर, गाळा नं. ३२१, ३२२, फळ विभाग, गुलटेकडी, मार्केट यार्ड, पुणे.";
 const ASSOCIATION_EMAIL = "aadateassociation1@gmail.com";
 const ASSOCIATION_MAP_EMBED_URL = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d121086.05561617303!2d73.71149379726565!3d18.486411300000007!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c022bfffffff%3A0xdca80b98f93f015e!2sShree%20Chhatrapati%20Shivaji%20Market%20Yard%20Adate%20Assoc!5e0!3m2!1sen!2sin!4v1788258576279!5m2!1sen!2sin";
 const ASSOCIATION_MAP_LINK_URL = "https://www.google.com/maps/search/?api=1&query=Shree%20Chhatrapati%20Shivaji%20Market%20Yard%20Adate%20Assoc%2C%20First%20Floor%2C%20Pan%20Bazar%20Building%2C%20Gultekdi%2C%20Pune%20411037";
+const ASSOCIATION_MAP_LINK_URL_2 = "https://www.google.com/maps/search/?api=1&query=Saurabh%20Shekhar%20Kunjir%2C%20Gala%20No.%20321%2C%20322%2C%20Fruit%20Section%2C%20Gultekadi%2C%20Market%20Yard%2C%20Pune";
 const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
 
 export const Route = createFileRoute("/contact")({
@@ -37,7 +40,10 @@ function Contact() {
   const copy = lang === "mr"
     ? {
         addressTitle: "\u0915\u093e\u0930\u094d\u092f\u093e\u0932\u092f \u092a\u0924\u094d\u0924\u093e",
+        address1Label: "पत्ता 1:",
         address: "\u092a\u0939\u093f\u0932\u093e \u092e\u091c\u0932\u093e, \u092a\u093e\u0928 \u092c\u093e\u091c\u093e\u0930 \u092c\u093f\u0932\u094d\u0921\u093f\u0902\u0917, \u0936\u094d\u0930\u0940 \u091b\u0924\u094d\u0930\u092a\u0924\u0940 \u0936\u093f\u0935\u093e\u091c\u0940 \u092e\u093e\u0930\u094d\u0915\u0947\u091f \u092f\u093e\u0930\u094d\u0921 \u0905\u0921\u0924\u0947 \u0938\u0902\u0918\u091f\u0928\u093e \u0939\u0949\u0932, \u0917\u0941\u0932\u091f\u0947\u0915\u0921\u0940, \u092a\u0941\u0923\u0947 - \u096a\u0967\u0967\u0966\u0969\u096d.",
+        address2Label: "पत्ता 2:",
+        address2: ASSOCIATION_ADDRESS_2_MR,
         registrationTitle: "\u0928\u094b\u0902\u0926\u0923\u0940 \u0915\u094d\u0930.",
         registrationBody: "\u0928\u094b\u0902\u0926\u0923\u0940 \u0915\u094d\u0930.: \u092e\u0939\u093e\u0930\u093e\u0937\u094d\u091f\u094d\u0930-\u0967\u0966\u0968\u096c/\u0968\u0966\u0967\u0969",
         ptrTitle: "\u092a\u0940.\u091f\u0940.\u0906\u0930. \u0915\u094d\u0930.",
@@ -61,7 +67,10 @@ function Contact() {
       }
     : {
         addressTitle: "Office Address",
+        address1Label: "Address 1:",
         address: ASSOCIATION_ADDRESS,
+        address2Label: "Address 2:",
+        address2: ASSOCIATION_ADDRESS_2,
         registrationTitle: "Registration No.",
         registrationBody: ASSOCIATION_REGISTRATION,
         ptrTitle: "P.T.R. No.",
@@ -90,7 +99,7 @@ function Contact() {
         <div className="container-page grid gap-8 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-1">
             {[
-              { icon: MapPin, title: copy.addressTitle, body: copy.address, mapUrl: ASSOCIATION_MAP_LINK_URL },
+              { icon: MapPin, title: copy.addressTitle, body: copy.address, label: copy.address1Label, mapUrl: ASSOCIATION_MAP_LINK_URL, body2: copy.address2, label2: copy.address2Label, mapUrl2: ASSOCIATION_MAP_LINK_URL_2 },
               { icon: Phone, title: copy.registrationTitle, body: copy.registrationBody },
               { icon: AlertCircle, title: copy.ptrTitle, body: copy.ptrBody },
               { icon: Mail, title: copy.emailTitle, body: ASSOCIATION_EMAIL },
@@ -103,7 +112,7 @@ function Contact() {
                   </div>
                   <div className="min-w-0">
                     <div className="font-display font-semibold text-primary-dark">{c.title}</div>
-                    <div className="text-sm text-muted-foreground">{"mapUrl" in c && c.mapUrl ? <a href={c.mapUrl} target="_blank" rel="noreferrer" className="hover:text-primary hover:underline">{c.body}</a> : c.body}</div>
+                    <div className="space-y-2 text-sm text-muted-foreground">{"label" in c && c.label ? <div><div className="font-medium text-primary-dark">{c.label}</div><a href={c.mapUrl} target="_blank" rel="noreferrer" className="hover:text-primary hover:underline">{c.body}</a></div> : <div>{c.body}</div>}{"body2" in c && c.body2 ? <div><div className="font-medium text-primary-dark">{c.label2}</div><a href={c.mapUrl2} target="_blank" rel="noreferrer" className="hover:text-primary hover:underline">{c.body2}</a></div> : null}</div>
                   </div>
                 </CardContent>
               </Card>
