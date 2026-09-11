@@ -3789,8 +3789,13 @@ app.post("/api/v1/trader/market-prices/bulk-save", requireRoles("TRADER"), async
     try {
       const itemId = Number(record.itemId);
       if (!Number.isInteger(itemId) || itemId <= 0) throw new Error("Item required.");
-      const minPrice = parseMarketNumber(record.minPrice, "Minimum price");
-      const maxPrice = parseMarketNumber(record.maxPrice, "Maximum price");
+      const hasMinPrice = record.minPrice !== null && record.minPrice !== undefined && record.minPrice !== "";
+      const hasMaxPrice = record.maxPrice !== null && record.maxPrice !== undefined && record.maxPrice !== "";
+      if (!hasMinPrice && !hasMaxPrice) throw new Error("Enter at least one price.");
+      let minPrice = hasMinPrice ? parseMarketNumber(record.minPrice, "Minimum price") : null;
+      let maxPrice = hasMaxPrice ? parseMarketNumber(record.maxPrice, "Maximum price") : null;
+      if (minPrice === null) minPrice = maxPrice;
+      if (maxPrice === null) maxPrice = minPrice;
       if (maxPrice < minPrice) throw new Error("Maximum price cannot be below minimum price.");
       if (maxPrice > MAX_REASONABLE_MEMBER_PRICE) throw new Error(`Maximum price must be ${MAX_REASONABLE_MEMBER_PRICE} or below.`);
       normalized.push({
@@ -3927,8 +3932,13 @@ app.post("/api/v1/admin/market-prices/bulk-save", requireRoles("MAIN_ADMIN", "US
     try {
       const itemId = Number(record.itemId);
       if (!Number.isInteger(itemId) || itemId <= 0) throw new Error("Item required.");
-      const minPrice = parseMarketNumber(record.minPrice, "Minimum price");
-      const maxPrice = parseMarketNumber(record.maxPrice, "Maximum price");
+      const hasMinPrice = record.minPrice !== null && record.minPrice !== undefined && record.minPrice !== "";
+      const hasMaxPrice = record.maxPrice !== null && record.maxPrice !== undefined && record.maxPrice !== "";
+      if (!hasMinPrice && !hasMaxPrice) throw new Error("Enter at least one price.");
+      let minPrice = hasMinPrice ? parseMarketNumber(record.minPrice, "Minimum price") : null;
+      let maxPrice = hasMaxPrice ? parseMarketNumber(record.maxPrice, "Maximum price") : null;
+      if (minPrice === null) minPrice = maxPrice;
+      if (maxPrice === null) maxPrice = minPrice;
       const modalPrice = parseMarketNumber(record.modalPrice === "" || record.modalPrice === undefined ? (minPrice + maxPrice) / 2 : record.modalPrice, "Average price");
       if (maxPrice < minPrice) throw new Error("Maximum price cannot be below minimum price.");
       if (modalPrice < minPrice || modalPrice > maxPrice) throw new Error("Average price should be between minimum and maximum price.");

@@ -494,18 +494,26 @@ function MemberMarketPricesPage() {
       const row = current[itemId];
       const next = { ...row, [field]: value };
       if (field === "minPrice" || field === "maxPrice") {
-        const min = Number(next.minPrice);
-        const max = Number(next.maxPrice);
-        next.modalPrice = Number.isFinite(min) && Number.isFinite(max) && next.minPrice !== "" && next.maxPrice !== "" ? String(((min + max) / 2).toFixed(2).replace(/\.00$/, "")) : "";
+        const min = next.minPrice !== "" ? Number(next.minPrice) : null;
+        const max = next.maxPrice !== "" ? Number(next.maxPrice) : null;
+        if (min !== null && max !== null && Number.isFinite(min) && Number.isFinite(max)) {
+          next.modalPrice = String(((min + max) / 2).toFixed(2).replace(/\.00$/, ""));
+        } else if (min !== null && Number.isFinite(min)) {
+          next.modalPrice = String(min);
+        } else if (max !== null && Number.isFinite(max)) {
+          next.modalPrice = String(max);
+        } else {
+          next.modalPrice = "";
+        }
       }
       return { ...current, [itemId]: next };
     });
   };
 
   const saveRows = async (status: "draft" | "submitted") => {
-    const records = Object.values(drafts).filter((row) => row.minPrice !== "" && row.maxPrice !== "");
+    const records = Object.values(drafts).filter((row) => row.minPrice !== "" || row.maxPrice !== "");
     if (records.length === 0) {
-      toast.error("Enter minimum and maximum price for at least one item");
+      toast.error("Enter at least one price for at least one item");
       return;
     }
     setSaving(true);
