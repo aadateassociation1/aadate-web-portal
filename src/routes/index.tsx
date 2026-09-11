@@ -65,7 +65,7 @@ function Home() {
   type RatingAttachment = { id: number; attachment_type: "image" | "video"; original_filename: string; mime_type: string; file_size_bytes: number };
   type PublicReview = { id: number; rating_value: number; review_text: string | null; reviewer_type: "trader" | "customer"; reviewer_name: string; business_name: string; trader_code: string; trader_name: string; gala_number: string | null; customer_code: string | null; created_at: string; attachments?: RatingAttachment[] };
   type PublicComplaintFeedback = { id: number; reaction: string; rating: number; comment: string; category: string; created_at: string };
-  type PublicPrice = { item_id: number; category: string; name_en: string; name_mr: string; min_price: number; max_price: number; modal_price: number; unit: string; change_amount: number | null; change_direction: string; published_at: string | null; submission_count?: number; valid_submission_count?: number; aggregate_status?: string };
+  type PublicPrice = { item_id: number; category: string; name_en: string; name_mr: string; parent_name_en?: string | null; parent_name_mr?: string | null; min_price: number; max_price: number; modal_price: number; unit: string; change_amount: number | null; change_direction: string; published_at: string | null; submission_count?: number; valid_submission_count?: number; aggregate_status?: string };
   const [updates, setUpdates] = useState<PublicContent[]>([]);
   const [notices, setNotices] = useState<PublicContent[]>([]);
   const [gallery, setGallery] = useState<PublicContent[]>([]);
@@ -110,20 +110,18 @@ function Home() {
   const committeeMembers = committee.filter((member) => member.id !== chairman?.id);
   const committeeGridMembers = committeeMembers.length % 3 === 2 && chairman ? [...committeeMembers, chairman] : committeeMembers;
   const featuredPriceMatchers = [
-    { key: "onion", matches: ["onion", "kanda", "?????"] },
-    { key: "banana", matches: ["banana", "keli", "????", "????"] },
-    { key: "potato", matches: ["potato", "batata", "?????"] },
-    { key: "garlic", matches: ["garlic", "lasun", "????"] },
+    { key: "onion", matches: ["onion", "kanda", "\u0915\u093e\u0902\u0926\u093e"] },
+    { key: "potato", matches: ["potato", "batata", "\u092c\u091f\u093e\u091f\u093e"] },
+    { key: "banana", matches: ["banana", "keli", "\u0915\u0947\u0933\u0940", "\u0915\u0947\u0933"] },
+    { key: "garlic", matches: ["garlic", "lasun", "\u0932\u0938\u0942\u0923"] },
   ];
   const matchesFeaturedPrice = (price: PublicPrice, terms: string[]) => {
-    const haystack = `${price.name_en} ${price.name_mr}`.toLowerCase();
+    const haystack = `${price.name_en} ${price.name_mr} ${price.parent_name_en || ""} ${price.parent_name_mr || ""}`.toLowerCase();
     return terms.some((term) => haystack.includes(term.toLowerCase()));
   };
-  const featuredPrices = featuredPriceMatchers
+  const homepagePrices = featuredPriceMatchers
     .map((item) => prices.find((price) => matchesFeaturedPrice(price, item.matches)))
     .filter((price): price is PublicPrice => Boolean(price));
-  const fallbackPrices = prices.filter((price) => !featuredPrices.some((featured) => featured.item_id === price.item_id));
-  const homepagePrices = [...featuredPrices, ...fallbackPrices].slice(0, 4);
   const fruitPrices = homepagePrices.filter((price) => price.category === "fruit");
   const vegetablePrices = homepagePrices.filter((price) => price.category === "vegetable");
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
