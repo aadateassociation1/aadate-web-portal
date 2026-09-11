@@ -215,6 +215,7 @@ function CategoryTabs({ value, onChange }: { value: string; onChange: (value: st
 }
 
 function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
+  const { lang } = useI18n();
   const [rows, setRows] = useState<MarketPriceRow[]>([]);
   const [date, setDate] = useState("");
   const [lastPublished, setLastPublished] = useState<string | null>(null);
