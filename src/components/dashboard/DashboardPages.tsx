@@ -3743,7 +3743,8 @@ export function OwnerProfilePage() {
   }, [profile?.blood_group]);
   useEffect(() => {
     const englishName = cleanDisplayEnglish(profile?.full_name_en || transliterateMarathiToEnglish(profile?.full_name) || profile?.full_name || "");
-    const marathiName = cleanDisplayMarathi(profile?.full_name || "") || englishNameToMarathiName(englishName);
+    const savedMarathiName = cleanDisplayMarathi(profile?.full_name || "");
+    const marathiName = /[\u0900-\u097F]/.test(savedMarathiName) ? savedMarathiName : englishNameToMarathiName(englishName || savedMarathiName);
     setFullNameEn(englishName);
     setFullNameMr(marathiName);
     setFullNameMrTouched(false);
