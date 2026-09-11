@@ -3446,7 +3446,7 @@ async function getMarketSummary(date) {
   return summary || { total_items: 0, updated_today: 0, pending_update: 0, last_published: null };
 }
 
-const MIN_SUBMISSIONS_FOR_PUBLIC_PRICE = Math.max(1, Number(process.env.MIN_SUBMISSIONS_FOR_PUBLIC_PRICE || 3));
+const MIN_SUBMISSIONS_FOR_PUBLIC_PRICE = Math.max(1, Number(process.env.MIN_SUBMISSIONS_FOR_PUBLIC_PRICE || 1));
 const MAX_REASONABLE_MEMBER_PRICE = Math.max(1000, Number(process.env.MAX_REASONABLE_MEMBER_PRICE || 100000));
 const MARKET_PRICE_SUBMISSION_DEADLINE_HOUR = Math.min(23, Math.max(0, Number(process.env.MARKET_PRICE_SUBMISSION_DEADLINE_HOUR || 13)));
 
@@ -3474,6 +3474,11 @@ function getIndiaDateParts(date = new Date()) {
 function marketPriceSubmissionClosed(priceDate) {
   const now = getIndiaDateParts();
   return priceDate === now.date && now.hour >= MARKET_PRICE_SUBMISSION_DEADLINE_HOUR;
+}
+
+function marketPriceAggregateStatus(priceDate, validSubmissionCount) {
+  if (validSubmissionCount < MIN_SUBMISSIONS_FOR_PUBLIC_PRICE) return "collecting";
+  return marketPriceSubmissionClosed(priceDate) ? "final" : "updated";
 }
 function percentile(sortedValues, percentileRank) {
   if (sortedValues.length === 0) return 0;
@@ -3568,10 +3573,24 @@ function scheduleMarketPriceBatchNotification(date) {
   pendingMarketPriceBatchTimers.set(date, timer);
 }
 
+async function recalculateDailyMemberMarketAggregates({ date, userId = null }) {
+  const [items] = await pool.query(
+    `SELECT DISTINCT market_item_id AS itemId
+       FROM member_market_prices
+      WHERE price_date = :date
+        AND status = 'submitted'`,
+    { date },
+  );
+  const itemIds = items.map((row) => Number(row.itemId)).filter((id) => Number.isInteger(id) && id > 0);
+  if (itemIds.length === 0) return 0;
+  await recalculateMemberMarketAggregate({ connection: pool, date, itemIds, userId });
+  return itemIds.length;
+}
 async function sendFinalMarketPriceNotificationIfDue() {
   const now = getIndiaDateParts();
   if (now.hour < MARKET_PRICE_SUBMISSION_DEADLINE_HOUR) return;
   const date = now.date;
+  await recalculateDailyMemberMarketAggregates({ date });
   const [[aggregate]] = await pool.query(
     `SELECT COUNT(*) AS count
        FROM market_prices
@@ -8160,6 +8179,7 @@ app.use((error, _req, res, _next) => {
 ensurePlatformExtensions()
   .then(() => {
     scheduleRetentionCleanup();
+    scheduleMarketPriceFinalNotificationCheck();
     app.listen(config.port, "127.0.0.1", () => {
       console.log(`Backend listening at http://127.0.0.1:${config.port}`);
     });
