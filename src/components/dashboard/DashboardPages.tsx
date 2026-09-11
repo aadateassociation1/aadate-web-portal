@@ -173,6 +173,93 @@ function cleanDisplayMarathi(value: string | null | undefined) {
   for (const [from, to] of MARATHI_NAME_FIXES) text = text.split(from).join(to);
   return text.replace(/\s+/g, " ").trim();
 }
+
+const ENGLISH_TO_MARATHI_NAME_WORDS: Record<string, string> = {
+  shri: "श्री.",
+  shree: "श्री.",
+  smt: "श्रीमती.",
+  vaishnavi: "वैष्णवी",
+  vijay: "विजय",
+  pawar: "पवार",
+  saurabh: "सौरभ",
+  shekhar: "शेखर",
+  kunjir: "कुंजिर",
+  rajendra: "राजेंद्र",
+  korpe: "कोरपे",
+  sandip: "संदीप",
+  sandeep: "संदीप",
+  mahesh: "महेश",
+  shirke: "शिर्के",
+  yogesh: "योगेश",
+  yadav: "यादव",
+  katke: "काटके",
+  rohan: "रोहन",
+  jadhav: "जाधव",
+  santosh: "संतोष",
+  kumbharkar: "कुंभारकर",
+  rahul: "राहुल",
+  ramesh: "रमेश",
+  ganesh: "गणेश",
+  anil: "अनिल",
+  sunil: "सुनील",
+  suresh: "सुरेश",
+  dinesh: "दिनेश",
+  nilesh: "निलेश",
+  prakash: "प्रकाश",
+  prashant: "प्रशांत",
+  sachin: "सचिन",
+  sanjay: "संजय",
+  ajay: "अजय",
+  amol: "अमोल",
+  amit: "अमित",
+  avinash: "अविनाश",
+  balasaheb: "बाळासाहेब",
+  bhausaheb: "भाऊसाहेब",
+  dhananjay: "धनंजय",
+  gajanan: "गजानन",
+  govind: "गोविंद",
+  kiran: "किरण",
+  krishna: "कृष्णा",
+  laxman: "लक्ष्मण",
+  mahadev: "महादेव",
+  narendra: "नरेंद्र",
+  nitin: "नितीन",
+  pandurang: "पांडुरंग",
+  ravindra: "रविंद्र",
+  shankar: "शंकर",
+  shivaji: "शिवाजी",
+  subhash: "सुभाष",
+  tukaram: "तुकाराम",
+  vikas: "विकास",
+  vilas: "विलास",
+  patil: "पाटील",
+  shinde: "शिंदे",
+  chavan: "चव्हाण",
+  more: "मोरे",
+  kale: "काळे",
+  kadam: "कदम",
+  gaikwad: "गायकवाड",
+  bhosale: "भोसले",
+  thorat: "थोरात",
+  raut: "राऊत",
+  salunkhe: "साळुंखे",
+  sonawane: "सोनवणे",
+  deshmukh: "देशमुख",
+  chaudhari: "चौधरी",
+};
+
+function englishNameToMarathiName(value: string | null | undefined) {
+  return String(value || "")
+    .split(/(\s+|[./-])/)
+    .map((part) => {
+      if (!/[A-Za-z]/.test(part)) return part;
+      const key = part.toLowerCase().replace(/[^a-z]/g, "");
+      return ENGLISH_TO_MARATHI_NAME_WORDS[key] || part;
+    })
+    .join("")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 const DEVANAGARI_TRANSLITERATION: Record<string, string> = {
   "\u0905": "a", "\u0906": "aa", "\u0907": "i", "\u0908": "ee", "\u0909": "u", "\u090a": "oo", "\u090f": "e", "\u0910": "ai", "\u0913": "o", "\u0914": "au",
   "\u0915": "k", "\u0916": "kh", "\u0917": "g", "\u0918": "gh", "\u0919": "n", "\u091a": "ch", "\u091b": "chh", "\u091c": "j", "\u091d": "jh", "\u091e": "ny",
@@ -3647,11 +3734,21 @@ export function OwnerProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploadingType, setUploadingType] = useState<string | null>(null);
   const [bloodGroup, setBloodGroup] = useState("");
+  const [fullNameEn, setFullNameEn] = useState("");
+  const [fullNameMr, setFullNameMr] = useState("");
+  const [fullNameMrTouched, setFullNameMrTouched] = useState(false);
   const { lang } = useI18n();
   useEffect(() => {
     setBloodGroup(profile?.blood_group || "");
   }, [profile?.blood_group]);
-  const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
+  useEffect(() => {
+    const englishName = cleanDisplayEnglish(profile?.full_name_en || transliterateMarathiToEnglish(profile?.full_name) || profile?.full_name || "");
+    const marathiName = cleanDisplayMarathi(profile?.full_name || "") || englishNameToMarathiName(englishName);
+    setFullNameEn(englishName);
+    setFullNameMr(marathiName);
+    setFullNameMrTouched(false);
+  }, [profile?.full_name, profile?.full_name_en]);
+  const displayFullName = localizedDashboardName(lang, fullNameMr || profile?.full_name, fullNameEn || profile?.full_name_en);
   const displayBusinessName = localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
   const authorizedContacts = getAuthorizedLoginContacts(profile);
   const initials = (displayFullName || "Member")
@@ -3713,9 +3810,15 @@ export function OwnerProfilePage() {
   const saveProfile = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const cleanFullNameEn = fullNameEn.trim();
+    const cleanFullNameMr = fullNameMr.trim();
     const aadhaar = String(data.get("aadhaar") || "").replace(/\D/g, "");
     const pan = String(data.get("pan") || "").trim().toUpperCase();
     const licenceNumber = String(data.get("licenceNumber") || "").trim();
+    if (!cleanFullNameEn || !cleanFullNameMr) {
+      toast.error("Full name and Marathi full name are required.");
+      return;
+    }
     if (!profile?.aadhaar_masked && !isValidAadhaar(aadhaar)) {
       toast.error("Please enter a valid Aadhaar number.");
       return;
@@ -3735,6 +3838,8 @@ export function OwnerProfilePage() {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          fullName: cleanFullNameMr,
+          fullNameEn: cleanFullNameEn,
           aadhaar,
           pan,
           bloodGroup,
@@ -3857,8 +3962,31 @@ export function OwnerProfilePage() {
         <Card className="border-border/60">
           <CardContent className="p-6">
             <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveProfile}>
-              <Field label="Full name" value={displayFullName} readOnly />
-              <Field label="Username" value={profile?.username || ""} readOnly />
+              <div>
+                <Label>{lang === "mr" ? "पूर्ण नाव (इंग्रजी)" : "Full name"}</Label>
+                <Input
+                  name="fullNameEn"
+                  value={fullNameEn}
+                  onChange={(event) => {
+                    const next = event.currentTarget.value;
+                    setFullNameEn(next);
+                    if (!fullNameMrTouched) setFullNameMr(englishNameToMarathiName(next));
+                  }}
+                  placeholder="Full name"
+                />
+              </div>
+              <div>
+                <Label>{lang === "mr" ? "पूर्ण नाव (मराठी)" : "Full name in Marathi"}</Label>
+                <Input
+                  name="fullName"
+                  value={fullNameMr}
+                  onChange={(event) => {
+                    setFullNameMrTouched(true);
+                    setFullNameMr(event.currentTarget.value);
+                  }}
+                  placeholder="पूर्ण नाव"
+                />
+              </div>
               <Field label="Email" value={profile?.email || ""} readOnly />
               <Field label="Registered mobile" value={profile?.mobile || ""} readOnly />
               <Field label="Firm name" value={displayBusinessName} readOnly />

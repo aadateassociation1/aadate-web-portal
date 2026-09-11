@@ -5118,6 +5118,8 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
     return;
   }
   const {
+    fullName = null,
+    fullNameEn = null,
     alternateMobile = null,
     addressLine1 = null,
     addressLine2 = null,
@@ -5135,7 +5137,13 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
   const cleanPan = normalizePan(pan);
   const cleanBloodGroup = String(bloodGroup || "").trim().toUpperCase();
   const cleanLicenceNumber = String(licenceNumber || "").trim();
+  const cleanFullName = String(fullName || "").trim();
+  const cleanFullNameEn = String(fullNameEn || "").trim();
   const cleanAuthorizedLoginContacts = normalizeAuthorizedLoginContacts(authorizedLoginContacts);
+  if ((fullName !== null && !cleanFullName) || (fullNameEn !== null && !cleanFullNameEn)) {
+    res.status(400).json({ ok: false, error: "Full name and Marathi full name are required." });
+    return;
+  }
   if (cleanAadhaar && !isValidAadhaar(cleanAadhaar)) {
     res.status(400).json({ ok: false, error: "Please enter a valid Aadhaar number." });
     return;
@@ -5194,6 +5202,20 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
       traderId: req.user.trader_id,
     },
   );
+  if (cleanFullName || cleanFullNameEn) {
+    await pool.query(
+      `UPDATE users u
+          JOIN traders t ON t.user_id = u.id
+           SET u.full_name = COALESCE(:fullName, u.full_name),
+               u.full_name_en = COALESCE(:fullNameEn, u.full_name_en)
+         WHERE t.id = :traderId`,
+      {
+        fullName: cleanFullName || null,
+        fullNameEn: cleanFullNameEn || null,
+        traderId: req.user.trader_id,
+      },
+    );
+  }
   await writeAudit({ req, action: "trader.profile_update", module: "traders", entityType: "traders", entityId: req.user.trader_id, newValues: { ...req.body, aadhaar: cleanAadhaar ? "********" : undefined, pan: cleanPan ? "********" : undefined } });
   res.json({ ok: true });
 });
