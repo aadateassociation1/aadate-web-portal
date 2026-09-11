@@ -2,7 +2,7 @@ import { createFileRoute } from "@/lib/simple-router";
 import { SiteLayout } from "@/components/public/SiteLayout";
 import { useI18n } from "@/lib/i18n";
 import { Card, CardContent } from "@/components/ui/card";
-import { Target, Eye, Heart, Trophy, Users, Building2 } from "lucide-react";
+import { Target, Eye, Heart } from "lucide-react";
 import marketyardImg from "@/assets/marketyard.webp";
 
 export const Route = createFileRoute("/about")({
@@ -42,14 +42,7 @@ function About() {
       body: isMr ? "\u0935\u093f\u0936\u094d\u0935\u093e\u0938, \u092a\u093e\u0930\u0926\u0930\u094d\u0936\u0915\u0924\u093e, \u0938\u0939\u0915\u093e\u0930\u094d\u092f \u0906\u0923\u093f \u0938\u0924\u0924 \u091a\u093e\u0902\u0917\u0932\u0940 \u0938\u0947\u0935\u093e." : "Trust, transparency, cooperation and continuous improvement.",
     },
   ];
-  const facilities = [
-    { icon: Building2, title: isMr ? "\u0936\u0940\u0924\u0917\u0943\u0939" : "Cold storage", body: isMr ? "\u0928\u093e\u0936\u0935\u0902\u0924 \u092e\u093e\u0932\u093e\u0938\u093e\u0920\u0940 500 \u092e\u0947\u091f\u094d\u0930\u093f\u0915 \u091f\u0928 \u0915\u094d\u0937\u092e\u0924\u093e" : "500 MT capacity for perishables" },
-    { icon: Users, title: isMr ? "\u0938\u092e\u093f\u0924\u0940 \u092a\u094d\u0930\u0936\u093f\u0915\u094d\u0937\u0923" : "Committee training", body: isMr ? "\u0926\u0930\u092e\u0939\u093e \u0936\u0947\u0924\u0915\u0930\u0940 \u091c\u0928\u091c\u093e\u0917\u0943\u0924\u0940 \u0936\u093f\u092c\u093f\u0930\u0947" : "Monthly farmer awareness camps" },
-    { icon: Trophy, title: isMr ? "\u0930\u093e\u091c\u094d\u092f \u092a\u0941\u0930\u0938\u094d\u0915\u093e\u0930" : "State award", body: isMr ? "\u092a\u0941\u0923\u0947 \u091c\u093f\u0932\u094d\u0939\u094d\u092f\u093e\u0924\u0940\u0932 \u0909\u0924\u094d\u0915\u0943\u0937\u094d\u091f \u092c\u093e\u091c\u093e\u0930 \u092f\u093e\u0930\u094d\u0921, 2026" : "Best market yard, Pune district 2026" },
-    { icon: Target, title: isMr ? "24x7 \u0938\u0941\u0930\u0915\u094d\u0937\u093e" : "24x7 security", body: isMr ? "\u0938\u0930\u094d\u0935 \u0935\u093f\u092d\u093e\u0917\u093e\u0902\u092e\u0927\u094d\u092f\u0947 CCTV \u0938\u0941\u0935\u093f\u0927\u093e" : "CCTV across all sections" },
-  ];
-
-  return (
+return (
     <SiteLayout>
       <div data-no-translate>
       <section className="py-16">
@@ -91,30 +84,6 @@ function About() {
               </CardContent>
             </Card>
           ))}
-        </div>
-      </section>
-
-      <section className="py-16">
-        <div className="container-page">
-          <h2 className="text-center font-display text-2xl font-bold leading-tight text-primary-dark sm:text-left sm:text-3xl">
-            {isMr ? "\u0938\u0941\u0935\u093f\u0927\u093e \u0906\u0923\u093f \u0915\u093e\u092e\u0917\u093f\u0930\u0940" : (
-              <>
-                <span className="sm:inline">Facilities</span>
-                <span className="block sm:inline sm:ml-2">&amp; Achievements</span>
-              </>
-            )}
-          </h2>
-          <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-4">
-            {facilities.map((f) => (
-              <Card key={f.title} className="border-border/60">
-                <CardContent className="p-3 text-center sm:p-5 sm:text-left">
-                  <f.icon className="mx-auto h-6 w-6 text-primary sm:mx-0" />
-                  <div className="mt-3 font-display text-sm font-semibold leading-snug text-primary-dark sm:text-base">{f.title}</div>
-                  <div className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">{f.body}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </div>
       </section>
       </div>
