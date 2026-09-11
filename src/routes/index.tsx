@@ -10,6 +10,7 @@ import {
   ArrowRight, Bell, ClipboardList, Download, FileText, Newspaper, Phone,
   UserCog, MessageSquare, ShieldCheck,
   CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
+  Briefcase, Store, UserRound,
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
 import heroVideo from "@/assets/Banner video.mp4";
@@ -60,7 +61,7 @@ const GALLERY_TILES = [
 function Home() {
   const { t, lang } = useI18n();
   type PublicContent = { id: number; title_en: string; title_mr?: string | null; content_en?: string | null; content_mr?: string | null; published_at: string | null; created_at: string; parsed?: { category?: string; details?: string }; attachments?: Array<{ id: number; attachment_type: string; original_filename: string }> };
-  type CommitteeMemberRecord = { id: number; full_name: string; name_mr: string | null; designation: string; designation_mr: string | null; gala_number: string | null; term_label: string | null; message: string | null; photo_url: string | null };
+  type CommitteeMemberRecord = { id: number; full_name: string; name_mr: string | null; designation: string; designation_mr: string | null; gala_number: string | null; phone_number: string | null; term_label: string | null; message: string | null; photo_url: string | null };
   type RatingAttachment = { id: number; attachment_type: "image" | "video"; original_filename: string; mime_type: string; file_size_bytes: number };
   type PublicReview = { id: number; rating_value: number; review_text: string | null; reviewer_type: "trader" | "customer"; reviewer_name: string; business_name: string; trader_code: string; trader_name: string; gala_number: string | null; customer_code: string | null; created_at: string; attachments?: RatingAttachment[] };
   type PublicComplaintFeedback = { id: number; reaction: string; rating: number; comment: string; category: string; created_at: string };
@@ -74,6 +75,7 @@ function Home() {
   const [complaintFeedback, setComplaintFeedback] = useState<PublicComplaintFeedback[]>([]);
   const [complaintFeedbackApi, setComplaintFeedbackApi] = useState<CarouselApi>();
   const [prices, setPrices] = useState<PublicPrice[]>([]);
+  const [selectedMember, setSelectedMember] = useState<CommitteeMemberRecord | null>(null);
   const [selectedNotice, setSelectedNotice] = useState<PublicContent | null>(null);
   const [selectedReviewImage, setSelectedReviewImage] = useState<RatingAttachment | null>(null);
   useEffect(() => {
@@ -209,6 +211,9 @@ function Home() {
   };
   const displayCommitteeName = (member: CommitteeMemberRecord) => lang === "mr" ? withMarathiShri(member.name_mr || member.full_name) : member.full_name;
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
+  const committeePopupLabels = lang === "mr"
+    ? { fullName: "\u092a\u0942\u0930\u094d\u0923 \u0928\u093e\u0935", phone: "\u092b\u094b\u0928 \u0928\u0902\u092c\u0930", designation: "\u092a\u0926", gala: "\u0917\u093e\u0933\u093e \u0928\u0902\u092c\u0930", quote: "\u092c\u0933\u0915\u091f \u092e\u093e\u0930\u094d\u0915\u0947\u091f \u092f\u093e\u0930\u094d\u0921\u0938\u093e\u0920\u0940 \u090f\u0915\u0924\u094d\u0930 \u0915\u093e\u092e \u0915\u0930\u0924 \u0906\u0939\u094b\u0924" }
+    : { fullName: "Full Name", phone: "Phone Number", designation: "Designation", gala: "Gala Number", quote: "Working together for a stronger Market Yard" };
   const displayChairmanName = (name?: string | null) => name && /sourabh\s+kunjir/i.test(name) ? "Shri. Sourabh Shekhar Kunjir" : name || "Shri. Sourabh Shekhar Kunjir";
   const displayChairmanNameMr = (name?: string | null, englishName?: string | null) => withMarathiShri(englishName && /sourabh\s+kunjir/i.test(englishName) ? "\u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930" : name || "\u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930");
   const chairmanCopy = lang === "mr"
@@ -244,6 +249,20 @@ function Home() {
         className="h-full w-full object-cover object-top"
         onError={() => setImageFailed(true)}
       />
+    );
+  };
+  const DetailRow = ({ icon: Icon, label, value }: { icon: typeof UserRound; label: string; value?: string | null }) => {
+    if (!value) return null;
+    return (
+      <div className="flex gap-3">
+        <div className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary text-primary">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="text-sm font-medium text-muted-foreground">{label}</div>
+          <div className="text-base font-semibold leading-snug text-foreground">{value}</div>
+        </div>
+      </div>
     );
   };
   const renderPriceCard = (price: PublicPrice) => {
@@ -449,7 +468,14 @@ function Home() {
             <h3 className="font-display text-2xl font-bold text-primary-dark">{lang === "mr" ? "\u0938\u0902\u091a\u093e\u0932\u0915 \u092e\u0902\u0921\u0933" : "Board of Directors"}</h3>
             <div className="mx-auto mt-6 grid max-w-6xl grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
               {committeeGridMembers.slice(0, 9).map((m) => (
-                <Card key={m.id} className="mx-auto w-full max-w-[19rem] overflow-hidden rounded-xl border-border/60 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <Card
+                  key={m.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedMember(m)}
+                  onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setSelectedMember(m); }}
+                  className="mx-auto w-full max-w-[19rem] cursor-pointer overflow-hidden rounded-xl border-border/60 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                >
                   <CardContent className="px-1.5 py-2.5 sm:px-3 sm:py-4">
                     <div className="mx-auto grid h-18 w-18 place-items-center overflow-hidden rounded-full border-4 border-white bg-secondary font-display text-base font-bold text-primary shadow-md ring-1 ring-border sm:h-32 sm:w-32 sm:text-xl">
                       <CommitteeAvatar member={m} />
@@ -603,6 +629,33 @@ function Home() {
         </div>
       </section>
 
+      <Dialog open={Boolean(selectedMember)} onOpenChange={(open) => !open && setSelectedMember(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto p-0 sm:max-w-[920px]">
+          {selectedMember && (
+            <div className="grid gap-0 md:grid-cols-[minmax(0,42%)_minmax(0,58%)]">
+              <div className="bg-secondary p-5 sm:p-7">
+                <div className="aspect-[4/5] overflow-hidden rounded-xl border border-border bg-white shadow-sm">
+                  {selectedMember.photo_url ? <img src={selectedMember.photo_url} alt={selectedMember.full_name} className="h-full w-full object-cover object-top" /> : <div className="grid h-full place-items-center font-display text-5xl font-bold text-primary">{initials(selectedMember.full_name)}</div>}
+                </div>
+              </div>
+              <div className="p-6 sm:p-8">
+                <DialogHeader className="pr-8 text-left">
+                  <DialogTitle className="font-display text-3xl font-bold leading-tight text-primary-dark sm:text-4xl">{selectedMember.full_name}</DialogTitle>
+                  {selectedMember.name_mr && <DialogDescription className="text-xl font-semibold text-primary-dark">{selectedMember.name_mr}</DialogDescription>}
+                </DialogHeader>
+                <Badge className="mt-4 rounded-full bg-success/15 px-3 py-1 text-sm font-semibold text-success hover:bg-success/15">{displayCommitteeDesignation(selectedMember)}</Badge>
+                <div className="mt-7 space-y-5">
+                  <DetailRow icon={UserRound} label={committeePopupLabels.fullName} value={selectedMember.full_name} />
+                  <DetailRow icon={Phone} label={committeePopupLabels.phone} value={selectedMember.phone_number ? `+91 ${selectedMember.phone_number}` : null} />
+                  <DetailRow icon={Briefcase} label={committeePopupLabels.designation} value={displayCommitteeDesignation(selectedMember)} />
+                  <DetailRow icon={Store} label={committeePopupLabels.gala} value={selectedMember.gala_number || null} />
+                </div>
+                {selectedMember.message ? <p className="mt-7 border-l-4 border-saffron pl-4 text-base italic leading-relaxed text-foreground/75">"{selectedMember.message}"</p> : <p className="mt-7 border-t pt-5 text-center font-display text-lg font-semibold italic text-primary-dark">"{committeePopupLabels.quote}"</p>}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       <Dialog open={!!selectedNotice} onOpenChange={(open) => !open && setSelectedNotice(null)}>
         <DialogContent className="max-w-2xl">
           {selectedNotice && (
