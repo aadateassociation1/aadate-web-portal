@@ -5084,6 +5084,7 @@ function parseDashboardPostContent(value?: string | null) {
 
 function OwnerDbContentPage({ title, subtitle, icon: Icon, items, attachmentBase = "/api/v1/public/content-attachments" }: { title: string; subtitle: string; icon: React.ElementType; items: DashboardPost[]; attachmentBase?: string }) {
 
+  const { lang } = useI18n();
   const isMr = lang === "mr";
   const displayPost = (item: DashboardPost) => {
     const en = item.parsed || parseDashboardPostContent(item.content_en);
