@@ -59,6 +59,10 @@ type MarketPriceRow = {
   change_amount: number | null;
   change_percent: number | null;
   change_direction: "up" | "down" | "same" | "none";
+  raw_submission_count?: number;
+  valid_submission_count?: number;
+  submission_count?: number;
+  aggregate_status?: "collecting" | "updated" | "final" | string;
 };
 
 type MarketSummary = {
@@ -174,6 +178,24 @@ function changeView(row: MarketPriceRow) {
   return <span className="inline-flex items-center gap-1 text-muted-foreground"><Minus className="h-4 w-4" /> {"\u20B9"}0</span>;
 }
 
+function aggregateStatusLabel(row: MarketPriceRow, lang: string) {
+  const count = Number(row.submission_count || row.valid_submission_count || 0);
+  const status = row.aggregate_status || (row.price_id ? "updated" : "collecting");
+  if (lang === "mr") {
+    if (status === "final") return "अंतिम";
+    if (status === "updated") return "अपडेट झाले";
+    return count > 0 ? "दर गोळा होत आहेत" : "प्रलंबित";
+  }
+  if (status === "final") return "Final";
+  if (status === "updated") return "Updated";
+  return count > 0 ? "Collecting Prices" : "Pending";
+}
+
+function membersUpdatedLabel(row: MarketPriceRow, lang: string) {
+  const count = Number(row.submission_count || row.valid_submission_count || 0);
+  return lang === "mr" ? `${count} सभासद` : `${count} Members`;
+}
+
 function CategoryTabs({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -268,6 +290,8 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                       <th className="p-3 text-right">Avg</th>
                       <th className="p-3">Change</th>
                       <th className="p-3">Unit</th>
+                      <th className="p-3">Updated By</th>
+                      <th className="p-3">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -277,7 +301,7 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                         <Fragment key={group.key}>
                           {grouped && (
                             <tr className="border-t bg-secondary/35">
-                              <td className="p-3" colSpan={6}>
+                              <td className="p-3" colSpan={8}>
                                 <div className="font-display font-semibold text-primary-dark">{group.nameEn} / {group.nameMr}</div>
                                 <div className="text-xs text-muted-foreground">{group.children.length} varieties</div>
                               </td>
@@ -294,6 +318,8 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                               <td className="p-3 text-right font-bold text-primary-dark">{currency(row.modal_price)}</td>
                               <td className="p-3">{changeView(row)}</td>
                               <td className="p-3">{row.unit}</td>
+                              <td className="p-3 font-semibold text-primary-dark">{membersUpdatedLabel(row, lang)}</td>
+                              <td className="p-3"><Badge variant="secondary" className="bg-secondary text-primary-dark">{aggregateStatusLabel(row, lang)}</Badge></td>
                             </tr>
                           ))}
                         </Fragment>
@@ -344,6 +370,8 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                       </div>
                       <div className="mt-2 flex items-center justify-start gap-2 border-t border-dashed pt-2 text-[10px]">
                         <span className={`truncate font-medium ${changeClassName}`}>{changeLabel}</span>
+                        <span className="text-muted-foreground">{membersUpdatedLabel(row, lang)}</span>
+                        <span className="font-semibold text-primary-dark">{aggregateStatusLabel(row, lang)}</span>
                       </div>
                     </div>
                   );
@@ -571,7 +599,7 @@ function MemberMarketPricesPage() {
                             <td className="p-3"><Input className="h-9 w-20 px-2 bg-secondary/40" readOnly value={draft?.modalPrice || ""} /></td>
                             <td className="p-3"><Select value={draft?.unit || row.default_unit} onValueChange={(value) => setDraft(row.item_id, "unit", value)}><SelectTrigger className="h-9 w-24 px-2"><SelectValue /></SelectTrigger><SelectContent>{UNITS.map((unit) => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}</SelectContent></Select></td>
                             <td className="p-3"><Badge className={updated ? "bg-success/15 text-success hover:bg-success/15" : row.member_status === "draft" ? "bg-saffron/20 text-primary-dark hover:bg-saffron/20" : "bg-muted text-muted-foreground hover:bg-muted"}>{updated ? "Updated" : row.member_status === "draft" ? "Draft" : "Pending"}</Badge></td>
-                            <td className="p-3"><div className="font-semibold text-primary-dark">{currency(row.modal_price)}</div><div className="text-xs text-muted-foreground">{row.price_id ? `${currency(row.min_price)} - ${currency(row.max_price)}` : "Insufficient updates"}</div></td>
+                            <td className="p-3"><div className="font-semibold text-primary-dark">{currency(row.modal_price)}</div><div className="text-xs text-muted-foreground">{row.price_id ? `${currency(row.min_price)} - ${currency(row.max_price)}` : "Insufficient updates"}</div><div className="mt-1 text-xs font-medium text-primary-dark">{membersUpdatedLabel(row, lang)} • {aggregateStatusLabel(row, lang)}</div></td>
                             <td className="p-3"><Button size="sm" variant="outline" onClick={() => openHistory(row)}><Eye className="mr-1 h-4 w-4" /> View</Button></td>
                           </tr>
                         );

@@ -28,6 +28,8 @@ const DATA_RETENTION_MS = DATA_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 const RISK_NOTIFICATION_RETENTION_DAYS = 90;
 const RISK_NOTIFICATION_RETENTION_MS = RISK_NOTIFICATION_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 const DATA_RETENTION_CHECK_INTERVAL_MS = 10 * 60 * 1000;
+const MARKET_PRICE_UPDATE_BATCH_DELAY_MS = Math.max(60 * 1000, Number(process.env.MARKET_PRICE_UPDATE_BATCH_DELAY_MS || 15 * 60 * 1000));
+const MARKET_PRICE_FINAL_CHECK_INTERVAL_MS = Math.max(60 * 1000, Number(process.env.MARKET_PRICE_FINAL_CHECK_INTERVAL_MS || 5 * 60 * 1000));
 const DOCUMENT_TYPE_LABELS = {
   profile_photo: "Profile photo",
   shop_allotment: "Gala ownership document",
@@ -2107,17 +2109,42 @@ async function ensureMarketPriceTables() {
       max_price DECIMAL(10,2) NOT NULL,
       avg_price DECIMAL(10,2) NOT NULL,
       unit VARCHAR(40) NOT NULL,
+      is_outlier TINYINT(1) NOT NULL DEFAULT 0,
+      included_in_aggregate TINYINT(1) NOT NULL DEFAULT 1,
       status ENUM('draft','submitted') NOT NULL DEFAULT 'submitted',
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       UNIQUE KEY uq_member_market_price_user_item_date (user_id, market_item_id, price_date),
       INDEX idx_member_market_prices_date_item_status (price_date, market_item_id, status),
+      INDEX idx_member_market_prices_aggregate (price_date, market_item_id, status, included_in_aggregate),
       INDEX idx_member_market_prices_user_date (user_id, price_date),
       CONSTRAINT fk_member_market_prices_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
       CONSTRAINT fk_member_market_prices_item FOREIGN KEY (market_item_id) REFERENCES market_items(id) ON DELETE CASCADE,
       CONSTRAINT chk_member_market_prices_non_negative CHECK (min_price >= 0 AND max_price >= 0 AND avg_price >= 0),
       CONSTRAINT chk_member_market_prices_range CHECK (max_price >= min_price)
     ) ENGINE=InnoDB
+  `);
+  await addColumnIfMissing("member_market_prices", "is_outlier", "is_outlier TINYINT(1) NOT NULL DEFAULT 0 AFTER unit");
+  await addColumnIfMissing("member_market_prices", "included_in_aggregate", "included_in_aggregate TINYINT(1) NOT NULL DEFAULT 1 AFTER is_outlier");
+  await addIndexIfMissing("member_market_prices", "idx_member_market_prices_aggregate", "idx_member_market_prices_aggregate (price_date, market_item_id, status, included_in_aggregate)");
+  await addColumnIfMissing("market_prices", "raw_submission_count", "raw_submission_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER notes");
+  await addColumnIfMissing("market_prices", "valid_submission_count", "valid_submission_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER raw_submission_count");
+  await addColumnIfMissing("market_prices", "submission_count", "submission_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER valid_submission_count");
+  await addColumnIfMissing("market_prices", "aggregate_status", "aggregate_status VARCHAR(30) NOT NULL DEFAULT 'updated' AFTER submission_count");
+  await addIndexIfMissing("market_prices", "idx_market_prices_date_item_aggregate", "idx_market_prices_date_item_aggregate (price_date, market_item_id, status, aggregate_status)");
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS market_price_notification_log (
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      price_date DATE NOT NULL,
+      notification_type VARCHAR(80) NOT NULL,
+      sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      recipient_count INT UNSIGNED NOT NULL DEFAULT 0,
+      push_success_count INT UNSIGNED NOT NULL DEFAULT 0,
+      push_failure_count INT UNSIGNED NOT NULL DEFAULT 0,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uq_market_price_notification_log_date_type (price_date, notification_type),
+      INDEX idx_market_price_notification_log_sent (notification_type, sent_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   `);
   for (const statement of [
     "ALTER TABLE market_items ADD COLUMN parent_id BIGINT UNSIGNED NULL AFTER variety",
@@ -3469,6 +3496,106 @@ function filterMarketOutliers(submissions) {
   return submissions.filter((row) => Number(row.avg_price) >= minAllowed && Number(row.avg_price) <= maxAllowed);
 }
 
+const pendingMarketPriceBatchTimers = new Map();
+
+async function claimMarketPriceNotification({ date, type }) {
+  const [result] = await pool.query(
+    `INSERT IGNORE INTO market_price_notification_log (price_date, notification_type, sent_at)
+     VALUES (:date, :type, NOW())`,
+    { date, type },
+  );
+  return (result.affectedRows || 0) > 0;
+}
+
+async function updateMarketPriceNotificationLog({ date, type, recipientCount = 0, pushResult = {} }) {
+  await pool.query(
+    `UPDATE market_price_notification_log
+        SET recipient_count = :recipientCount,
+            push_success_count = :pushSuccessCount,
+            push_failure_count = :pushFailureCount,
+            sent_at = NOW()
+      WHERE price_date = :date
+        AND notification_type = :type`,
+    {
+      date,
+      type,
+      recipientCount,
+      pushSuccessCount: Number(pushResult.sent || 0),
+      pushFailureCount: Number(pushResult.failed || 0),
+    },
+  );
+}
+
+async function sendMarketPriceBroadcast({ date, type, title, message }) {
+  const claimed = await claimMarketPriceNotification({ date, type });
+  if (!claimed) return { sent: false, reason: "duplicate" };
+  const recipientCount = await createMemberNotifications(pool, {
+    type,
+    title,
+    message,
+    relatedEntityType: "market_prices",
+    relatedEntityId: null,
+    actionUrl: "/member/market-prices",
+    priority: type === "FINAL_MARKET_PRICE" ? "high" : "normal",
+  });
+  const pushResult = await sendPushToAllMembers({
+    title,
+    body: message,
+    url: "/member/market-prices",
+    type,
+    entityId: null,
+    priority: type === "FINAL_MARKET_PRICE" ? "high" : "normal",
+  }).catch((error) => {
+    console.error("Market price broadcast push failed", { type, date, message: error instanceof Error ? error.message : String(error) });
+    return { sent: 0, failed: 0, skipped: true };
+  });
+  await updateMarketPriceNotificationLog({ date, type, recipientCount, pushResult });
+  await writeAudit({ req: {}, action: `market_prices.notification.${type.toLowerCase()}`, module: "market_prices", entityType: "market_price_notification_log", oldValues: null, newValues: { date, recipientCount, pushResult } }).catch(() => undefined);
+  return { sent: true, recipientCount, pushResult };
+}
+
+function scheduleMarketPriceBatchNotification(date) {
+  if (pendingMarketPriceBatchTimers.has(date)) clearTimeout(pendingMarketPriceBatchTimers.get(date));
+  const timer = setTimeout(() => {
+    pendingMarketPriceBatchTimers.delete(date);
+    sendMarketPriceBroadcast({
+      date,
+      type: "MARKET_PRICE_UPDATED",
+      title: "Today's Market Prices Updated / आजचे बाजारभाव अपडेट झाले",
+      message: "Today's average fruit and vegetable market prices have been updated. Tap to view the latest rates. आजचे फळे व भाजीपाल्याचे सरासरी बाजारभाव अपडेट झाले आहेत. नवीन दर पाहण्यासाठी येथे टॅप करा.",
+    }).catch((error) => console.error("Market price batch notification failed", error));
+  }, MARKET_PRICE_UPDATE_BATCH_DELAY_MS);
+  pendingMarketPriceBatchTimers.set(date, timer);
+}
+
+async function sendFinalMarketPriceNotificationIfDue() {
+  const now = getIndiaDateParts();
+  if (now.hour < MARKET_PRICE_SUBMISSION_DEADLINE_HOUR) return;
+  const date = now.date;
+  const [[aggregate]] = await pool.query(
+    `SELECT COUNT(*) AS count
+       FROM market_prices
+      WHERE price_date = :date
+        AND status = 'published'
+        AND COALESCE(valid_submission_count, submission_count, 0) >= :minimumSubmissions`,
+    { date, minimumSubmissions: MIN_SUBMISSIONS_FOR_PUBLIC_PRICE },
+  );
+  if (Number(aggregate?.count || 0) === 0) return;
+  await sendMarketPriceBroadcast({
+    date,
+    type: "FINAL_MARKET_PRICE",
+    title: "Today's Final Market Prices Are Available / आजचे अंतिम बाजारभाव उपलब्ध आहेत",
+    message: "Today's fruit and vegetable average market prices have been calculated from member submissions. सभासदांनी नोंदवलेल्या दरांवरून आजचे फळे व भाजीपाल्याचे सरासरी बाजारभाव तयार झाले आहेत.",
+  });
+}
+
+function scheduleMarketPriceFinalNotificationCheck() {
+  sendFinalMarketPriceNotificationIfDue().catch((error) => console.error("Final market price notification check failed", error));
+  setInterval(() => {
+    sendFinalMarketPriceNotificationIfDue().catch((error) => console.error("Final market price notification check failed", error));
+  }, MARKET_PRICE_FINAL_CHECK_INTERVAL_MS);
+}
+
 async function recalculateMemberMarketAggregate({ connection = pool, date, itemIds, userId = null }) {
   const uniqueItemIds = Array.from(new Set(itemIds.map(Number).filter((id) => Number.isInteger(id) && id > 0)));
   for (const itemId of uniqueItemIds) {
@@ -3484,6 +3611,28 @@ async function recalculateMemberMarketAggregate({ connection = pool, date, itemI
     const rawSubmissionCount = submissions.length;
     const validSubmissions = filterMarketOutliers(submissions);
     const validSubmissionCount = validSubmissions.length;
+    await connection.query(
+      `UPDATE member_market_prices
+          SET is_outlier = 1,
+              included_in_aggregate = 0
+        WHERE market_item_id = :itemId
+          AND price_date = :date
+          AND status = 'submitted'`,
+      { itemId, date },
+    );
+    const validUserIds = validSubmissions.map((row) => Number(row.user_id)).filter(Boolean);
+    if (validUserIds.length > 0) {
+      await connection.query(
+        `UPDATE member_market_prices
+            SET is_outlier = 0,
+                included_in_aggregate = 1
+          WHERE market_item_id = :itemId
+            AND price_date = :date
+            AND status = 'submitted'
+            AND user_id IN (:validUserIds)`,
+        { itemId, date, validUserIds },
+      );
+    }
     if (validSubmissionCount < MIN_SUBMISSIONS_FOR_PUBLIC_PRICE) continue;
     const marketMin = Math.min(...validSubmissions.map((row) => Number(row.min_price)));
     const marketMax = Math.max(...validSubmissions.map((row) => Number(row.max_price)));
@@ -3494,13 +3643,16 @@ async function recalculateMemberMarketAggregate({ connection = pool, date, itemI
       return map;
     }, new Map());
     const unit = Array.from(unitCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || "Kg";
+    const aggregateStatus = marketPriceAggregateStatus(date, validSubmissionCount);
     await connection.query(
       `INSERT INTO market_prices (
          market_item_id, price_date, min_price, max_price, modal_price, unit,
-         quality_grade, notes, status, created_by, updated_by, published_by, published_at
+         quality_grade, notes, raw_submission_count, valid_submission_count,
+         submission_count, aggregate_status, status, created_by, updated_by, published_by, published_at
        ) VALUES (
          :itemId, :date, :marketMin, :marketMax, :marketAvg, :unit,
-         :qualityGrade, :notes, 'published', :userId, :userId, :userId, NOW()
+         :qualityGrade, :notes, :rawSubmissionCount, :validSubmissionCount,
+         :validSubmissionCount, :aggregateStatus, 'published', :userId, :userId, :userId, NOW()
        )
        ON DUPLICATE KEY UPDATE
          min_price = VALUES(min_price),
@@ -3509,6 +3661,10 @@ async function recalculateMemberMarketAggregate({ connection = pool, date, itemI
          unit = VALUES(unit),
          quality_grade = VALUES(quality_grade),
          notes = VALUES(notes),
+         raw_submission_count = VALUES(raw_submission_count),
+         valid_submission_count = VALUES(valid_submission_count),
+         submission_count = VALUES(submission_count),
+         aggregate_status = VALUES(aggregate_status),
          status = 'published',
          updated_by = VALUES(updated_by),
          published_by = VALUES(published_by),
@@ -3521,6 +3677,9 @@ async function recalculateMemberMarketAggregate({ connection = pool, date, itemI
         marketAvg,
         unit,
         userId,
+        rawSubmissionCount,
+        validSubmissionCount,
+        aggregateStatus,
         qualityGrade: `Member aggregate (${validSubmissionCount}/${rawSubmissionCount})`,
         notes: `Auto-calculated from ${validSubmissionCount} valid member submissions. Minimum required: ${MIN_SUBMISSIONS_FOR_PUBLIC_PRICE}.`,
       },

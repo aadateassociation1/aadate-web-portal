@@ -65,7 +65,7 @@ function Home() {
   type RatingAttachment = { id: number; attachment_type: "image" | "video"; original_filename: string; mime_type: string; file_size_bytes: number };
   type PublicReview = { id: number; rating_value: number; review_text: string | null; reviewer_type: "trader" | "customer"; reviewer_name: string; business_name: string; trader_code: string; trader_name: string; gala_number: string | null; customer_code: string | null; created_at: string; attachments?: RatingAttachment[] };
   type PublicComplaintFeedback = { id: number; reaction: string; rating: number; comment: string; category: string; created_at: string };
-  type PublicPrice = { item_id: number; category: string; name_en: string; name_mr: string; min_price: number; max_price: number; modal_price: number; unit: string; change_amount: number | null; change_direction: string; published_at: string | null };
+  type PublicPrice = { item_id: number; category: string; name_en: string; name_mr: string; min_price: number; max_price: number; modal_price: number; unit: string; change_amount: number | null; change_direction: string; published_at: string | null; submission_count?: number; valid_submission_count?: number; aggregate_status?: string };
   const [updates, setUpdates] = useState<PublicContent[]>([]);
   const [notices, setNotices] = useState<PublicContent[]>([]);
   const [gallery, setGallery] = useState<PublicContent[]>([]);
@@ -552,6 +552,7 @@ function Home() {
                       </div>
                       <span className={`whitespace-nowrap text-[10px] font-medium sm:text-[11px] ${trendClassName}`}>{trendLabel}</span>
                     </div>
+                    <div className="mt-1.5 text-[10px] font-medium text-muted-foreground sm:text-[11px]">{lang === "mr" ? `${Number(price.submission_count || price.valid_submission_count || 0)} सभासद` : `${Number(price.submission_count || price.valid_submission_count || 0)} Members Updated`}</div>
                   </CardContent>
                 </Card>
               );
