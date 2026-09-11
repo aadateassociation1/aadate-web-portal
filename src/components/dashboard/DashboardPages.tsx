@@ -3971,7 +3971,9 @@ export function OwnerProfilePage() {
                   onChange={(event) => {
                     const next = event.currentTarget.value;
                     setFullNameEn(next);
-                    if (!fullNameMrTouched) setFullNameMr(englishNameToMarathiName(next));
+                    if (!fullNameMrTouched || !/[\u0900-\u097F]/.test(fullNameMr.trim())) {
+                      setFullNameMr(englishNameToMarathiName(next));
+                    }
                   }}
                   placeholder="Full name"
                 />
