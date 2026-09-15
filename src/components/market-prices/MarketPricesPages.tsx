@@ -109,10 +109,45 @@ function currency(value: number | null | undefined) {
 }
 
 const MARKET_ITEM_IMAGE_ICONS: Array<{ terms: string[]; src: string; className: string }> = [
+  { terms: ["tomato"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Tomato_je.jpg?width=96", className: "bg-red-50" },
+  { terms: ["onion", "kanda"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Onion_on_White.JPG?width=96", className: "bg-rose-50" },
+  { terms: ["potato", "batata"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Potato_and_cross_section.jpg?width=96", className: "bg-amber-50" },
+  { terms: ["brinjal", "eggplant", "vangi"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Aubergine.jpg?width=96", className: "bg-purple-50" },
+  { terms: ["cabbage"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Cabbage_and_cross_section_on_white.jpg?width=96", className: "bg-lime-50" },
+  { terms: ["cauliflower"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Cauliflower.JPG?width=96", className: "bg-stone-50" },
+  { terms: ["chilli", "mirchi"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Green_chilli.jpg?width=96", className: "bg-red-50" },
+  { terms: ["capsicum", "bell pepper"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Bell_pepper.jpg?width=96", className: "bg-green-50" },
+  { terms: ["lady finger", "okra", "bhendi"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Okra.jpg?width=96", className: "bg-green-50" },
+  { terms: ["cucumber"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Cucumber_BNC.jpg?width=96", className: "bg-teal-50" },
+  { terms: ["carrot"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Carrots_of_many_colors.jpg?width=96", className: "bg-orange-50" },
+  { terms: ["beetroot"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Beetroot.jpg?width=96", className: "bg-fuchsia-50" },
+  { terms: ["bitter gourd", "karle"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Bitter_gourd.jpg?width=96", className: "bg-emerald-50" },
+  { terms: ["bottle gourd"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Bottle_gourd.jpg?width=96", className: "bg-lime-50" },
+  { terms: ["ridge gourd"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Ridge_gourd.jpg?width=96", className: "bg-green-50" },
+  { terms: ["pumpkin"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Pumpkin.jpg?width=96", className: "bg-orange-50" },
+  { terms: ["green peas"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Peas_in_pods_-_Studio.jpg?width=96", className: "bg-green-50" },
+  { terms: ["spinach", "palak"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Spinacia_oleracea_Spinazie_bloeiend.jpg?width=96", className: "bg-green-50" },
+  { terms: ["coriander"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Coriandrum_sativum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-193.jpg?width=96", className: "bg-emerald-50" },
+  { terms: ["fenugreek", "methi"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Fenugreek_methi.jpg?width=96", className: "bg-lime-50" },
+  { terms: ["drumstick"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Moringa_oleifera_fruits.jpg?width=96", className: "bg-green-50" },
+  { terms: ["garlic", "lasun"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/GarlicBasket.jpg?width=96", className: "bg-slate-50" },
+  { terms: ["ginger"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Ginger.jpg?width=96", className: "bg-yellow-50" },
+  { terms: ["sweet corn", "corn"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Corncobs.jpg?width=96", className: "bg-yellow-50" },
+  { terms: ["apple"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Red_Apple.jpg?width=96", className: "bg-red-50" },
+  { terms: ["banana", "keli"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Banana-Single.jpg?width=96", className: "bg-yellow-50" },
+  { terms: ["orange"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Orange-Fruit-Pieces.jpg?width=96", className: "bg-orange-50" },
+  { terms: ["pomegranate"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Pomegranate_fruit_-_whole_and_piece_with_arils.jpg?width=96", className: "bg-rose-50" },
+  { terms: ["grape"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Table_grapes_on_white.jpg?width=96", className: "bg-violet-50" },
+  { terms: ["papaya"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Papaya_cross_section_BNC.jpg?width=96", className: "bg-orange-50" },
+  { terms: ["watermelon"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Watermelon_cross_BNC.jpg?width=96", className: "bg-green-50" },
+  { terms: ["muskmelon"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Cantaloupe_and_canary_melon.jpg?width=96", className: "bg-amber-50" },
+  { terms: ["guava"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Guava_ID.jpg?width=96", className: "bg-green-50" },
   { terms: ["pineapple", "ananas"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Pineapple.png?width=96", className: "bg-amber-50" },
+  { terms: ["mango"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Mango_4.jpg?width=96", className: "bg-orange-50" },
   { terms: ["sweet lime", "mosambi"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/%28Citrus%20limetta%29%20Mosambi%20at%20a%20market%20in%20Seethammadhara.jpg?width=96", className: "bg-lime-50" },
   { terms: ["chikoo", "sapodilla"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Sapodilla%20fruit.jpg?width=96", className: "bg-amber-50" },
   { terms: ["custard apple", "sitaphal", "sitafal"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Custard_apple.jpg?width=96", className: "bg-lime-50" },
+  { terms: ["coconut"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Coconut_in_half.jpg?width=96", className: "bg-stone-50" },
 ];
 
 const MARKET_ITEM_ICONS: Array<{ terms: string[]; icon: string; className: string }> = [
@@ -163,7 +198,7 @@ function MarketItemIcon({ row, size = "md" }: { row: MarketPriceRow; size?: "sm"
   const sizeClass = size === "lg" ? "h-12 w-12 text-2xl" : size === "sm" ? "h-8 w-8 text-lg" : "h-10 w-10 text-xl";
   return (
     <span className={`grid shrink-0 place-items-center rounded-full shadow-sm ring-1 ring-black/5 ${sizeClass} ${item.className}`} aria-hidden="true">
-      {"src" in item ? <img src={item.src} alt="" className="h-full w-full rounded-full object-cover p-0.5" loading="lazy" referrerPolicy="no-referrer" /> : item.icon}
+      {"src" in item ? <img src={item.src} alt="" className="h-full w-full rounded-full object-contain p-1" loading="lazy" referrerPolicy="no-referrer" /> : item.icon}
     </span>
   );
 }
