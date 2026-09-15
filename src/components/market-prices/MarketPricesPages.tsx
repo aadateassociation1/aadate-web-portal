@@ -94,9 +94,9 @@ function todayInput() {
   return now.toISOString().slice(0, 10);
 }
 
-function formatDate(value: string | null | undefined, withTime = false) {
+function formatDate(value: string | null | undefined, withTime = false, locale = "en-IN") {
   if (!value) return "-";
-  return new Date(value).toLocaleString("en-IN", {
+  return new Date(value).toLocaleString(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -320,7 +320,7 @@ function CategoryTabs({ value, onChange }: { value: string; onChange: (value: st
           className={`min-h-16 rounded-xl border px-2 py-2 text-center transition sm:min-h-0 sm:px-4 sm:py-3 sm:text-left ${value === category.value ? "border-primary bg-secondary text-primary-dark shadow-sm" : "border-border bg-background hover:bg-secondary/60"}`}
         >
           <div className="font-display text-sm font-semibold leading-tight sm:text-base">{isMarathi ? category.mr : category.label}</div>
-          {isMarathi && <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground sm:text-xs">{category.label}</div>}
+          {!isMarathi && <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground sm:text-xs">{category.mr}</div>}
         </button>
       ))}
     </div>
@@ -369,17 +369,18 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
     return [publicRows.slice(0, midpoint), publicRows.slice(midpoint)];
   }, [publicRows]);
   const isMarathi = lang === "mr";
+  const publicDateLocale = isMarathi ? "mr-IN" : "en-IN";
   const publicText = {
-    title: isMarathi ? "भाजीपाला बाजारभाव" : "Daily Market Prices",
+    title: isMarathi ? "दैनिक बाजार भाव" : "Daily Market Prices",
     subtitle: isMarathi ? "पुणे मंडई घाऊक दर" : "Pune Market Yard Wholesale Rates",
     items: isMarathi ? "वस्तू" : "Items",
     fresh: isMarathi ? "ताजे" : "Fresh",
-    refresh: isMarathi ? "रीफ्रेश" : "Refresh",
+    refresh: isMarathi ? "ताजे करा" : "Refresh",
     search: isMarathi ? "भाजी किंवा फळ शोधा..." : "Search commodity...",
     location: isMarathi ? "पुणे मंडई" : "Pune Market Yard",
     quality: isMarathi ? "उत्तम गुणवत्ता योग्य दरात" : "Quality produce at fair rates",
     empty: isMarathi ? "आजचे बाजारभाव अजून प्रकाशित झालेले नाहीत. कृपया थोड्या वेळाने तपासा." : "Today's market prices have not been published yet. Please check again shortly.",
-    lastUpdated: isMarathi ? "शेवटचे अपडेट" : "Last Updated",
+    lastUpdated: isMarathi ? "शेवटचे अद्यतन" : "Last Updated",
   };
 
   const openHistory = async (row: MarketPriceRow) => {
@@ -403,14 +404,14 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
       <section className={mode === "public" ? "bg-[#f6fbf3] py-8 sm:py-12" : "mt-6"}>
         <div className={mode === "public" ? "container-page" : ""}>
           {mode === "public" ? (
-            <div className="overflow-hidden rounded-3xl border border-primary/20 bg-white shadow-xl shadow-primary-dark/10">
+            <div className="overflow-hidden rounded-3xl border border-primary/20 bg-white shadow-xl shadow-primary-dark/10" data-no-translate>
               <div className="relative overflow-hidden bg-[linear-gradient(135deg,#0d3f2a_0%,#155f3e_58%,#f5fbf2_58%,#f5fbf2_100%)] px-4 py-5 text-white sm:px-8 sm:py-7">
                 <div className="absolute inset-x-0 bottom-0 h-px bg-primary/20" />
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div>
                     <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-primary-dark shadow-sm">
                       <Calendar className="h-3.5 w-3.5" />
-                      {formatDate(date || lastPublished)}
+                      {formatDate(date || lastPublished, false, publicDateLocale)}
                     </div>
                     <h1 className="mt-3 font-display text-4xl font-black leading-none text-white sm:text-6xl">
                       {publicText.title}
@@ -454,7 +455,7 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                               <MarketItemIcon row={row} size="md" />
                               <div className="min-w-0">
                                 <div className="truncate font-display text-base font-black leading-tight text-primary-dark sm:text-lg">{isMarathi ? (row.name_mr || row.name_en) : row.name_en}</div>
-                                <div className="truncate text-xs font-semibold text-muted-foreground">{isMarathi ? row.name_en : row.name_mr}</div>
+                                {!isMarathi && row.name_mr && <div className="truncate text-xs font-semibold text-muted-foreground">{row.name_mr}</div>}
                               </div>
                             </div>
                             <div className="flex items-baseline gap-1 text-right font-black text-[#8f2532]">
@@ -477,8 +478,8 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
 
               <div className="grid gap-3 border-t border-primary/15 bg-[#edf7e9] px-4 py-4 text-primary-dark sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:px-6">
                 <div className="font-display text-xl font-black">{publicText.location}</div>
-                <div className="rounded-full border border-primary/25 bg-white px-5 py-2 text-center text-sm font-black uppercase tracking-[0.12em]">{publicText.quality}</div>
-                <div className="text-sm font-semibold text-muted-foreground sm:text-right">{publicText.lastUpdated}: {formatDate(lastPublished, true)}</div>
+                <div className="rounded-full border border-primary/25 bg-white px-5 py-2 text-center text-sm font-black">{publicText.quality}</div>
+                <div className="text-sm font-semibold text-muted-foreground sm:text-right">{publicText.lastUpdated}: {formatDate(lastPublished, true, publicDateLocale)}</div>
               </div>
             </div>
           ) : (
