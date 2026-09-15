@@ -108,7 +108,15 @@ function currency(value: number | null | undefined) {
   return value === null || value === undefined ? "-" : `\u20B9${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
 
+const MARKET_ITEM_IMAGE_ICONS: Array<{ terms: string[]; src: string; className: string }> = [
+  { terms: ["pineapple", "ananas"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Pineapple.png?width=96", className: "bg-amber-50" },
+  { terms: ["sweet lime", "mosambi"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/%28Citrus%20limetta%29%20Mosambi%20at%20a%20market%20in%20Seethammadhara.jpg?width=96", className: "bg-lime-50" },
+  { terms: ["chikoo", "sapodilla"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Sapodilla%20fruit.jpg?width=96", className: "bg-amber-50" },
+  { terms: ["custard apple", "sitaphal", "sitafal"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Custard_apple.jpg?width=96", className: "bg-lime-50" },
+];
+
 const MARKET_ITEM_ICONS: Array<{ terms: string[]; icon: string; className: string }> = [
+  { terms: ["pineapple", "ananas"], icon: "\uD83C\uDF4D", className: "bg-amber-100 text-amber-800" },
   { terms: ["onion", "kanda"], icon: "\uD83E\uDDC5", className: "bg-rose-100 text-rose-700" },
   { terms: ["potato", "batata"], icon: "\uD83E\uDD54", className: "bg-amber-100 text-amber-800" },
   { terms: ["tomato"], icon: "\uD83C\uDF45", className: "bg-red-100 text-red-700" },
@@ -142,6 +150,8 @@ const MARKET_ITEM_ICONS: Array<{ terms: string[]; icon: string; className: strin
 
 function marketItemIcon(row: MarketPriceRow) {
   const haystack = `${row.name_en} ${row.name_mr} ${row.variety || ""} ${row.parent_name_en || ""} ${row.parent_name_mr || ""}`.toLowerCase();
+  const image = MARKET_ITEM_IMAGE_ICONS.find((item) => item.terms.some((term) => haystack.includes(term)));
+  if (image) return { ...image, icon: "" };
   return MARKET_ITEM_ICONS.find((item) => item.terms.some((term) => haystack.includes(term))) || {
     icon: row.category === "fruit" ? "\uD83C\uDF4F" : "\uD83E\uDD6C",
     className: row.category === "fruit" ? "bg-orange-100 text-orange-700" : "bg-emerald-100 text-emerald-700",
@@ -153,7 +163,7 @@ function MarketItemIcon({ row, size = "md" }: { row: MarketPriceRow; size?: "sm"
   const sizeClass = size === "lg" ? "h-12 w-12 text-2xl" : size === "sm" ? "h-8 w-8 text-lg" : "h-10 w-10 text-xl";
   return (
     <span className={`grid shrink-0 place-items-center rounded-full shadow-sm ring-1 ring-black/5 ${sizeClass} ${item.className}`} aria-hidden="true">
-      {item.icon}
+      {"src" in item ? <img src={item.src} alt="" className="h-full w-full rounded-full object-cover p-0.5" loading="lazy" referrerPolicy="no-referrer" /> : item.icon}
     </span>
   );
 }
