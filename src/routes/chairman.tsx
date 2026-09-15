@@ -48,8 +48,20 @@ function Chairman() {
       .catch(() => undefined);
   }, []);
 
+  const isAcceptedDirector = (member: CommitteeMemberRecord) => {
+    const designation = `${member.designation} ${member.designation_mr || ""}`.toLowerCase();
+    return (
+      designation.includes("accepted director") ||
+      designation.includes("nominated director") ||
+      designation.includes("swikrut") ||
+      designation.includes("sweekrut") ||
+      designation.includes("\u0938\u094d\u0935\u093f\u0915\u0943\u0924 \u0938\u0902\u091a\u093e\u0932\u0915") ||
+      designation.includes("\u0938\u094d\u0935\u0940\u0915\u0943\u0924 \u0938\u0902\u091a\u093e\u0932\u0915")
+    );
+  };
   const chairman = members.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
-  const committeeMembers = members.filter((member) => member.id !== chairman?.id);
+  const acceptedDirectors = members.filter((member) => member.id !== chairman?.id && isAcceptedDirector(member));
+  const committeeMembers = members.filter((member) => member.id !== chairman?.id && !isAcceptedDirector(member));
   const committeeGridMembers = committeeMembers.length % 3 === 2 && chairman ? [...committeeMembers, chairman] : committeeMembers;
   const initials = (name: string) => name.split(" ").filter(Boolean).slice(-1)[0]?.[0]?.toUpperCase() || name[0]?.toUpperCase() || "M";
   const MARATHI_SHRI_PREFIX = "\u0936\u094d\u0930\u0940.";
@@ -143,6 +155,31 @@ function Chairman() {
 
       <section className="bg-leaf py-14">
         <div className="container-page">
+          {acceptedDirectors.length > 0 && (
+            <div className="mb-12">
+              <h2 className="font-display text-2xl font-bold text-primary-dark">{isMr ? "\u0938\u094d\u0935\u093f\u0915\u0943\u0924 \u0938\u0902\u091a\u093e\u0932\u0915" : "Accepted Directors"}</h2>
+              <div className="mx-auto mt-8 grid max-w-6xl grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
+                {acceptedDirectors.map((m) => (
+                  <Card
+                    key={m.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedMember(m)}
+                    onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setSelectedMember(m); }}
+                    className="mx-auto w-full max-w-[19rem] cursor-pointer overflow-hidden rounded-xl border-border/60 text-center shadow-sm transition duration-200 hover:-translate-y-1 hover:scale-[1.01] hover:border-primary/45 hover:shadow-lg hover:shadow-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  >
+                    <CardContent className="px-1.5 py-2.5 sm:px-3 sm:py-4">
+                      <div className="mx-auto grid h-18 w-18 place-items-center overflow-hidden rounded-full border-4 border-white bg-secondary font-display text-base font-bold text-primary shadow-md ring-1 ring-border sm:h-36 sm:w-36 sm:text-2xl"><CommitteeAvatar member={m} /></div>
+                      <h3 className="mt-2 font-display text-xs font-semibold leading-snug text-primary-dark sm:text-base">{displayCommitteeName(m)}</h3>
+                      {lang === "en" && m.name_mr && <div className="mt-0.5 text-[10px] leading-tight text-muted-foreground sm:text-xs">{m.name_mr}</div>}
+                      <div className="mt-1 inline-flex max-w-full rounded-full bg-secondary px-1.5 py-1 text-[9px] font-semibold leading-tight text-primary sm:px-2.5 sm:text-[11px]">{displayCommitteeDesignation(m)}</div>
+                      {m.gala_number && <div className="mt-1.5 text-xs font-medium text-muted-foreground">{labels.gala} {m.gala_number}</div>}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
           <h2 className="font-display text-2xl font-bold text-primary-dark">{labels.section}</h2>
           <div className="mx-auto mt-8 grid max-w-6xl grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
             {committeeGridMembers.map((m) => (
