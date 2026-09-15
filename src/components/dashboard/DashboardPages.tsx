@@ -2924,9 +2924,12 @@ const committeeDesignationOptions = [
 export function AdminCommitteePage() {
   const [members, setMembers] = useState<CommitteeMemberRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [editing, setEditing] = useState<CommitteeMemberRecord | null>(null);
   const [form, setForm] = useState(emptyCommitteeForm);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const formCardRef = useRef<HTMLDivElement>(null);
   const { lang } = useI18n();
 
   const loadMembers = async () => {
@@ -2968,12 +2971,16 @@ export function AdminCommitteePage() {
       active: member.status === "active",
     });
     setPhotoFile(null);
+    window.requestAnimationFrame(() => {
+      formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   const saveMember = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const endpoint = editing ? `/api/v1/admin/committee/${editing.id}` : "/api/v1/admin/committee";
     const method = editing ? "PATCH" : "POST";
+    setSaving(true);
     try {
       const response = await fetch(endpoint, {
         method,
@@ -2992,11 +2999,14 @@ export function AdminCommitteePage() {
       await loadMembers();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to save committee member.");
+    } finally {
+      setSaving(false);
     }
   };
 
   const deleteMember = async (member: CommitteeMemberRecord) => {
     if (!window.confirm(`Delete ${member.full_name} from committee?`)) return;
+    setDeletingId(member.id);
     try {
       const response = await fetch(`/api/v1/admin/committee/${member.id}`, { method: "DELETE", credentials: "include" });
       const result = await response.json();
@@ -3006,6 +3016,8 @@ export function AdminCommitteePage() {
       await loadMembers();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to delete committee member.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -3024,7 +3036,7 @@ export function AdminCommitteePage() {
     <DashLayout kind="admin">
       <PageTitle title="Chairman & Committee" subtitle="Add, edit and publish association leadership details shown on the public website." action={<Button onClick={resetForm} variant="outline"><Plus className="mr-1 h-4 w-4" /> New Member</Button>} />
       <div className="grid gap-4">
-        <Card className="border-border/60 shadow-sm">
+        <Card ref={formCardRef} className="border-border/60 shadow-sm">
           <CardContent className="p-5 sm:p-6">
             <h2 className="font-display text-xl font-bold text-primary-dark">{editing ? "Edit Committee Member" : "Add Committee Member"}</h2>
             <form className="mt-5 space-y-5" onSubmit={saveMember}>
@@ -3085,8 +3097,8 @@ export function AdminCommitteePage() {
                 <Textarea value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} placeholder="Short member introduction or quote" rows={3} />
               </div>
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
-                <Button type="submit" className="bg-primary text-white hover:bg-primary/90">Save Member</Button>
+                <Button type="button" variant="outline" onClick={resetForm} disabled={saving}>Cancel</Button>
+                <Button type="submit" className="bg-primary text-white hover:bg-primary/90" disabled={saving}>{saving ? "Saving..." : "Save Member"}</Button>
               </div>
             </form>
           </CardContent>
@@ -3096,7 +3108,7 @@ export function AdminCommitteePage() {
           <CardContent className="p-0">
             <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
               <h2 className="font-display text-xl font-bold text-primary-dark">Committee Members ({members.length})</h2>
-              <Button onClick={resetForm} size="sm" className="bg-primary text-white hover:bg-primary/90"><Plus className="mr-1 h-4 w-4" /> Add Member</Button>
+              <Button type="button" onClick={resetForm} size="sm" className="bg-primary text-white hover:bg-primary/90"><Plus className="mr-1 h-4 w-4" /> Add Member</Button>
             </div>
             <div className="overflow-x-auto">
             <Table className="min-w-[980px]">
@@ -3129,8 +3141,8 @@ export function AdminCommitteePage() {
                       <TableCell><Badge className={member.status === "active" ? "bg-success/15 text-success hover:bg-success/15" : "bg-muted text-muted-foreground hover:bg-muted"}>{member.status === "active" ? "Active" : "Inactive"}</Badge></TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button size="icon" variant="outline" className="h-9 w-9 bg-blue-50 text-blue-700 hover:bg-blue-100" onClick={() => openEdit(member)}><Pencil className="h-4 w-4" /></Button>
-                          <Button size="icon" variant="outline" className="h-9 w-9 bg-red-50 text-destructive hover:bg-red-100 hover:text-destructive" onClick={() => deleteMember(member)}><Trash2 className="h-4 w-4" /></Button>
+                          <Button type="button" size="icon" variant="outline" className="h-9 w-9 bg-blue-50 text-blue-700 hover:bg-blue-100" title="Edit member" aria-label={`Edit ${member.full_name}`} onClick={() => openEdit(member)}><Pencil className="h-4 w-4" /></Button>
+                          <Button type="button" size="icon" variant="outline" className="h-9 w-9 bg-red-50 text-destructive hover:bg-red-100 hover:text-destructive" title="Delete member" aria-label={`Delete ${member.full_name}`} disabled={deletingId === member.id} onClick={() => deleteMember(member)}><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>
