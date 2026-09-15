@@ -108,6 +108,16 @@ function currency(value: number | null | undefined) {
   return value === null || value === undefined ? "-" : `\u20B9${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
 
+function marketPriceAmount(value: number | null | undefined) {
+  return value === null || value === undefined ? "-" : Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+}
+
+function publicPriceRange(row: MarketPriceRow) {
+  if (row.min_price === null && row.max_price === null) return marketPriceAmount(row.modal_price);
+  if (row.min_price === row.max_price) return marketPriceAmount(row.min_price);
+  return `${marketPriceAmount(row.min_price)}-${marketPriceAmount(row.max_price)}`;
+}
+
 const MARKET_ITEM_IMAGE_ICONS: Array<{ terms: string[]; src: string; className: string }> = [
   { terms: ["tomato"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Tomato_je.jpg?width=96", className: "bg-red-50" },
   { terms: ["onion", "kanda"], src: "https://commons.wikimedia.org/wiki/Special:FilePath/Onion_on_White.JPG?width=96", className: "bg-rose-50" },
@@ -351,6 +361,11 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
   }), [rows, search]);
 
   const groups = useMemo(() => buildMarketGroups(filtered), [filtered]);
+  const publicRows = useMemo(() => filtered.filter(isPriceableRow), [filtered]);
+  const publicColumns = useMemo(() => {
+    const midpoint = Math.ceil(publicRows.length / 2);
+    return [publicRows.slice(0, midpoint), publicRows.slice(midpoint)];
+  }, [publicRows]);
 
   const openHistory = async (row: MarketPriceRow) => {
     setHistoryItem(row);
@@ -370,19 +385,100 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
           </div>
         </section>
       )}
-      <section className={mode === "public" ? "py-10" : "mt-6"}>
+      <section className={mode === "public" ? "bg-[#f3fff0] py-8 sm:py-12" : "mt-6"}>
         <div className={mode === "public" ? "container-page" : ""}>
-          <CategoryTabs value={category} onChange={setCategory} />
-          <Card className="mt-5 border-border/60">
-            <CardContent className="p-4 sm:p-5">
-              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search commodity..." className="pl-9" />
+          {mode === "public" ? (
+            <div className="overflow-hidden rounded-[1.75rem] border-4 border-[#ffc400] bg-[#071b0d] shadow-2xl shadow-primary-dark/20">
+              <div className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,#225d28_0,#071b0d_38%,#020403_100%)] px-4 py-5 text-white sm:px-8 sm:py-7">
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-[#ffc400]" />
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <div className="inline-flex items-center gap-2 rounded-full bg-[#ffc400] px-3 py-1 text-xs font-extrabold uppercase tracking-[0.18em] text-[#09200d]">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {formatDate(date || lastPublished)}
+                    </div>
+                    <h1 className="mt-3 font-display text-4xl font-black leading-none text-white sm:text-6xl">
+                      भाजीपाला बाजारभाव
+                    </h1>
+                    <p className="mt-2 text-lg font-semibold text-[#ffe773] sm:text-2xl">पुणे मंडई घाऊक दर</p>
+                  </div>
+                  <div className="grid w-full max-w-xs grid-cols-2 gap-2 rounded-2xl border border-white/15 bg-white/10 p-3 text-center backdrop-blur md:w-72">
+                    <div>
+                      <div className="text-2xl font-black text-[#ffc400]">{publicRows.length}</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/75">Items</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-black text-[#ffc400]">100%</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/75">Fresh</div>
+                    </div>
+                  </div>
                 </div>
-                <Button variant="outline" onClick={load}><Filter className="mr-2 h-4 w-4" /> Refresh</Button>
               </div>
-              <div className="mt-5 hidden overflow-hidden rounded-lg border md:block">
+
+              <div className="bg-white px-4 py-4 sm:px-6">
+                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search commodity..." className="h-11 rounded-full border-primary/20 bg-white pl-9 shadow-sm" />
+                  </div>
+                  <Button className="rounded-full bg-[#ffc400] font-bold text-[#09200d] hover:bg-[#f2b600]" onClick={load}><Filter className="mr-2 h-4 w-4" /> Refresh</Button>
+                </div>
+                <div className="mt-4">
+                  <CategoryTabs value={category} onChange={setCategory} />
+                </div>
+              </div>
+
+              <div className="bg-[#fffdf2] p-3 sm:p-5">
+                {publicRows.length > 0 && (
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    {publicColumns.filter((column) => column.length > 0).map((column, columnIndex) => (
+                      <div key={columnIndex} className="overflow-hidden rounded-2xl border-2 border-[#0b5c31] bg-white">
+                        {column.map((row) => (
+                          <div key={row.item_id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-dashed border-slate-300 px-3 py-2.5 last:border-b-0 sm:px-4">
+                            <div className="flex min-w-0 items-center gap-3">
+                              <MarketItemIcon row={row} size="md" />
+                              <div className="min-w-0">
+                                <div className="truncate font-display text-base font-black leading-tight text-primary-dark sm:text-lg">{row.name_mr || row.name_en}</div>
+                                <div className="truncate text-xs font-semibold text-muted-foreground">{row.name_en}</div>
+                              </div>
+                            </div>
+                            <div className="flex items-baseline gap-1 text-right font-black text-[#a21b2b]">
+                              <IndianRupee className="h-4 w-4" />
+                              <span className="text-lg sm:text-xl">{publicPriceRange(row)}</span>
+                              <span className="text-xs font-bold text-slate-700">/{row.unit || row.default_unit || "Kg"}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {publicRows.length === 0 && (
+                  <div className="rounded-2xl border-2 border-dashed border-[#0b5c31] bg-white p-8 text-center text-sm font-semibold text-muted-foreground">
+                    Today's market prices have not been published yet. Please check again shortly.
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-3 bg-[#071b0d] px-4 py-4 text-white sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:px-6">
+                <div className="font-display text-xl font-black text-[#ffc400]">पुणे मंडई</div>
+                <div className="rounded-full border-2 border-[#ffc400] px-5 py-2 text-center text-sm font-black uppercase tracking-[0.16em] text-[#ffc400]">उत्तम गुणवत्ता योग्य दरात</div>
+                <div className="text-sm font-semibold text-white/80 sm:text-right">Last Updated: {formatDate(lastPublished, true)}</div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <CategoryTabs value={category} onChange={setCategory} />
+              <Card className="mt-5 border-border/60">
+                <CardContent className="p-4 sm:p-5">
+                  <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search commodity..." className="pl-9" />
+                    </div>
+                    <Button variant="outline" onClick={load}><Filter className="mr-2 h-4 w-4" /> Refresh</Button>
+                  </div>
+                  <div className="mt-5 hidden overflow-hidden rounded-lg border md:block">
                 <table className="w-full text-sm">
                   <thead className="bg-secondary/60 text-left text-muted-foreground">
                     <tr>
@@ -491,8 +587,10 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                   Today's market prices have not been published yet. Please check again shortly.
                 </div>
               )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
       </section>
 
