@@ -5914,8 +5914,8 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
     const data = new FormData(form);
     const subject = String(data.get("subject") || "").trim();
     const description = String(data.get("description") || "").trim();
-    if (!category || !priority || !subject) {
-      toast.error("Category, priority, and subject are required.");
+    if (!category || !priority || !subject || !description) {
+      toast.error("Category, priority, subject, and description are required.");
       return;
     }
     setSubmitting(true);
@@ -5978,8 +5978,8 @@ export function ComplaintForm({ compact = false }: { compact?: boolean }) {
             <Input name="subject" required placeholder="Short complaint title" />
           </div>
           <div>
-            <Label>Description</Label>
-            <Textarea name="description" rows={compact ? 4 : 6} placeholder="Describe the issue, location, and urgency clearly..." />
+            <Label>Description *</Label>
+            <Textarea name="description" rows={compact ? 4 : 6} required placeholder="Describe the issue, location, and urgency clearly..." />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className={`flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm transition hover:border-primary ${imageFiles.length ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>

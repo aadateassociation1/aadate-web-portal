@@ -6979,15 +6979,21 @@ async function complaintImageDataUri(attachment) {
 }
 app.post("/api/v1/complaints", requireRoles("TRADER"), async (req, res) => {
   const { subject, description, priority = "medium", category = "general", visibility = "admin-only", payment = null, attachments = {} } = req.body || {};
-  if (!subject) {
+  const cleanSubject = String(subject || "").trim();
+  const cleanDescription = String(description || "").trim();
+  if (!cleanSubject) {
     res.status(400).json({ ok: false, error: "subject is required." });
+    return;
+  }
+  if (!cleanDescription) {
+    res.status(400).json({ ok: false, error: "description is required." });
     return;
   }
   if (!isComplaintSubmissionWindowOpen()) {
     res.status(409).json({ ok: false, error: "Complaints can be submitted only from 3:00 AM to 1:00 PM IST." });
     return;
   }
-  const body = JSON.stringify({ category, visibility, description, payment });
+  const body = JSON.stringify({ category, visibility, description: cleanDescription, payment });
   const files = [
     ...(Array.isArray(attachments.images) ? attachments.images.map((file) => ({ type: "image", file })) : []),
     ...(Array.isArray(attachments.videos) ? attachments.videos.map((file) => ({ type: "video", file })) : []),
@@ -7002,7 +7008,7 @@ app.post("/api/v1/complaints", requireRoles("TRADER"), async (req, res) => {
     const [result] = await connection.query(
       `INSERT INTO support_tickets (ticket_number, complaint_number, created_by_user_id, subject, description, priority, status)
        VALUES (:ticketNumber, :complaintNumber, :userId, :subject, :body, :priority, 'open')`,
-      { ticketNumber, complaintNumber, userId: req.user.id, subject, body, priority },
+      { ticketNumber, complaintNumber, userId: req.user.id, subject: cleanSubject, body, priority },
     );
     for (const item of files) {
       if (!item.file?.dataUrl || !item.file?.originalFilename) continue;
