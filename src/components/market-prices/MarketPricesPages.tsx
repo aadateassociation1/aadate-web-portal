@@ -104,6 +104,15 @@ function formatDate(value: string | null | undefined, withTime = false, locale =
   });
 }
 
+function formatMarketBoardDate(value: string | null | undefined, lang: string) {
+  if (!value) return "-";
+  return new Date(value).toLocaleDateString(lang === "mr" ? "mr-IN" : "en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 function currency(value: number | null | undefined) {
   return value === null || value === undefined ? "-" : `\u20B9${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
@@ -372,7 +381,6 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
   const publicDateLocale = isMarathi ? "mr-IN" : "en-IN";
   const publicText = {
     title: isMarathi ? "दैनिक बाजार भाव" : "Daily Market Prices",
-    subtitle: isMarathi ? "पुणे मंडई घाऊक दर" : "Pune Market Yard Wholesale Rates",
     items: isMarathi ? "वस्तू" : "Items",
     fresh: isMarathi ? "ताजे" : "Fresh",
     refresh: isMarathi ? "ताजे करा" : "Refresh",
@@ -411,12 +419,11 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                   <div>
                     <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-primary-dark shadow-sm">
                       <Calendar className="h-3.5 w-3.5" />
-                      {formatDate(date || lastPublished, false, publicDateLocale)}
+                      {formatMarketBoardDate(date || lastPublished, lang)}
                     </div>
                     <h1 className="mt-3 font-display text-4xl font-black leading-none text-white sm:text-6xl">
                       {publicText.title}
                     </h1>
-                    <p className="mt-2 text-lg font-semibold text-emerald-50 sm:text-2xl">{publicText.subtitle}</p>
                   </div>
                   <div className="grid w-full max-w-xs grid-cols-2 gap-2 rounded-2xl border border-primary/15 bg-white/85 p-3 text-center text-primary-dark shadow-sm backdrop-blur md:w-72">
                     <div>
