@@ -308,6 +308,8 @@ function membersUpdatedLabel(row: MarketPriceRow, lang: string) {
 }
 
 function CategoryTabs({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const { lang } = useI18n();
+  const isMarathi = lang === "mr";
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
       {CATEGORIES.map((category) => (
@@ -317,8 +319,8 @@ function CategoryTabs({ value, onChange }: { value: string; onChange: (value: st
           onClick={() => onChange(category.value)}
           className={`min-h-16 rounded-xl border px-2 py-2 text-center transition sm:min-h-0 sm:px-4 sm:py-3 sm:text-left ${value === category.value ? "border-primary bg-secondary text-primary-dark shadow-sm" : "border-border bg-background hover:bg-secondary/60"}`}
         >
-          <div className="font-display text-sm font-semibold leading-tight sm:text-base">{category.label}</div>
-          <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground sm:text-xs">{category.mr}</div>
+          <div className="font-display text-sm font-semibold leading-tight sm:text-base">{isMarathi ? category.mr : category.label}</div>
+          {isMarathi && <div className="mt-0.5 text-[11px] leading-tight text-muted-foreground sm:text-xs">{category.label}</div>}
         </button>
       ))}
     </div>
@@ -366,6 +368,19 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
     const midpoint = Math.ceil(publicRows.length / 2);
     return [publicRows.slice(0, midpoint), publicRows.slice(midpoint)];
   }, [publicRows]);
+  const isMarathi = lang === "mr";
+  const publicText = {
+    title: isMarathi ? "भाजीपाला बाजारभाव" : "Daily Market Prices",
+    subtitle: isMarathi ? "पुणे मंडई घाऊक दर" : "Pune Market Yard Wholesale Rates",
+    items: isMarathi ? "वस्तू" : "Items",
+    fresh: isMarathi ? "ताजे" : "Fresh",
+    refresh: isMarathi ? "रीफ्रेश" : "Refresh",
+    search: isMarathi ? "भाजी किंवा फळ शोधा..." : "Search commodity...",
+    location: isMarathi ? "पुणे मंडई" : "Pune Market Yard",
+    quality: isMarathi ? "उत्तम गुणवत्ता योग्य दरात" : "Quality produce at fair rates",
+    empty: isMarathi ? "आजचे बाजारभाव अजून प्रकाशित झालेले नाहीत. कृपया थोड्या वेळाने तपासा." : "Today's market prices have not been published yet. Please check again shortly.",
+    lastUpdated: isMarathi ? "शेवटचे अपडेट" : "Last Updated",
+  };
 
   const openHistory = async (row: MarketPriceRow) => {
     setHistoryItem(row);
@@ -398,18 +413,18 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                       {formatDate(date || lastPublished)}
                     </div>
                     <h1 className="mt-3 font-display text-4xl font-black leading-none text-white sm:text-6xl">
-                      भाजीपाला बाजारभाव
+                      {publicText.title}
                     </h1>
-                    <p className="mt-2 text-lg font-semibold text-emerald-50 sm:text-2xl">पुणे मंडई घाऊक दर</p>
+                    <p className="mt-2 text-lg font-semibold text-emerald-50 sm:text-2xl">{publicText.subtitle}</p>
                   </div>
                   <div className="grid w-full max-w-xs grid-cols-2 gap-2 rounded-2xl border border-primary/15 bg-white/85 p-3 text-center text-primary-dark shadow-sm backdrop-blur md:w-72">
                     <div>
                       <div className="text-2xl font-black text-primary-dark">{publicRows.length}</div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Items</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{publicText.items}</div>
                     </div>
                     <div>
                       <div className="text-2xl font-black text-primary-dark">100%</div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Fresh</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{publicText.fresh}</div>
                     </div>
                   </div>
                 </div>
@@ -419,9 +434,9 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
                   <div className="relative">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search commodity..." className="h-11 rounded-full border-primary/20 bg-white pl-9 shadow-sm" />
+                    <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={publicText.search} className="h-11 rounded-full border-primary/20 bg-white pl-9 shadow-sm" />
                   </div>
-                  <Button className="rounded-full bg-primary font-bold text-white hover:bg-primary-dark" onClick={load}><Filter className="mr-2 h-4 w-4" /> Refresh</Button>
+                  <Button className="rounded-full bg-primary font-bold text-white hover:bg-primary-dark" onClick={load}><Filter className="mr-2 h-4 w-4" /> {publicText.refresh}</Button>
                 </div>
                 <div className="mt-4">
                   <CategoryTabs value={category} onChange={setCategory} />
@@ -438,8 +453,8 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                             <div className="flex min-w-0 items-center gap-3">
                               <MarketItemIcon row={row} size="md" />
                               <div className="min-w-0">
-                                <div className="truncate font-display text-base font-black leading-tight text-primary-dark sm:text-lg">{row.name_mr || row.name_en}</div>
-                                <div className="truncate text-xs font-semibold text-muted-foreground">{row.name_en}</div>
+                                <div className="truncate font-display text-base font-black leading-tight text-primary-dark sm:text-lg">{isMarathi ? (row.name_mr || row.name_en) : row.name_en}</div>
+                                <div className="truncate text-xs font-semibold text-muted-foreground">{isMarathi ? row.name_en : row.name_mr}</div>
                               </div>
                             </div>
                             <div className="flex items-baseline gap-1 text-right font-black text-[#8f2532]">
@@ -455,15 +470,15 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                 )}
                 {publicRows.length === 0 && (
                   <div className="rounded-2xl border border-dashed border-primary/30 bg-white p-8 text-center text-sm font-semibold text-muted-foreground">
-                    Today's market prices have not been published yet. Please check again shortly.
+                    {publicText.empty}
                   </div>
                 )}
               </div>
 
               <div className="grid gap-3 border-t border-primary/15 bg-[#edf7e9] px-4 py-4 text-primary-dark sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:px-6">
-                <div className="font-display text-xl font-black">पुणे मंडई</div>
-                <div className="rounded-full border border-primary/25 bg-white px-5 py-2 text-center text-sm font-black uppercase tracking-[0.12em]">उत्तम गुणवत्ता योग्य दरात</div>
-                <div className="text-sm font-semibold text-muted-foreground sm:text-right">Last Updated: {formatDate(lastPublished, true)}</div>
+                <div className="font-display text-xl font-black">{publicText.location}</div>
+                <div className="rounded-full border border-primary/25 bg-white px-5 py-2 text-center text-sm font-black uppercase tracking-[0.12em]">{publicText.quality}</div>
+                <div className="text-sm font-semibold text-muted-foreground sm:text-right">{publicText.lastUpdated}: {formatDate(lastPublished, true)}</div>
               </div>
             </div>
           ) : (
