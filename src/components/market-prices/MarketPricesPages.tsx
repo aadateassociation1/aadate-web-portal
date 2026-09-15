@@ -108,6 +108,56 @@ function currency(value: number | null | undefined) {
   return value === null || value === undefined ? "-" : `\u20B9${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
 
+const MARKET_ITEM_ICONS: Array<{ terms: string[]; icon: string; className: string }> = [
+  { terms: ["onion", "kanda"], icon: "\uD83E\uDDC5", className: "bg-rose-100 text-rose-700" },
+  { terms: ["potato", "batata"], icon: "\uD83E\uDD54", className: "bg-amber-100 text-amber-800" },
+  { terms: ["tomato"], icon: "\uD83C\uDF45", className: "bg-red-100 text-red-700" },
+  { terms: ["cauliflower"], icon: "\uD83E\uDD66", className: "bg-stone-100 text-stone-700" },
+  { terms: ["cabbage"], icon: "\uD83E\uDD6C", className: "bg-lime-100 text-lime-700" },
+  { terms: ["coriander"], icon: "\uD83C\uDF3F", className: "bg-emerald-100 text-emerald-700" },
+  { terms: ["spinach", "palak"], icon: "\uD83E\uDD6C", className: "bg-green-100 text-green-700" },
+  { terms: ["fenugreek", "methi"], icon: "\uD83C\uDF31", className: "bg-lime-100 text-lime-700" },
+  { terms: ["chilli", "mirchi"], icon: "\uD83C\uDF36\uFE0F", className: "bg-red-100 text-red-700" },
+  { terms: ["ginger"], icon: "\uD83E\uDDC4", className: "bg-yellow-100 text-yellow-800" },
+  { terms: ["garlic", "lasun"], icon: "\uD83E\uDDC4", className: "bg-slate-100 text-slate-700" },
+  { terms: ["lemon", "limbu"], icon: "\uD83C\uDF4B", className: "bg-yellow-100 text-yellow-700" },
+  { terms: ["beetroot"], icon: "\uD83C\uDF60", className: "bg-fuchsia-100 text-fuchsia-700" },
+  { terms: ["brinjal", "eggplant", "vangi"], icon: "\uD83C\uDF46", className: "bg-purple-100 text-purple-700" },
+  { terms: ["okra", "lady finger", "bhendi"], icon: "\uD83E\uDED1", className: "bg-green-100 text-green-700" },
+  { terms: ["bitter gourd", "karle"], icon: "\uD83E\uDD52", className: "bg-emerald-100 text-emerald-700" },
+  { terms: ["carrot"], icon: "\uD83E\uDD55", className: "bg-orange-100 text-orange-700" },
+  { terms: ["cucumber"], icon: "\uD83E\uDD52", className: "bg-teal-100 text-teal-700" },
+  { terms: ["coconut"], icon: "\uD83E\uDD65", className: "bg-stone-100 text-stone-700" },
+  { terms: ["banana", "keli"], icon: "\uD83C\uDF4C", className: "bg-yellow-100 text-yellow-700" },
+  { terms: ["apple"], icon: "\uD83C\uDF4E", className: "bg-red-100 text-red-700" },
+  { terms: ["mango"], icon: "\uD83E\uDD6D", className: "bg-orange-100 text-orange-700" },
+  { terms: ["grape"], icon: "\uD83C\uDF47", className: "bg-violet-100 text-violet-700" },
+  { terms: ["orange"], icon: "\uD83C\uDF4A", className: "bg-orange-100 text-orange-700" },
+  { terms: ["pomegranate"], icon: "\uD83C\uDF4E", className: "bg-rose-100 text-rose-700" },
+  { terms: ["watermelon"], icon: "\uD83C\uDF49", className: "bg-green-100 text-green-700" },
+  { terms: ["corn"], icon: "\uD83C\uDF3D", className: "bg-yellow-100 text-yellow-700" },
+  { terms: ["mushroom"], icon: "\uD83C\uDF44", className: "bg-stone-100 text-stone-700" },
+  { terms: ["broccoli"], icon: "\uD83E\uDD66", className: "bg-green-100 text-green-700" },
+];
+
+function marketItemIcon(row: MarketPriceRow) {
+  const haystack = `${row.name_en} ${row.name_mr} ${row.variety || ""} ${row.parent_name_en || ""} ${row.parent_name_mr || ""}`.toLowerCase();
+  return MARKET_ITEM_ICONS.find((item) => item.terms.some((term) => haystack.includes(term))) || {
+    icon: row.category === "fruit" ? "\uD83C\uDF4F" : "\uD83E\uDD6C",
+    className: row.category === "fruit" ? "bg-orange-100 text-orange-700" : "bg-emerald-100 text-emerald-700",
+  };
+}
+
+function MarketItemIcon({ row, size = "md" }: { row: MarketPriceRow; size?: "sm" | "md" | "lg" }) {
+  const item = marketItemIcon(row);
+  const sizeClass = size === "lg" ? "h-12 w-12 text-2xl" : size === "sm" ? "h-8 w-8 text-lg" : "h-10 w-10 text-xl";
+  return (
+    <span className={`grid shrink-0 place-items-center rounded-full shadow-sm ring-1 ring-black/5 ${sizeClass} ${item.className}`} aria-hidden="true">
+      {item.icon}
+    </span>
+  );
+}
+
 function categoryLabel(value: string) {
   return CATEGORIES.find((category) => category.value === value)?.label || value;
 }
@@ -311,8 +361,13 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                           {group.children.map((row) => (
                             <tr key={row.item_id} className="border-t">
                               <td className={`p-3 ${grouped ? "pl-8" : ""}`}>
-                                <div className="font-display font-semibold text-primary-dark">{itemTitle(row)}</div>
-                                <div className="text-xs text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div>
+                                <div className="flex items-center gap-3">
+                                  <MarketItemIcon row={row} />
+                                  <div className="min-w-0">
+                                    <div className="font-display font-semibold text-primary-dark">{itemTitle(row)}</div>
+                                    <div className="text-xs text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div>
+                                  </div>
+                                </div>
                               </td>
                               <td className="p-3 text-right font-semibold">{currency(row.min_price)}</td>
                               <td className="p-3 text-right font-semibold">{currency(row.max_price)}</td>
@@ -330,12 +385,11 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                 </table>
               </div>
               <div className="mt-5 overflow-hidden rounded-lg border md:hidden">
-                <div className="grid grid-cols-[minmax(0,1.15fr)_46px_46px_46px_52px] items-center gap-1.5 border-b bg-secondary/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                <div className="grid grid-cols-[minmax(0,1.25fr)_52px_52px_52px] items-center gap-2 border-b bg-secondary/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   <span>Commodity</span>
                   <span className="text-left">Min</span>
                   <span className="text-left">Max</span>
                   <span className="text-left">Avg</span>
-                  <span className="text-left">Unit</span>
                 </div>
                 {filtered.filter(isPriceableRow).map((row) => {
                   const changeLabel =
@@ -357,19 +411,22 @@ function MarketPriceReadOnly({ mode }: { mode: "public" | "trader" }) {
                           : "text-muted-foreground";
 
                   return (
-                    <div key={row.item_id} className="border-t px-3 py-2.5 first:border-t-0">
-                      <div className="grid grid-cols-[minmax(0,1.15fr)_46px_46px_46px_52px] items-center gap-1.5">
-                        <div className="min-w-0">
-                          <div className="whitespace-normal break-words font-display text-[13px] font-semibold leading-snug text-primary-dark">{row.name_en}</div>
-                          <div className="truncate text-[11px] text-muted-foreground">{row.name_mr}</div>
-                          <div className="mt-0.5 truncate text-[10px] text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div>
+                    <div key={row.item_id} className="border-t px-3 py-3 first:border-t-0">
+                      <div className="grid grid-cols-[minmax(0,1.25fr)_52px_52px_52px] items-center gap-2">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <MarketItemIcon row={row} size="sm" />
+                          <div className="min-w-0">
+                            <div className="whitespace-normal break-words font-display text-[13px] font-semibold leading-snug text-primary-dark">{row.name_en}</div>
+                            <div className="truncate text-[11px] text-muted-foreground">{row.name_mr}</div>
+                            <div className="mt-0.5 truncate text-[10px] text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div>
+                          </div>
                         </div>
                         <div className="text-left text-[12px] font-semibold text-primary-dark">{currency(row.min_price)}</div>
                         <div className="text-left text-[12px] font-semibold text-primary-dark">{currency(row.max_price)}</div>
                         <div className="text-left text-[12px] font-bold text-primary-dark">{currency(row.modal_price)}</div>
-                        <div className="text-left text-[11px] font-medium text-muted-foreground">{row.unit}</div>
                       </div>
                       <div className="mt-2 flex items-center justify-start gap-2 border-t border-dashed pt-2 text-[10px]">
+                        <span className="rounded-full bg-secondary px-2 py-0.5 font-semibold text-primary-dark">{row.unit}</span>
                         <span className={`truncate font-medium ${changeClassName}`}>{changeLabel}</span>
                         <span className="text-muted-foreground">{membersUpdatedLabel(row, lang)}</span>
                         <span className="font-semibold text-primary-dark">{aggregateStatusLabel(row, lang)}</span>
