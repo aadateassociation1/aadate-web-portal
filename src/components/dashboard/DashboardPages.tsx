@@ -2918,8 +2918,22 @@ const committeeDesignationOptions = [
   "Secretary",
   "Treasurer",
   "Board of Directors",
+  "Accepted Director",
   "Committee Member",
 ];
+
+const committeeDesignationMrLabels: Record<string, string> = {
+  "Chairman": "\u0905\u0927\u094d\u092f\u0915\u094d\u0937",
+  "Vice President": "\u0909\u092a\u093e\u0927\u094d\u092f\u0915\u094d\u0937",
+  "Vice President (Onion, Potato)": "\u0909\u092a\u093e\u0927\u094d\u092f\u0915\u094d\u0937 (\u0915\u093e\u0902\u0926\u093e, \u092c\u091f\u093e\u091f\u093e)",
+  "Director": "\u0938\u0902\u091a\u093e\u0932\u0915",
+  "Director (Vice President)": "\u0938\u0902\u091a\u093e\u0932\u0915 (\u0909\u092a\u093e\u0927\u094d\u092f\u0915\u094d\u0937)",
+  "Secretary": "\u0938\u091a\u093f\u0935",
+  "Treasurer": "\u0916\u091c\u093f\u0928\u0926\u093e\u0930",
+  "Board of Directors": "\u0938\u0902\u091a\u093e\u0932\u0915 \u092e\u0902\u0921\u0933",
+  "Accepted Director": "\u0938\u094d\u0935\u093f\u0915\u0943\u0924 \u0938\u0902\u091a\u093e\u0932\u0915",
+  "Committee Member": "\u0938\u092e\u093f\u0924\u0940 \u0938\u0926\u0938\u094d\u092f",
+};
 
 export function AdminCommitteePage() {
   const [members, setMembers] = useState<CommitteeMemberRecord[]>([]);
@@ -3031,6 +3045,8 @@ export function AdminCommitteePage() {
   const displayCommitteeDesignation = (member: CommitteeMemberRecord) => lang === "mr" ? member.designation_mr || member.designation : member.designation;
   const previewPhoto = photoFile ? URL.createObjectURL(photoFile) : editing?.photo_url || "";
   const designationOptions = committeeDesignationOptions.includes(form.designation) ? committeeDesignationOptions : [form.designation, ...committeeDesignationOptions];
+  const designationMrValues = Object.values(committeeDesignationMrLabels);
+  const designationLabel = (designation: string) => lang === "mr" ? committeeDesignationMrLabels[designation] || designation : designation;
 
   return (
     <DashLayout kind="admin">
@@ -3059,10 +3075,20 @@ export function AdminCommitteePage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Designation *</Label>
-                    <Select value={form.designation} onValueChange={(value) => setForm({ ...form, designation: value })}>
+                    <Select
+                      value={form.designation}
+                      onValueChange={(value) => {
+                        const designationMr = committeeDesignationMrLabels[value];
+                        setForm({
+                          ...form,
+                          designation: value,
+                          designationMr: designationMr && (!form.designationMr || designationMrValues.includes(form.designationMr)) ? designationMr : form.designationMr,
+                        });
+                      }}
+                    >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {designationOptions.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                        {designationOptions.map((option) => <SelectItem key={option} value={option}>{designationLabel(option)}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
