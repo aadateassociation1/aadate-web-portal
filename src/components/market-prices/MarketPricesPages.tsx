@@ -658,7 +658,15 @@ function MemberMarketPricesPage() {
                         const updated = row.member_status === "submitted";
                         return (
                           <tr key={row.item_id} className="border-t align-top">
-                            <td className="p-3"><div className="font-display font-semibold leading-snug text-primary-dark">{itemTitle(row)}</div><div className="text-xs text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div></td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-3">
+                                <MarketItemIcon row={row} />
+                                <div className="min-w-0">
+                                  <div className="font-display font-semibold leading-snug text-primary-dark">{itemTitle(row)}</div>
+                                  <div className="text-xs text-muted-foreground">{row.parent_name_en ? parentTitle(row) : categoryLabel(row.category)}</div>
+                                </div>
+                              </div>
+                            </td>
                             <td className="whitespace-nowrap p-3">{currency(row.previous_price)}</td>
                             <td className="p-3"><Input className="h-9 w-20 px-2" type="number" min="0" value={draft?.minPrice || ""} onChange={(event) => setDraft(row.item_id, "minPrice", event.target.value)} /></td>
                             <td className="p-3"><Input className="h-9 w-20 px-2" type="number" min="0" value={draft?.maxPrice || ""} onChange={(event) => setDraft(row.item_id, "maxPrice", event.target.value)} /></td>
