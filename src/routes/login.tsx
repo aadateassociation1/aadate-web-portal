@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { KeyRound, User } from "lucide-react";
+import { Eye, EyeOff, KeyRound, User } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import type { UserRole } from "@/lib/mock";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ function LoginForm({ role }: { role: UserRole }) {
   const router = useRouter();
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [err, setErr] = useState("");
 
   const submit = async (e: React.FormEvent) => {
@@ -38,7 +39,17 @@ function LoginForm({ role }: { role: UserRole }) {
       </div>
       <div>
         <div className="flex items-center justify-between"><Label>Password</Label><Link to="/forgot-password" className="text-xs text-primary hover:underline">Forgot password?</Link></div>
-        <Input required type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" />
+        <div className="relative">
+          <Input required type={showPassword ? "text" : "password"} value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" className="pr-10" />
+          <button
+            type="button"
+            onClick={() => setShowPassword((value) => !value)}
+            className="absolute inset-y-0 right-2 grid w-8 place-items-center text-muted-foreground transition hover:text-primary"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
       {err && <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{err}</div>}
       <Button type="submit" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90" size="lg">Sign in</Button>
