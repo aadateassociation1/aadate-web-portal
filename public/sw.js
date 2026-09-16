@@ -1,4 +1,4 @@
-const CACHE_NAME = "vpp-market-yard-v16";
+const CACHE_NAME = "vpp-market-yard-v17";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -27,25 +27,22 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const networkFetch = fetch(event.request)
-        .then((response) => {
-          if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          }
-          return response;
-        })
-        .catch(() => cached || caches.match("/"));
-
-      if (event.request.mode === "navigate") {
-        return networkFetch.catch(() => caches.match("/"));
+  event.respondWith((async () => {
+    const cached = await caches.match(event.request);
+    try {
+      const response = await fetch(event.request);
+      if (response.ok) {
+        const copy = response.clone();
+        const cache = await caches.open(CACHE_NAME);
+        await cache.put(event.request, copy);
       }
-
-      return cached || networkFetch;
-    }),
-  );
+      return response;
+    } catch {
+      if (cached) return cached;
+      if (event.request.mode === "navigate") return caches.match("/");
+      throw new Error("Offline and no cached response available.");
+    }
+  })());
 });
 
 self.addEventListener("push", (event) => {
