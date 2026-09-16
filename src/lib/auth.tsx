@@ -6,6 +6,8 @@ export interface AuthUser {
   name: string;
   username: string;
   mobile: string;
+  businessName?: string | null;
+  businessNameEn?: string | null;
   photoUrl?: string | null;
 }
 
@@ -64,6 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: apiUser.name || stored.name,
           username: apiUser.username || stored.username,
           mobile: apiUser.mobile || stored.mobile,
+          businessName: apiUser.businessName || stored.businessName || null,
+          businessNameEn: apiUser.businessNameEn || stored.businessNameEn || null,
           photoUrl: apiUser.photoUrl || stored.photoUrl || null,
         };
         setUser(freshUser);
@@ -99,6 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: result.user.name,
         username: result.user.username,
         mobile: result.user.mobile,
+        businessName: result.user.businessName || null,
+        businessNameEn: result.user.businessNameEn || null,
         photoUrl: result.user.photoUrl || null,
       };
       setUser(u);

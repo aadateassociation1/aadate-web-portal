@@ -108,6 +108,8 @@ function OwnerDash() {
   const displayBusinessName = lang === "en"
     ? selectedGala?.business_name_en || profile?.business_name_en || selectedGala?.business_name || profile?.business_name
     : selectedGala?.business_name || profile?.business_name || selectedGala?.business_name_en || profile?.business_name_en;
+  const dashboardPrimaryName = displayBusinessName || displayMemberName || "Member";
+  const dashboardSecondaryName = displayBusinessName ? displayMemberName : "Your business dashboard will appear after approval.";
   const galaBusinessName = (gala: { business_name: string; business_name_en?: string | null }) =>
     lang === "en" ? gala.business_name_en || gala.business_name : gala.business_name || gala.business_name_en || "";
   const quickActions = [
@@ -128,8 +130,8 @@ function OwnerDash() {
         <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
-              <h1 className="font-display text-xl font-bold leading-tight text-primary-dark sm:text-2xl">Welcome back, {displayMemberName || "Member"}</h1>
-              <p className="mt-1 text-sm text-muted-foreground">{displayBusinessName || "Your business dashboard will appear after approval."}</p>
+              <h1 className="font-display text-xl font-bold leading-tight text-primary-dark sm:text-2xl">Welcome back, {dashboardPrimaryName}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{dashboardSecondaryName}</p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2 md:justify-end">
               <Badge variant="outline" className="whitespace-nowrap">{profile?.trader_code || "Member"}</Badge>

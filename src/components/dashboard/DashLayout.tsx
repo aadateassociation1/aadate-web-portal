@@ -216,6 +216,13 @@ export function DashLayout({ kind, children }: Props) {
     .filter(Boolean) as typeof OWNER_NAV;
   const title = kind === "owner" ? "Member Portal" : user.role === "main_admin" ? "Main Admin Portal" : "User Admin Portal";
   const displayText = (value: string) => lang === "mr" ? translateToMarathi(value) : value;
+  const ownerFirmName = kind === "owner"
+    ? lang === "en"
+      ? user.businessNameEn || user.businessName || ""
+      : user.businessName || user.businessNameEn || ""
+    : "";
+  const ownerPrimaryName = ownerFirmName || user.name;
+  const ownerSecondaryName = ownerFirmName ? user.name : displayText(title);
   const helpLink = kind === "owner" ? "/member/help" : "/admin/help";
   const passwordLink = kind === "owner" ? "/member/change-password" : "/admin/change-password";
 
@@ -236,7 +243,7 @@ export function DashLayout({ kind, children }: Props) {
       setPushChecking(false);
     }
   };
-  const memberInitials = (user.name || "Member")
+  const memberInitials = (ownerPrimaryName || user.name || "Member")
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
@@ -261,8 +268,8 @@ export function DashLayout({ kind, children }: Props) {
                 )}
               </div>
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-white">{user.name}</div>
-                <div className="truncate text-xs text-sidebar-foreground/70">{displayText(title)}</div>
+                <div className="truncate text-sm font-semibold text-white">{ownerPrimaryName}</div>
+                <div className="truncate text-xs text-sidebar-foreground/70">{ownerSecondaryName}</div>
               </div>
             </div>
           ) : (
@@ -336,9 +343,9 @@ export function DashLayout({ kind, children }: Props) {
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <div className="min-w-0 flex-1">
-            <div className="text-xs text-muted-foreground sm:text-sm">{displayText(title)}</div>
+            <div className="text-xs text-muted-foreground sm:text-sm">{kind === "owner" && ownerFirmName ? user.name : displayText(title)}</div>
             <div className="truncate font-display text-sm font-semibold text-foreground sm:text-base">
-              Welcome back, {user.name}
+              Welcome back, {ownerPrimaryName}
             </div>
           </div>
           <Badge variant="secondary" className="hidden sm:inline-flex bg-secondary text-primary-dark">

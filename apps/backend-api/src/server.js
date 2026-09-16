@@ -2402,7 +2402,8 @@ async function loginHandler(req, res) {
 
   const [rows] = await pool.query(
     `SELECT u.id, u.username, u.mobile, u.full_name, u.status, u.password_hash, r.code AS role,
-            t.id AS trader_id, t.verification_status AS trader_status
+            t.id AS trader_id, t.verification_status AS trader_status,
+            t.business_name, t.business_name_en
        FROM users u
        JOIN roles r ON r.id = u.role_id
        LEFT JOIN traders t ON t.user_id = u.id
@@ -2449,6 +2450,8 @@ async function loginHandler(req, res) {
       name: user.full_name,
       role: publicRoleCode(user.role),
       traderId: user.trader_id,
+      businessName: user.business_name || null,
+      businessNameEn: user.business_name_en || null,
       photoUrl,
     },
   });
@@ -2755,7 +2758,8 @@ app.get("/api/v1/auth/me", async (req, res) => {
   try {
     const [rows] = await pool.query(
     `SELECT u.id, u.username, u.mobile, u.full_name, u.status, r.code AS role,
-            t.id AS trader_id, t.verification_status AS trader_status
+            t.id AS trader_id, t.verification_status AS trader_status,
+            t.business_name, t.business_name_en
        FROM users u
        JOIN roles r ON r.id = u.role_id
        LEFT JOIN traders t ON t.user_id = u.id
@@ -2787,6 +2791,8 @@ app.get("/api/v1/auth/me", async (req, res) => {
         name: user.full_name,
         role: publicRoleCode(user.role),
         traderId: user.trader_id,
+        businessName: user.business_name || null,
+        businessNameEn: user.business_name_en || null,
         photoUrl,
       },
     });
