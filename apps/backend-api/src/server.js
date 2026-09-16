@@ -6569,9 +6569,13 @@ app.patch("/api/v1/admin/mobile-change-requests/:id/decision", requireRoles("MAI
       await connection.query(
         `UPDATE users u
            JOIN traders t ON t.user_id = u.id
-            SET u.mobile = :newMobile
+            SET u.mobile = :newMobile,
+                u.username = CASE
+                  WHEN u.username = :oldMobile THEN :newMobile
+                  ELSE u.username
+                END
           WHERE t.id = :traderId`,
-        { newMobile: request.new_mobile, traderId: request.trader_id },
+        { oldMobile: request.old_mobile, newMobile: request.new_mobile, traderId: request.trader_id },
       );
       await connection.query(
         `DELETE us
