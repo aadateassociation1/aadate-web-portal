@@ -2494,6 +2494,10 @@ async function traderRegisterHandler(req, res) {
     res.status(400).json({ ok: false, error: "Password must be at least 8 characters and include a number and symbol." });
     return;
   }
+  if (String(gala || "").trim().length > 40) {
+    res.status(400).json({ ok: false, error: "Gala/shop number must be 40 characters or less. Put full address in the address field only." });
+    return;
+  }
 
   const [[existingMobileUser]] = await pool.query(
     `SELECT u.id, u.full_name, t.trader_code

@@ -47,8 +47,12 @@ function Register() {
     const password = String(formData.get("password") || "");
     const confirm = String(formData.get("confirm") || "");
 
-    if (!business || !address || !section || (mode === "new" && (!name || !username))) {
+    if (!business || !number || !address || !section || (mode === "new" && (!name || !username))) {
       toast.error("Please fill all registration fields.");
+      return;
+    }
+    if (number.length > 40) {
+      toast.error("Gala / shop number must be 40 characters or less.");
       return;
     }
     if (!/^\d{10}$/.test(mobile)) {
@@ -80,7 +84,7 @@ function Register() {
           mobile,
           password,
           business,
-          gala: address,
+          gala: number,
           address,
           section,
           associationSequenceNumber: srNo,
@@ -160,8 +164,8 @@ function Register() {
                   <Input name="srNo" />
                 </div>
                 <div>
-                  <Label>क्रमांक / Number</Label>
-                  <Input name="number" />
+                  <Label>क्रमांक / Number *</Label>
+                  <Input name="number" required maxLength={40} />
                 </div>
                 <div>
                   <Label>फर्मचे नाव / Firm Name *</Label>
