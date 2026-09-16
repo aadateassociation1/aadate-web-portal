@@ -3101,12 +3101,12 @@ export function AdminCommitteePage() {
                     <Input value={form.designationMr} onChange={(event) => setForm({ ...form, designationMr: event.target.value })} placeholder={"\u092a\u0926"} />
                   </div>
                   <div className="space-y-2">
-                    <Label>Phone Number *</Label>
-                    <Input value={form.phoneNumber} onChange={(event) => setForm({ ...form, phoneNumber: event.target.value.replace(/[^0-9+\s-]/g, "") })} required placeholder="9823012345" />
+                    <Label>Phone Number</Label>
+                    <Input value={form.phoneNumber} onChange={(event) => setForm({ ...form, phoneNumber: event.target.value.replace(/[^0-9+\s-]/g, "") })} placeholder="9823012345" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Gala Number *</Label>
-                    <Input value={form.galaNumber} onChange={(event) => setForm({ ...form, galaNumber: event.target.value })} required placeholder="B-12" />
+                    <Label>Gala Number</Label>
+                    <Input value={form.galaNumber} onChange={(event) => setForm({ ...form, galaNumber: event.target.value })} placeholder="B-12" />
                   </div>
                   <div className="space-y-2">
                     <Label className="leading-tight">Order / Display Sequence</Label>
@@ -3674,8 +3674,8 @@ function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records 
           {editingGala && (
             <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveGala}>
               <div>
-                <Label>Gala / Shop number *</Label>
-                <Input name="galaNumber" required defaultValue={editingGala.gala_number} />
+                <Label>Gala / Shop number</Label>
+                <Input name="galaNumber" defaultValue={editingGala.gala_number} />
               </div>
               <div>
                 <Label>Firm name *</Label>
@@ -4349,8 +4349,8 @@ export function OwnerKycPage() {
     const villageCity = String(data.get("villageCity") || "").trim();
     const district = String(data.get("district") || "").trim();
 
-    if (!customerName || !/^\d{10}$/.test(phone) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan) || !addressLine1 || !villageCity || !district || !customerPhoto) {
-      toast.error("Enter valid customer name, phone, PAN, address details, and live customer photo");
+    if (!customerName || (phone && !/^\d{10}$/.test(phone)) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan) || !addressLine1 || !villageCity || !district || !customerPhoto) {
+      toast.error("Enter valid customer name, PAN, address details, and live customer photo. Phone must be 10 digits if provided.");
       return;
     }
     if (!isValidAadhaar(aadhaar)) {
@@ -4394,8 +4394,8 @@ export function OwnerKycPage() {
     const dateOfBirth = String(data.get("dateOfBirth") || "").trim();
     const occupationBusiness = String(data.get("occupationBusiness") || "").trim();
 
-    if (!customerName || !/^\d{10}$/.test(phone) || !addressLine1 || !villageCity || !district) {
-      toast.error("Enter valid customer name, phone, and address details.");
+    if (!customerName || (phone && !/^\d{10}$/.test(phone)) || !addressLine1 || !villageCity || !district) {
+      toast.error("Enter valid customer name and address details. Phone must be 10 digits if provided.");
       return;
     }
     if (aadhaar && !isValidAadhaar(aadhaar)) {
@@ -4664,8 +4664,8 @@ export function OwnerKycPage() {
                 <Input name="customerName" required placeholder="Full customer name" />
               </div>
               <div>
-                <Label>Phone number *</Label>
-                <Input name="phone" required type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10-digit mobile number" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
+                <Label>Phone number</Label>
+                <Input name="phone" type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10-digit mobile number" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
               </div>
               <div>
                 <Label>Aadhaar number *</Label>

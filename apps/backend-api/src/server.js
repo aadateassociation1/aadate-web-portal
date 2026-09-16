@@ -5157,13 +5157,13 @@ app.patch("/api/v1/trader/galas/:id", requireRoles("TRADER"), async (req, res) =
   const cleanGalaNumber = String(galaNumber || "").trim();
   const cleanBusinessName = String(businessName || "").trim();
   const cleanMarketSection = String(marketSection || "").trim();
-  if (!req.user.trader_id || !galaRecordId || !cleanGalaNumber || !cleanBusinessName || !cleanMarketSection) {
-    res.status(400).json({ ok: false, error: "Gala/shop number, firm name, and market section are required." });
+  if (!req.user.trader_id || !galaRecordId || !cleanBusinessName || !cleanMarketSection) {
+    res.status(400).json({ ok: false, error: "Firm name and market section are required." });
     return;
   }
 
   const [[existing]] = await pool.query(
-    "SELECT id, trader_id, status FROM trader_galas WHERE id = :galaRecordId AND trader_id = :traderId LIMIT 1",
+    "SELECT id, trader_id, gala_id, status FROM trader_galas WHERE id = :galaRecordId AND trader_id = :traderId LIMIT 1",
     { galaRecordId, traderId: req.user.trader_id },
   );
   if (!existing) {
@@ -5174,19 +5174,39 @@ app.patch("/api/v1/trader/galas/:id", requireRoles("TRADER"), async (req, res) =
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    const { galaId, categoryId } = await ensureGalaAndCategory(connection, {
-      gala: cleanGalaNumber,
-      section: cleanMarketSection,
-      category: String(category || cleanMarketSection || "Other").trim() || "Other",
-    });
-    const [[duplicate]] = await connection.query(
-      "SELECT id FROM trader_galas WHERE trader_id = :traderId AND gala_id = :galaId AND id <> :galaRecordId LIMIT 1",
-      { traderId: req.user.trader_id, galaId, galaRecordId },
-    );
-    if (duplicate) {
-      await connection.rollback();
-      res.status(409).json({ ok: false, error: "This gala/shop is already linked to your account." });
-      return;
+    const cleanCategory = String(category || cleanMarketSection || "Other").trim() || "Other";
+    let galaId = existing.gala_id;
+    let categoryId = null;
+    if (cleanGalaNumber) {
+      const ensured = await ensureGalaAndCategory(connection, {
+        gala: cleanGalaNumber,
+        section: cleanMarketSection,
+        category: cleanCategory,
+      });
+      galaId = ensured.galaId;
+      categoryId = ensured.categoryId;
+
+      const [[duplicate]] = await connection.query(
+        "SELECT id FROM trader_galas WHERE trader_id = :traderId AND gala_id = :galaId AND id <> :galaRecordId LIMIT 1",
+        { traderId: req.user.trader_id, galaId, galaRecordId },
+      );
+      if (duplicate) {
+        await connection.rollback();
+        res.status(409).json({ ok: false, error: "This gala/shop is already linked to your account." });
+        return;
+      }
+    } else {
+      await connection.query(
+        `INSERT INTO business_categories (name_en, status)
+         VALUES (:category, 'active')
+         ON DUPLICATE KEY UPDATE name_en = VALUES(name_en)`,
+        { category: cleanCategory },
+      ).catch(async () => {
+        const [[existingCategory]] = await connection.query("SELECT id FROM business_categories WHERE name_en = :category LIMIT 1", { category: cleanCategory });
+        if (!existingCategory) throw new Error("Could not create business category.");
+      });
+      const [[categoryRow]] = await connection.query("SELECT id FROM business_categories WHERE name_en = :category LIMIT 1", { category: cleanCategory });
+      categoryId = categoryRow?.id || null;
     }
 
     await connection.query(
@@ -5482,8 +5502,8 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
   const cleanAadhaar = String(aadhaar || "").replace(/\D/g, "");
   const cleanPan = normalizePan(pan);
 
-  if (!fullName || !/^\d{10}$/.test(cleanMobile) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(cleanPan) || !addressLine1 || !villageCity || !district || !customerPhoto?.dataUrl) {
-    res.status(400).json({ ok: false, error: "fullName, valid mobile, PAN, addressLine1, villageCity, district, and customer photo are required." });
+  if (!fullName || (cleanMobile && !/^\d{10}$/.test(cleanMobile)) || !/^[A-Z]{5}\d{4}[A-Z]$/.test(cleanPan) || !addressLine1 || !villageCity || !district || !customerPhoto?.dataUrl) {
+    res.status(400).json({ ok: false, error: "fullName, PAN, addressLine1, villageCity, district, and customer photo are required. Mobile must be 10 digits if provided." });
     return;
   }
   if (!isValidAadhaar(cleanAadhaar)) {
@@ -5505,7 +5525,7 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
       LIMIT 1`,
     { traderId },
   );
-  if (traderProfile && (cleanMobile === String(traderProfile.mobile || "") || String(fullName).trim().toLowerCase() === String(traderProfile.full_name || "").trim().toLowerCase())) {
+  if (traderProfile && ((cleanMobile && cleanMobile === String(traderProfile.mobile || "")) || String(fullName).trim().toLowerCase() === String(traderProfile.full_name || "").trim().toLowerCase())) {
     res.status(400).json({ ok: false, error: "Member cannot be added as their own customer. Add only real customer details." });
     return;
   }
@@ -5519,7 +5539,7 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
        JOIN trader_customers tc ON tc.customer_id = c.id
       WHERE tc.trader_id = :traderId
         AND c.deleted_at IS NULL
-        AND c.mobile = :mobile
+        AND (:mobile <> '' AND c.mobile = :mobile)
         AND LOWER(TRIM(c.full_name)) = :fullName
       LIMIT 1`,
     { traderId, mobile: cleanMobile, fullName: normalizedFullName },
@@ -5542,7 +5562,7 @@ app.post("/api/v1/trader/customers", requireRoles("TRADER"), async (req, res) =>
          ON ci.customer_id = c.id
         AND ci.value_hash IN (:aadhaarHash, :panHash)
       WHERE c.deleted_at IS NULL
-        AND (c.mobile = :mobile OR ci.id IS NOT NULL)
+        AND ((:mobile <> '' AND c.mobile = :mobile) OR ci.id IS NOT NULL)
       ORDER BY c.kyc_status = 'verified' DESC, c.updated_at DESC, c.id DESC
       LIMIT 1`,
     { mobile: cleanMobile, aadhaarHash, panHash },
@@ -5667,8 +5687,8 @@ app.put("/api/v1/trader/customers/:id", requireRoles("TRADER"), async (req, res)
     res.status(400).json({ ok: false, error: "Valid customer is required." });
     return;
   }
-  if (!cleanFullName || !/^\d{10}$/.test(cleanMobile) || !cleanAddressLine1 || !cleanVillageCity || !cleanDistrict) {
-    res.status(400).json({ ok: false, error: "fullName, valid mobile, addressLine1, villageCity, and district are required." });
+  if (!cleanFullName || (cleanMobile && !/^\d{10}$/.test(cleanMobile)) || !cleanAddressLine1 || !cleanVillageCity || !cleanDistrict) {
+    res.status(400).json({ ok: false, error: "fullName, addressLine1, villageCity, and district are required. Mobile must be 10 digits if provided." });
     return;
   }
   if (cleanAadhaar && !isValidAadhaar(cleanAadhaar)) {
