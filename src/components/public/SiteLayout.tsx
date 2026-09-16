@@ -140,9 +140,6 @@ function Header() {
               <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
                 <Link to="/login">{t("nav.login")}</Link>
               </Button>
-              <Button asChild size="sm" className="hidden sm:inline-flex bg-saffron text-saffron-foreground hover:bg-saffron/90">
-                <Link to="/register">{t("nav.register")}</Link>
-              </Button>
             </>
           )}
           <Button asChild variant="outline" size="icon" className={`h-10 w-10 rounded-full border-border bg-background text-foreground shadow-sm transition hover:border-saffron hover:bg-saffron/15 hover:text-saffron-foreground ${dashLink ? "" : "xl:hidden"}`}>
@@ -173,7 +170,6 @@ function Header() {
               ) : (
                 <>
                   <Button asChild variant="outline"><Link to="/login">{t("nav.login")}</Link></Button>
-                  <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/register">{t("nav.register")}</Link></Button>
                 </>
               )}
             </div>

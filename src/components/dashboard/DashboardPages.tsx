@@ -4109,7 +4109,6 @@ export function OwnerProfilePage() {
               <h2 className="font-display font-semibold text-primary-dark">All Galas / Shops</h2>
               <p className="mt-1 text-sm text-muted-foreground">All shops linked to this member login and mobile number.</p>
             </div>
-            <Button asChild size="sm" variant="outline"><Link to="/register">Add Another Gala / Shop</Link></Button>
           </div>
           <TraderGalaCards galas={galas} onUpdated={reload} />
         </CardContent>
@@ -5198,7 +5197,7 @@ export function OwnerGalaPage() {
 
   return (
     <DashLayout kind="owner">
-      <PageTitle title="My Gala Details" subtitle="All verified and submitted gala/shop records linked to your member login." action={<Button asChild variant="outline"><Link to="/register"><Plus className="mr-1 h-4 w-4" /> Add Gala / Shop</Link></Button>} />
+      <PageTitle title="My Gala Details" subtitle="All verified and submitted gala/shop records linked to your member login." />
       <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
         <StatCard icon={Store} label="Total Galas / Shops" value={loading ? "..." : galas.length} />
         <StatCard icon={CheckCircle2} label="Approved Shops" value={loading ? "..." : approvedCount} tone="success" />

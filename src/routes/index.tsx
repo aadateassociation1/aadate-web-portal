@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import {
   ArrowRight, Bell, ClipboardList, Download, FileText, Newspaper, Phone,
   UserCog, MessageSquare, ShieldCheck,
-  CheckCircle2, UserPlus, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
+  CheckCircle2, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
   Briefcase, Store, UserRound,
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
@@ -42,9 +42,9 @@ const SERVICES = [
 ];
 
 const HOW_STEPS = [
-  { n: 1, icon: UserPlus, title: "Register your gala", desc: "Fill the multi-step registration form with gala and business details." },
-  { n: 2, icon: FolderCheck, title: "Admin verifies details", desc: "Main Admin reviews your documents and approves within 48 hours." },
-  { n: 3, icon: LogIn, title: "Login using mobile number", desc: "Use your registered mobile number and password to sign in." },
+  { n: 1, icon: LogIn, title: "Login using mobile number", desc: "Use your approved mobile number and password to sign in." },
+  { n: 2, icon: FolderCheck, title: "Admin verifies details", desc: "Admin keeps member records verified and up to date." },
+  { n: 3, icon: Newspaper, title: "View latest market updates", desc: "Check official market updates, notices and member announcements." },
   { n: 4, icon: Sparkles, title: "Access dashboard & notices", desc: "View market updates, notices and download official documents." },
   { n: 5, icon: MessageSquare, title: "Raise and track complaints", desc: "Submit complaints with photos, videos and track status live." },
 ];
@@ -850,16 +850,13 @@ function Home() {
         <div className="container-page">
           <div className="hero-gradient rounded-3xl px-6 py-14 md:px-14 md:py-16 text-center text-white shadow-xl">
             <h2 className="mx-auto max-w-2xl font-display text-3xl font-bold sm:text-4xl">
-              Ready to join Maharashtra's most connected market yard?
+              Member services for the market yard
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-white/80">
-              Register your gala today and unlock secure access to updates, notices, complaints and administration.
+              Sign in to access updates, notices, complaints and administration services.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button asChild size="lg" className="bg-saffron text-saffron-foreground hover:bg-saffron/90">
-                <Link to="/register">Register Your Gala</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white hover:text-primary-dark">
                 <Link to="/login">Members</Link>
               </Button>
             </div>

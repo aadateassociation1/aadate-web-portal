@@ -198,7 +198,6 @@ function OwnerDash() {
               <h2 className="font-display font-bold text-primary-dark">Your Galas / Shops</h2>
               <p className="mt-1 text-sm text-muted-foreground">One login can manage multiple shops linked to your mobile number.</p>
             </div>
-            <Button asChild size="sm" variant="outline" className="w-full sm:w-auto"><Link to="/register">Add Another Gala / Shop</Link></Button>
           </div>
           <div className="grid gap-3 lg:grid-cols-3">
             {galas.map((gala) => (

@@ -18,7 +18,6 @@ import { Route as PrivacyPolicyRoute } from "@/routes/privacy-policy";
 import { Route as TermsAndConditionsRoute } from "@/routes/terms-and-conditions";
 import { Route as LoginRoute } from "@/routes/login";
 import { Route as ForgotPasswordRoute } from "@/routes/forgot-password";
-import { Route as RegisterRoute } from "@/routes/register";
 import { Route as PublicTraderProfileRoute } from "@/routes/trader-public-profile";
 import { Route as OwnerRoute } from "@/routes/owner";
 import { Route as OwnerProfileRoute } from "@/routes/owner.profile";
@@ -76,7 +75,6 @@ const ROUTES: Record<string, LocalRoute> = {
   "/terms-and-conditions": TermsAndConditionsRoute,
   "/login": LoginRoute,
   "/forgot-password": ForgotPasswordRoute,
-  "/register": RegisterRoute,
   "/traders/:id": PublicTraderProfileRoute,
   "/member": OwnerRoute,
   "/member/profile": OwnerProfileRoute,
