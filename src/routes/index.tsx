@@ -10,7 +10,7 @@ import {
   ArrowRight, Bell, ClipboardList, Download, FileText, Newspaper, Phone,
   UserCog, MessageSquare, ShieldCheck,
   CheckCircle2, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
-  Briefcase, Store, UserRound,
+  Briefcase, Store, UserRound, Play,
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
 import heroVideo from "@/assets/Banner video.mp4";
@@ -61,6 +61,7 @@ const GALLERY_TILES = [
 function Home() {
   const { t, lang } = useI18n();
   const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [heroVideoNeedsTap, setHeroVideoNeedsTap] = useState(false);
   type PublicContent = { id: number; title_en: string; title_mr?: string | null; content_en?: string | null; content_mr?: string | null; published_at: string | null; created_at: string; parsed?: { category?: string; details?: string }; attachments?: Array<{ id: number; attachment_type: string; original_filename: string }> };
   type CommitteeMemberRecord = { id: number; full_name: string; name_mr: string | null; designation: string; designation_mr: string | null; gala_number: string | null; phone_number: string | null; term_label: string | null; message: string | null; photo_url: string | null };
   type RatingAttachment = { id: number; attachment_type: "image" | "video"; original_filename: string; mime_type: string; file_size_bytes: number };
@@ -86,7 +87,7 @@ function Home() {
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
-    video.play().catch(() => undefined);
+    video.play().then(() => setHeroVideoNeedsTap(false)).catch(() => setHeroVideoNeedsTap(true));
   };
 
   useEffect(() => {
@@ -379,9 +380,31 @@ function Home() {
           controls
           loop
           playsInline
+          onLoadedData={playHeroVideo}
+          onPlaying={() => setHeroVideoNeedsTap(false)}
           onCanPlay={playHeroVideo}
           preload="auto"
         />
+        {heroVideoNeedsTap && (
+          <button
+            type="button"
+            className="absolute inset-0 z-20 grid place-items-center bg-black/15 text-white"
+            onClick={() => {
+              const video = heroVideoRef.current;
+              if (!video) return;
+              video.muted = true;
+              video.defaultMuted = true;
+              video.playsInline = true;
+              video.load();
+              video.play().then(() => setHeroVideoNeedsTap(false)).catch(() => undefined);
+            }}
+            aria-label="Play home video"
+          >
+            <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/95 shadow-lg sm:h-20 sm:w-20">
+              <Play className="ml-1 h-8 w-8 fill-current" />
+            </span>
+          </button>
+        )}
         <div className="pointer-events-none absolute inset-x-0 bottom-14 z-10 px-4 text-center sm:bottom-16 sm:px-10 lg:bottom-20 lg:px-16" data-no-translate>
           <h1 className="mx-auto max-w-[18rem] font-display text-lg font-bold leading-tight text-white drop-shadow-[0_3px_14px_rgba(0,0,0,0.75)] sm:max-w-4xl sm:text-3xl lg:text-4xl">
             {lang === "mr" ? "श्री छत्रपती शिवाजी मार्केट यार्ड आडते असोसिएशन, पुणे" : "Shree Chhatrapati Shivaji Market Yard Adte Association"}
