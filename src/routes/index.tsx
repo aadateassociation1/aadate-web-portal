@@ -345,14 +345,14 @@ function Home() {
   return (
     <SiteLayout>
       {/* Hero */}
-      <section className="relative h-[min(56.25vw,calc(100vh-92px))] min-h-[180px] w-full overflow-hidden bg-black">
+      <section className="relative h-[calc(100svh-92px)] min-h-[420px] w-full overflow-hidden bg-black">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImg})` }}
           aria-hidden
         />
         <video
-          className="absolute inset-0 h-full w-full object-cover object-[center_30%]"
+          className="absolute inset-0 h-full w-full object-cover object-center"
           src={heroVideo}
           autoPlay
           muted
