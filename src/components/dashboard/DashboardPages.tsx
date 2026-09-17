@@ -6346,8 +6346,30 @@ type MemberNotification = {
   created_at: string;
 };
 
+function getMemberNotificationTitle(notification: MemberNotification, lang: string) {
+  if (lang !== "mr") return notification.title;
+  if (notification.notification_type === "risk_alert" || notification.priority === "critical") {
+    return "पेमेंट जोखीम सूचना";
+  }
+  return notification.title;
+}
+
+function getMemberNotificationMessage(notification: MemberNotification, lang: string) {
+  if (lang !== "mr") return notification.message;
+  const riskAlert = notification.message.match(/^(.+?) has a new market-wide payment warning for Rs\. ([\d,]+(?:\.\d+)?)\.$/i);
+  if (riskAlert) {
+    return `${riskAlert[1]} यांनी रु. ${riskAlert[2]} पेमेंट बाकी ठेवले आहे. त्यामुळे या ग्राहकाबद्दल बाजारात पेमेंट जोखीम सूचना नोंदवली आहे.`;
+  }
+  const riskCleared = notification.message.match(/^(.+?) has cleared the pending payment warning and is no longer marked high risk for that case\.$/i);
+  if (riskCleared) {
+    return `${riskCleared[1]} यांचे बाकी पेमेंट मिळाले आहे. त्यामुळे या प्रकरणात हा ग्राहक आता उच्च जोखमीचा मानला जाणार नाही.`;
+  }
+  return notification.message;
+}
+
 export function OwnerNotificationsPage() {
   const router = useRouter();
+  const { lang } = useI18n();
   const [notifications, setNotifications] = useState<MemberNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -6421,17 +6443,17 @@ export function OwnerNotificationsPage() {
   return (
     <DashLayout kind="owner">
       <PageTitle
-        title="Notifications"
-        subtitle="Payment risk alerts, notices, complaints, and market updates saved to your inbox."
+        title={lang === "mr" ? "सूचना" : "Notifications"}
+        subtitle={lang === "mr" ? "पेमेंट जोखीम सूचना, नोटिस, तक्रारी आणि बाजारातील अपडेट तुमच्या इनबॉक्समध्ये जतन केले जातात." : "Payment risk alerts, notices, complaints, and market updates saved to your inbox."}
         action={
           <div className="flex flex-wrap gap-2">
             {unreadCount > 0 && (
               <Button variant="outline" onClick={() => markAllRead().catch((error) => toast.error(error.message))}>
-                Mark all read
+                {lang === "mr" ? "सर्व वाचले म्हणून चिन्हांकित करा" : "Mark all read"}
               </Button>
             )}
             <Button variant="outline" onClick={() => clearReadNotifications().catch((error) => toast.error(error.message))}>
-              Clear read
+              {lang === "mr" ? "वाचलेल्या सूचना काढा" : "Clear read"}
             </Button>
           </div>
         }
@@ -6447,6 +6469,8 @@ export function OwnerNotificationsPage() {
               {notifications.map((notification) => {
                 const unread = !notification.read_at && notification.delivery_status !== "read";
                 const isRisk = notification.notification_type === "risk_alert" || notification.priority === "critical";
+                const title = getMemberNotificationTitle(notification, lang);
+                const message = getMemberNotificationMessage(notification, lang);
                 return (
                   <button
                     key={notification.id}
@@ -6459,11 +6483,11 @@ export function OwnerNotificationsPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <div className="font-medium text-primary-dark">{notification.title}</div>
-                        {unread && <Badge className="bg-saffron text-primary-dark">New</Badge>}
-                        {isRisk && <Badge className="bg-destructive text-white">Risk alert</Badge>}
+                        <div className="font-medium text-primary-dark">{title}</div>
+                        {unread && <Badge className="bg-saffron text-primary-dark">{lang === "mr" ? "नवीन" : "New"}</Badge>}
+                        {isRisk && <Badge className="bg-destructive text-white">{lang === "mr" ? "जोखीम सूचना" : "Risk alert"}</Badge>}
                       </div>
-                      <div className="mt-1 text-sm text-muted-foreground">{notification.message}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">{message}</div>
                       <div className="mt-2 text-xs text-muted-foreground">{new Date(notification.created_at).toLocaleString("en-IN")}</div>
                     </div>
                     {notification.action_url && <Eye className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />}
@@ -6483,7 +6507,7 @@ export function OwnerNotificationsPage() {
               ) : (
                 <Bell className="h-5 w-5 text-primary" />
               )}
-              {openNotification?.title}
+              {openNotification ? getMemberNotificationTitle(openNotification, lang) : ""}
             </DialogTitle>
             <DialogDescription>
               {openNotification ? new Date(openNotification.created_at).toLocaleString("en-IN") : ""}
@@ -6491,15 +6515,17 @@ export function OwnerNotificationsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div className={`rounded-lg border p-4 text-sm ${openNotification?.priority === "critical" || openNotification?.notification_type === "risk_alert" ? "border-destructive/30 bg-destructive/5" : "bg-secondary/40"}`}>
-              {openNotification?.message}
+              {openNotification ? getMemberNotificationMessage(openNotification, lang) : ""}
             </div>
             {openNotification?.notification_type === "risk_alert" && (
               <div className="rounded-lg border bg-background p-4 text-sm text-muted-foreground">
-                This payment risk alert is saved permanently in your notification history. Check the customer risk record before trading further.
+                {lang === "mr"
+                  ? "ही पेमेंट जोखीम सूचना तुमच्या सूचना इतिहासात कायमची जतन केली आहे. पुढील व्यवहार करण्यापूर्वी ग्राहकाची जोखीम नोंद तपासा."
+                  : "This payment risk alert is saved permanently in your notification history. Check the customer risk record before trading further."}
               </div>
             )}
             <div className="flex flex-wrap justify-end gap-2">
-              <Button variant="outline" onClick={() => setOpenNotification(null)}>Close</Button>
+              <Button variant="outline" onClick={() => setOpenNotification(null)}>{lang === "mr" ? "बंद करा" : "Close"}</Button>
               {openNotification?.action_url && (
                 <Button
                   className="bg-primary text-white hover:bg-primary/90"
@@ -6509,7 +6535,7 @@ export function OwnerNotificationsPage() {
                     router.navigate({ to: target || "/member/notifications" });
                   }}
                 >
-                  Open Related Page
+                  {lang === "mr" ? "संबंधित पान उघडा" : "Open Related Page"}
                 </Button>
               )}
             </div>
