@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@/lib/simple-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SiteLayout } from "@/components/public/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -60,6 +60,7 @@ const GALLERY_TILES = [
 
 function Home() {
   const { t, lang } = useI18n();
+  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
   type PublicContent = { id: number; title_en: string; title_mr?: string | null; content_en?: string | null; content_mr?: string | null; published_at: string | null; created_at: string; parsed?: { category?: string; details?: string }; attachments?: Array<{ id: number; attachment_type: string; original_filename: string }> };
   type CommitteeMemberRecord = { id: number; full_name: string; name_mr: string | null; designation: string; designation_mr: string | null; gala_number: string | null; phone_number: string | null; term_label: string | null; message: string | null; photo_url: string | null };
   type RatingAttachment = { id: number; attachment_type: "image" | "video"; original_filename: string; mime_type: string; file_size_bytes: number };
@@ -78,6 +79,22 @@ function Home() {
   const [selectedMember, setSelectedMember] = useState<CommitteeMemberRecord | null>(null);
   const [selectedNotice, setSelectedNotice] = useState<PublicContent | null>(null);
   const [selectedReviewImage, setSelectedReviewImage] = useState<RatingAttachment | null>(null);
+
+  const playHeroVideo = () => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.play().catch(() => undefined);
+  };
+
+  useEffect(() => {
+    playHeroVideo();
+    const timer = window.setTimeout(playHeroVideo, 500);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     fetch("/api/v1/public/posts").then((r) => r.json()).then((result) => { if (result.ok) setUpdates(result.posts || []); }).catch(() => undefined);
     fetch("/api/v1/public/notices").then((r) => r.json()).then((result) => { if (result.ok) setNotices(result.notices || []); }).catch(() => undefined);
@@ -352,13 +369,17 @@ function Home() {
           aria-hidden
         />
         <video
+          ref={heroVideoRef}
           className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
           src={heroVideo}
+          poster={heroImg}
           autoPlay
           muted
+          defaultMuted
           controls
           loop
           playsInline
+          onCanPlay={playHeroVideo}
           preload="auto"
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-14 z-10 px-4 text-center sm:bottom-16 sm:px-10 lg:bottom-20 lg:px-16" data-no-translate>
