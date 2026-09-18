@@ -13,7 +13,7 @@ import {
   Briefcase, Store, UserRound, Play,
 } from "lucide-react";
 import heroImg from "@/assets/market-hero.jpg";
-import heroVideo from "@/assets/Banner video.mp4";
+import heroVideo from "@/assets/home page banner.mp4";
 import marketyardImg from "@/assets/marketyard.webp";
 import sourabhKunjirImg from "@/assets/Sourabh Kunjir.jpeg";
 import { useI18n } from "@/lib/i18n";
