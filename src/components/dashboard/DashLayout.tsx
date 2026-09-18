@@ -283,7 +283,7 @@ export function DashLayout({ kind, children }: Props) {
         </div>
         <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
           <div className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/55">
-            Navigation
+            {lang === "mr" ? "नेव्हिगेशन" : "Navigation"}
           </div>
           {nav.map((n) => {
             const active = n.exact ? pathname === n.to : pathname.startsWith(n.to) && n.to !== "/member" && n.to !== "/admin";
@@ -312,7 +312,7 @@ export function DashLayout({ kind, children }: Props) {
         </nav>
         <div className="shrink-0 border-t border-sidebar-border p-3 space-y-1">
           <div className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/55">
-            Account
+            {lang === "mr" ? "खाते" : "Account"}
           </div>
           <Link to={helpLink} className={`flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.75 text-sm font-medium transition ${pathname === helpLink ? "bg-saffron text-saffron-foreground shadow-sm" : "text-sidebar-foreground/82 hover:bg-white/8 hover:text-white"}`}>
             <LifeBuoy className="h-4 w-4" /> {displayText("Help & Support")}
@@ -347,7 +347,7 @@ export function DashLayout({ kind, children }: Props) {
           <div className="min-w-0 flex-1">
             <div className="text-xs text-muted-foreground sm:text-sm">{kind === "owner" && ownerFirmName ? user.name : displayText(title)}</div>
             <div className="truncate font-display text-sm font-semibold text-foreground sm:text-base">
-              Welcome back, {ownerPrimaryName}
+              {lang === "mr" ? `पुन्हा स्वागत आहे, ${ownerPrimaryName}` : `Welcome back, ${ownerPrimaryName}`}
             </div>
           </div>
           <Badge variant="secondary" className="hidden sm:inline-flex bg-secondary text-primary-dark">

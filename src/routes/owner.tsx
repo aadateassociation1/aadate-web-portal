@@ -74,6 +74,7 @@ function OwnerDash() {
   const [pendingFeedback, setPendingFeedback] = useState<PendingFeedback[]>([]);
   const [showFeedbackPrompt, setShowFeedbackPrompt] = useState(false);
   const { lang } = useI18n();
+  const isMr = lang === "mr";
 
   useEffect(() => {
     fetch("/api/v1/trader/dashboard", { credentials: "include" })
@@ -108,20 +109,33 @@ function OwnerDash() {
   const displayBusinessName = lang === "en"
     ? selectedGala?.business_name_en || profile?.business_name_en || selectedGala?.business_name || profile?.business_name
     : selectedGala?.business_name || profile?.business_name || selectedGala?.business_name_en || profile?.business_name_en;
-  const dashboardPrimaryName = displayBusinessName || displayMemberName || "Member";
-  const dashboardSecondaryName = displayBusinessName ? displayMemberName : "Your business dashboard will appear after approval.";
+  const dashboardPrimaryName = displayBusinessName || displayMemberName || (isMr ? "सभासद" : "Member");
+  const dashboardSecondaryName = displayBusinessName ? displayMemberName : (isMr ? "मंजुरीनंतर तुमचा व्यवसाय डॅशबोर्ड दिसेल." : "Your business dashboard will appear after approval.");
   const galaBusinessName = (gala: { business_name: string; business_name_en?: string | null }) =>
     lang === "en" ? gala.business_name_en || gala.business_name : gala.business_name || gala.business_name_en || "";
+  const statusLabel = (status?: string | null) => {
+    const value = (status || "approved").replace(/_/g, " ");
+    if (!isMr) return value;
+    const labels: Record<string, string> = {
+      approved: "मंजूर",
+      submitted: "सबमिट केले",
+      "under review": "तपासणी सुरू",
+      "correction required": "दुरुस्ती आवश्यक",
+      rejected: "नामंजूर",
+      pending: "प्रलंबित",
+    };
+    return labels[value] || value;
+  };
   const quickActions = [
-    { to: "/member/market-prices", icon: IndianRupee, label: lang === "mr" ? "\u0906\u091c\u091a\u0947 \u092c\u093e\u091c\u093e\u0930\u092d\u093e\u0935" : "Add Daily Prices", highlight: true },
-    { to: "/member/new-complaint", icon: ClipboardList, label: "Raise Complaint" },
-    { to: "/member/kyc", icon: IdCard, label: "Customer KYC" },
-    { to: "/member/post", icon: ImagePlus, label: "Submit Post" },
-    { to: "/member/shared-posts", icon: Newspaper, label: "Shared Posts" },
-    { to: "/member/ratings", icon: Star, label: "Portal Reviews" },
-    { to: "/member/notices", icon: FileText, label: "Download Notice" },
-    { to: "/member/updates", icon: Newspaper, label: "Market Update" },
-    { to: "/member/mobile-change", icon: Phone, label: "Mobile Change" },
+    { to: "/member/market-prices", icon: IndianRupee, label: isMr ? "आजचे बाजारभाव" : "Add Daily Prices", highlight: true },
+    { to: "/member/new-complaint", icon: ClipboardList, label: isMr ? "तक्रार नोंदवा" : "Raise Complaint" },
+    { to: "/member/kyc", icon: IdCard, label: isMr ? "ग्राहक पडताळणी" : "Customer KYC" },
+    { to: "/member/post", icon: ImagePlus, label: isMr ? "पोस्ट सबमिट करा" : "Submit Post" },
+    { to: "/member/shared-posts", icon: Newspaper, label: isMr ? "शेअर केलेल्या पोस्ट" : "Shared Posts" },
+    { to: "/member/ratings", icon: Star, label: isMr ? "पोर्टल रिव्ह्यू" : "Portal Reviews" },
+    { to: "/member/notices", icon: FileText, label: isMr ? "सूचना डाउनलोड करा" : "Download Notice" },
+    { to: "/member/updates", icon: Newspaper, label: isMr ? "बाजार माहिती" : "Market Update" },
+    { to: "/member/mobile-change", icon: Phone, label: isMr ? "मोबाईल बदल" : "Mobile Change" },
   ];
 
   return (
@@ -130,12 +144,12 @@ function OwnerDash() {
         <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
-              <h1 className="font-display text-xl font-bold leading-tight text-primary-dark sm:text-2xl">Welcome back, {dashboardPrimaryName}</h1>
+              <h1 className="font-display text-xl font-bold leading-tight text-primary-dark sm:text-2xl">{isMr ? "पुन्हा स्वागत आहे" : "Welcome back"}, {dashboardPrimaryName}</h1>
               <p className="mt-1 text-sm text-muted-foreground">{dashboardSecondaryName}</p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2 md:justify-end">
-              <Badge variant="outline" className="whitespace-nowrap">{profile?.trader_code || "Member"}</Badge>
-              <Badge className="whitespace-nowrap bg-secondary text-primary-dark">{profile?.verification_status || "approved"}</Badge>
+              <Badge variant="outline" className="whitespace-nowrap">{profile?.trader_code || (isMr ? "सभासद" : "Member")}</Badge>
+              <Badge className="whitespace-nowrap bg-secondary text-primary-dark">{statusLabel(profile?.verification_status)}</Badge>
             </div>
           </div>
         </CardContent>
@@ -147,11 +161,11 @@ function OwnerDash() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-primary" />
-                  <h2 className="font-display font-bold text-primary-dark">{lang === "mr" ? "\u092a\u094d\u0930\u0932\u0902\u092c\u093f\u0924 \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f" : "Pending Feedback"}</h2>
+                  <h2 className="font-display font-bold text-primary-dark">{isMr ? "प्रलंबित अभिप्राय" : "Pending Feedback"}</h2>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{pendingFeedback[0]?.ticket_number} - {pendingFeedback[0]?.subject}</p>
               </div>
-              <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/member/complaints">{lang === "mr" ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Give Feedback"}</Link></Button>
+              <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/member/complaints">{isMr ? "अभिप्राय द्या" : "Give Feedback"}</Link></Button>
             </div>
           </CardContent>
         </Card>
@@ -160,24 +174,24 @@ function OwnerDash() {
       <Dialog open={showFeedbackPrompt && pendingFeedback.length > 0} onOpenChange={setShowFeedbackPrompt}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{lang === "mr" ? "\u0906\u092a\u0932\u094d\u092f\u093e \u0924\u0915\u094d\u0930\u093e\u0930\u0940\u091a\u0947 \u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u0915\u0938\u0947 \u091d\u093e\u0932\u0947?" : "How was your complaint resolution?"}</DialogTitle>
-            <DialogDescription>{lang === "mr" ? "\u0906\u092a\u0932\u0940 \u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u091d\u093e\u0932\u094d\u092f\u093e\u091a\u0947 \u0928\u094b\u0902\u0926\u0935\u093f\u0923\u094d\u092f\u093e\u0924 \u0906\u0932\u0947 \u0906\u0939\u0947. \u0915\u0943\u092a\u092f\u093e \u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e." : "Your complaint has been marked as resolved. Please share your feedback."}</DialogDescription>
+            <DialogTitle>{isMr ? "आपल्या तक्रारीचे निराकरण कसे झाले?" : "How was your complaint resolution?"}</DialogTitle>
+            <DialogDescription>{isMr ? "आपली तक्रार निराकरण झाल्याचे नोंदविण्यात आले आहे. कृपया अभिप्राय द्या." : "Your complaint has been marked as resolved. Please share your feedback."}</DialogDescription>
           </DialogHeader>
           <div className="rounded-lg border bg-secondary/40 p-4">
             <div className="font-mono text-xs text-muted-foreground">{pendingFeedback[0]?.ticket_number}</div>
             <div className="mt-1 font-display font-semibold text-primary-dark">{pendingFeedback[0]?.subject}</div>
           </div>
           <div className="flex flex-wrap justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowFeedbackPrompt(false)}>{lang === "mr" ? "\u0928\u0902\u0924\u0930 \u0906\u0920\u0935\u0923 \u0915\u0930\u0942\u0928 \u0926\u094d\u092f\u093e" : "Remind Me Later"}</Button>
-            <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/member/complaints">{lang === "mr" ? "\u0905\u092d\u093f\u092a\u094d\u0930\u093e\u092f \u0926\u094d\u092f\u093e" : "Open Feedback"}</Link></Button>
+            <Button variant="outline" onClick={() => setShowFeedbackPrompt(false)}>{isMr ? "नंतर आठवण करून द्या" : "Remind Me Later"}</Button>
+            <Button asChild className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Link to="/member/complaints">{isMr ? "अभिप्राय उघडा" : "Open Feedback"}</Link></Button>
           </div>
         </DialogContent>
       </Dialog>
       {/* Overview cards */}
       <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
         {[
-          { icon: ClipboardList, label: "Selected Gala / Shop", value: selectedGala?.gala_number || profile?.gala_number || "-", color: "bg-primary text-white" },
-          { icon: MessageSquare, label: "Linked Customers", value: metrics?.totalCustomers ?? 0, color: "bg-warning text-white" },
+          { icon: ClipboardList, label: isMr ? "निवडलेला गाळा / दुकान" : "Selected Gala / Shop", value: selectedGala?.gala_number || profile?.gala_number || "-", color: "bg-primary text-white" },
+          { icon: MessageSquare, label: isMr ? "जोडलेले ग्राहक" : "Linked Customers", value: metrics?.totalCustomers ?? 0, color: "bg-warning text-white" },
         ].map((s) => (
           <Card key={s.label} className="border-border/60">
             <CardContent className="flex min-h-[82px] items-center gap-3 p-4 sm:min-h-[92px] sm:gap-4 sm:p-5">
@@ -195,8 +209,8 @@ function OwnerDash() {
         <CardContent className="p-4 sm:p-6">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="font-display font-bold text-primary-dark">Your Galas / Shops</h2>
-              <p className="mt-1 text-sm text-muted-foreground">One login can manage multiple shops linked to your mobile number.</p>
+              <h2 className="font-display font-bold text-primary-dark">{isMr ? "तुमचे गाळे / दुकाने" : "Your Galas / Shops"}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{isMr ? "एका लॉगिनमधून तुमच्या मोबाईल क्रमांकाशी जोडलेली अनेक दुकाने व्यवस्थापित करता येतात." : "One login can manage multiple shops linked to your mobile number."}</p>
             </div>
           </div>
           <div className="grid gap-3 lg:grid-cols-3">
@@ -211,22 +225,22 @@ function OwnerDash() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <Store className="h-4 w-4 shrink-0 text-primary" />
-                      <div className="font-display font-semibold text-primary-dark">Gala {gala.gala_number}</div>
+                      <div className="font-display font-semibold text-primary-dark">{isMr ? "गाळा" : "Gala"} {gala.gala_number}</div>
                     </div>
                     <div className="mt-1 text-sm text-muted-foreground">{galaBusinessName(gala)}</div>
                   </div>
-                  {gala.is_primary ? <Badge className="bg-primary text-white">Primary</Badge> : null}
+                  {gala.is_primary ? <Badge className="bg-primary text-white">{isMr ? "मुख्य" : "Primary"}</Badge> : null}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Badge variant="outline">{gala.business_category || gala.market_section || "General"}</Badge>
+                  <Badge variant="outline">{gala.business_category || gala.market_section || (isMr ? "सामान्य" : "General")}</Badge>
                   <Badge className={gala.status === "approved" ? "bg-success text-white" : gala.status === "rejected" ? "bg-destructive text-white" : "bg-saffron text-primary-dark"}>
-                    {gala.status.replace(/_/g, " ")}
+                    {statusLabel(gala.status)}
                   </Badge>
                 </div>
-                {gala.market_registration_number && <div className="mt-3 text-xs text-muted-foreground">Registration: {gala.market_registration_number}</div>}
+                {gala.market_registration_number && <div className="mt-3 text-xs text-muted-foreground">{isMr ? "नोंदणी" : "Registration"}: {gala.market_registration_number}</div>}
               </button>
             ))}
-            {galas.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground lg:col-span-3">No gala/shop records found yet.</div>}
+            {galas.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground lg:col-span-3">{isMr ? "अजून गाळा/दुकान नोंदी सापडल्या नाहीत." : "No gala/shop records found yet."}</div>}
           </div>
         </CardContent>
       </Card>
@@ -235,8 +249,8 @@ function OwnerDash() {
       <Card className="mt-4 border-border/60 sm:mt-6">
         <CardContent className="p-4 sm:p-6">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="font-display font-bold text-primary-dark">Quick actions</h2>
-            <Badge className="w-fit max-w-full whitespace-normal bg-secondary text-primary-dark">{displayBusinessName || "Fresh dashboard"}</Badge>
+            <h2 className="font-display font-bold text-primary-dark">{isMr ? "झटपट कृती" : "Quick actions"}</h2>
+            <Badge className="w-fit max-w-full whitespace-normal bg-secondary text-primary-dark">{displayBusinessName || (isMr ? "नवीन डॅशबोर्ड" : "Fresh dashboard")}</Badge>
           </div>
           <div className="grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
             {quickActions.map((a) => (
@@ -255,26 +269,26 @@ function OwnerDash() {
         <CardContent className="p-4 sm:p-6">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <h2 className="font-display font-bold text-primary-dark">Latest shared posts</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Admin-reshared posts visible to your Member category.</p>
+              <h2 className="font-display font-bold text-primary-dark">{isMr ? "नवीन शेअर केलेल्या पोस्ट" : "Latest shared posts"}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{isMr ? "प्रशासकाने पुन्हा शेअर केलेल्या पोस्ट तुमच्या सभासद विभागासाठी दिसतात." : "Admin-reshared posts visible to your Member category."}</p>
             </div>
-            <Button asChild size="sm" variant="ghost"><Link to="/member/shared-posts">View all</Link></Button>
+            <Button asChild size="sm" variant="ghost"><Link to="/member/shared-posts">{isMr ? "सर्व पहा" : "View all"}</Link></Button>
           </div>
           <div className="grid gap-3 lg:grid-cols-2">
             {sharedPosts.slice(0, 4).map((post) => (
               <div key={post.id} className="rounded-lg border bg-secondary/20 p-4">
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <Badge variant="outline">{post.parsed?.category || "General Request"}</Badge>
+                  <Badge variant="outline">{post.parsed?.category || (isMr ? "सामान्य विनंती" : "General Request")}</Badge>
                   <span>{new Date(post.published_at || post.created_at).toLocaleDateString("en-IN")}</span>
                 </div>
                 <h3 className="mt-2 whitespace-normal break-words font-display font-semibold leading-snug text-primary-dark">{post.title_en}</h3>
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{post.parsed?.details || ""}</p>
                 <div className="mt-3 text-xs text-muted-foreground">
-                  {post.created_by_name} - Gala {post.gala_number || "-"} - {post.trader_code || post.business_name || "-"}
+                  {post.created_by_name} - {isMr ? "गाळा" : "Gala"} {post.gala_number || "-"} - {post.trader_code || post.business_name || "-"}
                 </div>
               </div>
             ))}
-            {sharedPosts.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground lg:col-span-2">No shared posts yet.</div>}
+            {sharedPosts.length === 0 && <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground lg:col-span-2">{isMr ? "अजून शेअर केलेल्या पोस्ट नाहीत." : "No shared posts yet."}</div>}
           </div>
         </CardContent>
       </Card>
@@ -284,11 +298,11 @@ function OwnerDash() {
         <Card className="border-border/60">
           <CardContent className="min-h-[180px] p-4 sm:min-h-[210px] sm:p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display font-bold text-primary-dark">My recent complaints</h2>
-              <Button asChild size="sm" variant="ghost"><Link to="/member/complaints">View all</Link></Button>
+              <h2 className="font-display font-bold text-primary-dark">{isMr ? "माझ्या अलीकडील तक्रारी" : "My recent complaints"}</h2>
+              <Button asChild size="sm" variant="ghost"><Link to="/member/complaints">{isMr ? "सर्व पहा" : "View all"}</Link></Button>
             </div>
             <div className="space-y-3">
-              <div className="py-8 text-center text-sm text-muted-foreground">No complaints yet.</div>
+              <div className="py-8 text-center text-sm text-muted-foreground">{isMr ? "अजून तक्रारी नाहीत." : "No complaints yet."}</div>
             </div>
           </CardContent>
         </Card>
@@ -296,11 +310,11 @@ function OwnerDash() {
         <Card className="border-border/60">
           <CardContent className="min-h-[180px] p-4 sm:min-h-[210px] sm:p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display font-bold text-primary-dark">Latest market updates</h2>
-              <Button asChild size="sm" variant="ghost"><Link to="/member/updates">View all</Link></Button>
+              <h2 className="font-display font-bold text-primary-dark">{isMr ? "नवीन बाजार माहिती" : "Latest market updates"}</h2>
+              <Button asChild size="sm" variant="ghost"><Link to="/member/updates">{isMr ? "सर्व पहा" : "View all"}</Link></Button>
             </div>
             <div className="space-y-3">
-              <div className="py-8 text-center text-sm text-muted-foreground">No market updates yet.</div>
+              <div className="py-8 text-center text-sm text-muted-foreground">{isMr ? "अजून बाजार माहिती नाही." : "No market updates yet."}</div>
             </div>
           </CardContent>
         </Card>
@@ -310,11 +324,11 @@ function OwnerDash() {
       <Card className="mt-4 border-border/60 sm:mt-6">
         <CardContent className="p-4 sm:p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-display font-bold text-primary-dark">Recent notices</h2>
-            <Button asChild size="sm" variant="ghost"><Link to="/member/notices">View all</Link></Button>
+            <h2 className="font-display font-bold text-primary-dark">{isMr ? "अलीकडील सूचना" : "Recent notices"}</h2>
+            <Button asChild size="sm" variant="ghost"><Link to="/member/notices">{isMr ? "सर्व पहा" : "View all"}</Link></Button>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <div className="py-8 text-center text-sm text-muted-foreground md:col-span-2">No notices yet.</div>
+            <div className="py-8 text-center text-sm text-muted-foreground md:col-span-2">{isMr ? "अजून सूचना नाहीत." : "No notices yet."}</div>
           </div>
         </CardContent>
       </Card>
