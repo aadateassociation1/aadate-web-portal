@@ -90,6 +90,18 @@ function Home() {
     video.play().then(() => setHeroVideoNeedsTap(false)).catch(() => setHeroVideoNeedsTap(true));
   };
 
+  const handleHeroVideoTap = () => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    setHeroVideoNeedsTap(false);
+    video.play().catch(() => {
+      video.controls = true;
+    });
+  };
+
   useEffect(() => {
     playHeroVideo();
     const timer = window.setTimeout(playHeroVideo, 500);
@@ -372,7 +384,6 @@ function Home() {
         <video
           ref={heroVideoRef}
           className="absolute inset-0 h-full w-full object-contain object-center sm:object-cover sm:object-[center_18%]"
-          src={heroVideo}
           poster={heroImg}
           autoPlay
           muted
@@ -384,20 +395,14 @@ function Home() {
           onPlaying={() => setHeroVideoNeedsTap(false)}
           onCanPlay={playHeroVideo}
           preload="auto"
-        />
+        >
+          <source src={heroVideo} type="video/mp4" />
+        </video>
         {heroVideoNeedsTap && (
           <button
             type="button"
             className="absolute inset-0 z-20 grid place-items-center bg-black/15 text-white"
-            onClick={() => {
-              const video = heroVideoRef.current;
-              if (!video) return;
-              video.muted = true;
-              video.defaultMuted = true;
-              video.playsInline = true;
-              video.load();
-              video.play().then(() => setHeroVideoNeedsTap(false)).catch(() => undefined);
-            }}
+            onClick={handleHeroVideoTap}
             aria-label="Play home video"
           >
             <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/95 shadow-lg sm:h-20 sm:w-20">
