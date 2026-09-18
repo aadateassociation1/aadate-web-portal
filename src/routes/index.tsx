@@ -371,7 +371,7 @@ function Home() {
         />
         <video
           ref={heroVideoRef}
-          className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
+          className="absolute inset-0 h-full w-full object-contain object-center sm:object-cover sm:object-[center_18%]"
           src={heroVideo}
           poster={heroImg}
           autoPlay
