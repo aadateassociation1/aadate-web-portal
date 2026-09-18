@@ -418,7 +418,7 @@ function Home() {
             </span>
           </button>
         )}
-        <div className="pointer-events-none absolute inset-x-0 bottom-14 z-10 px-4 text-center sm:bottom-16 sm:px-10 lg:bottom-20 lg:px-16" data-no-translate>
+        <div className="pointer-events-none absolute inset-x-0 bottom-14 z-10 hidden px-4 text-center sm:block sm:bottom-16 sm:px-10 lg:bottom-20 lg:px-16" data-no-translate>
           <h1 className="mx-auto max-w-[18rem] font-display text-lg font-bold leading-tight text-white drop-shadow-[0_3px_14px_rgba(0,0,0,0.75)] sm:max-w-4xl sm:text-3xl lg:text-4xl">
             {lang === "mr" ? "श्री छत्रपती शिवाजी मार्केट यार्ड आडते असोसिएशन, पुणे" : "Shree Chhatrapati Shivaji Market Yard Adte Association"}
           </h1>
