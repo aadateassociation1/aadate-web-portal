@@ -12,7 +12,6 @@ import {
   CheckCircle2, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
   Briefcase, Store, UserRound, Play,
 } from "lucide-react";
-import heroImg from "@/assets/market-hero.jpg";
 import heroVideo from "@/assets/home page banner.mp4";
 import marketyardImg from "@/assets/marketyard.webp";
 import sourabhKunjirImg from "@/assets/Sourabh Kunjir.jpeg";
@@ -391,15 +390,9 @@ function Home() {
     <SiteLayout>
       {/* Hero */}
       <section className="relative aspect-video w-full overflow-hidden bg-black sm:h-[calc(100svh-92px)] sm:min-h-[430px] sm:aspect-auto">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImg})` }}
-          aria-hidden
-        />
         <video
           ref={heroVideoRef}
           className="absolute inset-0 h-full w-full object-contain object-center sm:object-cover sm:object-[center_18%]"
-          poster={heroImg}
           autoPlay
           muted
           defaultMuted
