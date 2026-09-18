@@ -317,9 +317,11 @@ export function DashLayout({ kind, children }: Props) {
           <Link to={helpLink} className={`flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.75 text-sm font-medium transition ${pathname === helpLink ? "bg-saffron text-saffron-foreground shadow-sm" : "text-sidebar-foreground/82 hover:bg-white/8 hover:text-white"}`}>
             <LifeBuoy className="h-4 w-4" /> {displayText("Help & Support")}
           </Link>
-          <Link to={passwordLink} className={`flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.75 text-sm font-medium transition ${pathname === passwordLink ? "bg-saffron text-saffron-foreground shadow-sm" : "text-sidebar-foreground/82 hover:bg-white/8 hover:text-white"}`}>
-            <Lock className="h-4 w-4" /> {displayText("Change Password")}
-          </Link>
+          {kind !== "owner" && (
+            <Link to={passwordLink} className={`flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.75 text-sm font-medium transition ${pathname === passwordLink ? "bg-saffron text-saffron-foreground shadow-sm" : "text-sidebar-foreground/82 hover:bg-white/8 hover:text-white"}`}>
+              <Lock className="h-4 w-4" /> {displayText("Change Password")}
+            </Link>
+          )}
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.75 text-sm text-sidebar-foreground/82 hover:bg-destructive hover:text-white"
