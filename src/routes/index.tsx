@@ -390,7 +390,7 @@ function Home() {
   return (
     <SiteLayout>
       {/* Hero */}
-      <section className="relative h-[calc(100svh-92px)] min-h-[430px] w-full overflow-hidden bg-black">
+      <section className="relative aspect-video w-full overflow-hidden bg-black sm:h-[calc(100svh-92px)] sm:min-h-[430px] sm:aspect-auto">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImg})` }}
@@ -398,7 +398,7 @@ function Home() {
         />
         <video
           ref={heroVideoRef}
-          className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
+          className="absolute inset-0 h-full w-full object-contain object-center sm:object-cover sm:object-[center_18%]"
           poster={heroImg}
           autoPlay
           muted
