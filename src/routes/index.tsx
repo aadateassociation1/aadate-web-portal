@@ -86,6 +86,10 @@ function Home() {
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
+    video.autoplay = true;
+    video.setAttribute("muted", "");
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
     video.play().then(() => setHeroVideoNeedsTap(false)).catch(() => setHeroVideoNeedsTap(true));
   };
 
@@ -103,8 +107,27 @@ function Home() {
 
   useEffect(() => {
     playHeroVideo();
-    const timer = window.setTimeout(playHeroVideo, 500);
-    return () => window.clearTimeout(timer);
+    const retryTimers = [250, 800, 1600].map((delay) => window.setTimeout(playHeroVideo, delay));
+
+    const playWhenVisible = () => {
+      if (!document.hidden) playHeroVideo();
+    };
+    const playAfterUserGesture = () => playHeroVideo();
+
+    window.addEventListener("pageshow", playHeroVideo);
+    window.addEventListener("focus", playHeroVideo);
+    document.addEventListener("visibilitychange", playWhenVisible);
+    document.addEventListener("pointerdown", playAfterUserGesture, { passive: true, once: true });
+    document.addEventListener("touchstart", playAfterUserGesture, { passive: true, once: true });
+
+    return () => {
+      retryTimers.forEach((timer) => window.clearTimeout(timer));
+      window.removeEventListener("pageshow", playHeroVideo);
+      window.removeEventListener("focus", playHeroVideo);
+      document.removeEventListener("visibilitychange", playWhenVisible);
+      document.removeEventListener("pointerdown", playAfterUserGesture);
+      document.removeEventListener("touchstart", playAfterUserGesture);
+    };
   }, []);
 
   useEffect(() => {
@@ -399,6 +422,7 @@ function Home() {
           controls
           loop
           playsInline
+          onLoadedMetadata={playHeroVideo}
           onLoadedData={playHeroVideo}
           onPlaying={() => setHeroVideoNeedsTap(false)}
           onCanPlay={playHeroVideo}
