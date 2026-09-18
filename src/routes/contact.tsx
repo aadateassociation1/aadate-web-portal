@@ -1,5 +1,5 @@
 import { createFileRoute } from "@/lib/simple-router";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { SiteLayout } from "@/components/public/SiteLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ const ASSOCIATION_EMAIL = "aadateassociation1@gmail.com";
 const ASSOCIATION_MAP_EMBED_URL = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d121086.05561617303!2d73.71149379726565!3d18.486411300000007!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c022bfffffff%3A0xdca80b98f93f015e!2sShree%20Chhatrapati%20Shivaji%20Market%20Yard%20Adate%20Assoc!5e0!3m2!1sen!2sin!4v1788258576279!5m2!1sen!2sin";
 const ASSOCIATION_MAP_LINK_URL = "https://www.google.com/maps/search/?api=1&query=Shree%20Chhatrapati%20Shivaji%20Market%20Yard%20Adate%20Assoc%2C%20First%20Floor%2C%20Pan%20Bazar%20Building%2C%20Gultekdi%2C%20Pune%20411037";
 const ASSOCIATION_MAP_LINK_URL_2 = "https://www.google.com/maps/search/?api=1&query=Saurabh%20Shekhar%20Kunjir%2C%20Gala%20No.%20321%2C%20322%2C%20Fruit%20Section%2C%20Gultekadi%2C%20Market%20Yard%2C%20Pune";
+const WEB3FORMS_ACCESS_KEY = "85eb9cf9-5a6d-4201-b9eb-683994b43e42";
 const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
 
 export const Route = createFileRoute("/contact")({
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/contact")({
 function Contact() {
   const { lang } = useI18n();
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const copy = lang === "mr"
     ? {
         addressTitle: "\u0915\u093e\u0930\u094d\u092f\u093e\u0932\u092f \u092a\u0924\u094d\u0924\u093e",
@@ -63,7 +65,9 @@ function Contact() {
         messagePlaceholder: "\u0906\u092e\u094d\u0939\u0940 \u0915\u0936\u0940 \u092e\u0926\u0924 \u0915\u0930\u0942 \u0936\u0915\u0924\u094b?",
         send: "\u0938\u0902\u0926\u0947\u0936 \u092a\u093e\u0920\u0935\u093e",
         sent: "\u0938\u0902\u0926\u0947\u0936 \u092a\u093e\u0920\u0935\u0932\u093e",
+        sending: "\u0938\u0902\u0926\u0947\u0936 \u092a\u093e\u0920\u0935\u0924 \u0906\u0939\u0947...",
         toast: "\u0938\u0902\u0926\u0947\u0936 \u092a\u093e\u0920\u0935\u0932\u093e - \u0906\u092e\u094d\u0939\u0940 \u0968\u096a \u0924\u093e\u0938\u093e\u0902\u0924 \u0909\u0924\u094d\u0924\u0930 \u0926\u0947\u090a",
+        errorToast: "\u0938\u0902\u0926\u0947\u0936 \u092a\u093e\u0920\u0935\u0924\u093e \u0906\u0932\u093e \u0928\u093e\u0939\u0940. \u0915\u0943\u092a\u092f\u093e \u092a\u0941\u0928\u094d\u0939\u093e \u092a\u094d\u0930\u092f\u0924\u094d\u0928 \u0915\u0930\u093e \u0915\u093f\u0902\u0935\u093e \u0925\u0947\u091f \u0908\u092e\u0947\u0932 \u0915\u0930\u093e.",
       }
     : {
         addressTitle: "Office Address",
@@ -90,8 +94,40 @@ function Contact() {
         messagePlaceholder: "How can we help you?",
         send: "Send Message",
         sent: "Sent",
+        sending: "Sending...",
         toast: "Message sent - we'll reply within 24 hours",
+        errorToast: "Could not send message. Please try again or email us directly.",
       };
+
+  const submitContactForm = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    formData.set("access_key", WEB3FORMS_ACCESS_KEY);
+    formData.set("from_name", ASSOCIATION_NAME);
+    formData.set("Website", "digitalaadate.org");
+
+    setSubmitting(true);
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: formData,
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || result?.body?.message || copy.errorToast);
+      }
+      setSent(true);
+      toast.success(copy.toast);
+      form.reset();
+      window.setTimeout(() => setSent(false), 3000);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : copy.errorToast);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <SiteLayout>
@@ -126,18 +162,21 @@ function Contact() {
                 <form
                   className="mt-5 grid gap-4"
                   data-no-translate
-                  onSubmit={(e) => { e.preventDefault(); setSent(true); toast.success(copy.toast); (e.target as HTMLFormElement).reset(); setTimeout(() => setSent(false), 3000); }}
+                  onSubmit={submitContactForm}
                 >
+                  <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
+                  <input type="hidden" name="from_name" value={ASSOCIATION_NAME} />
+                  <input type="checkbox" name="botcheck" className="hidden" tabIndex={-1} autoComplete="off" />
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div><Label data-no-translate>{copy.fullName}</Label><Input required placeholder={copy.fullNamePlaceholder} /></div>
-                    <div><Label data-no-translate>{copy.mobile}</Label><Input required type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder={copy.mobilePlaceholder} onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} /></div>
+                    <div><Label data-no-translate>{copy.fullName}</Label><Input name="name" required placeholder={copy.fullNamePlaceholder} /></div>
+                    <div><Label data-no-translate>{copy.mobile}</Label><Input name="mobile" required type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder={copy.mobilePlaceholder} onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} /></div>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div><Label data-no-translate>{copy.email}</Label><Input required type="email" placeholder="you@example.com" /></div>
-                    <div><Label data-no-translate>{copy.subject}</Label><Input required placeholder={copy.subjectPlaceholder} /></div>
+                    <div><Label data-no-translate>{copy.email}</Label><Input name="email" required type="email" placeholder="you@example.com" /></div>
+                    <div><Label data-no-translate>{copy.subject}</Label><Input name="subject" required placeholder={copy.subjectPlaceholder} /></div>
                   </div>
-                  <div><Label data-no-translate>{copy.message}</Label><Textarea required rows={5} placeholder={copy.messagePlaceholder} /></div>
-                  <Button type="submit" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90 sm:w-auto" disabled={sent} data-no-translate>{sent ? copy.sent : copy.send}</Button>
+                  <div><Label data-no-translate>{copy.message}</Label><Textarea name="message" required rows={5} placeholder={copy.messagePlaceholder} /></div>
+                  <Button type="submit" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90 sm:w-auto" disabled={sent || submitting} data-no-translate>{submitting ? copy.sending : sent ? copy.sent : copy.send}</Button>
                 </form>
               </CardContent>
             </Card>
