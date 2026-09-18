@@ -109,6 +109,21 @@ function Home() {
   }, []);
 
   useEffect(() => {
+    const pauseVideoAfterScroll = () => {
+      const video = heroVideoRef.current;
+      if (!video) return;
+      if (window.scrollY > 24) {
+        video.pause();
+        return;
+      }
+      playHeroVideo();
+    };
+
+    window.addEventListener("scroll", pauseVideoAfterScroll, { passive: true });
+    return () => window.removeEventListener("scroll", pauseVideoAfterScroll);
+  }, []);
+
+  useEffect(() => {
     fetch("/api/v1/public/posts").then((r) => r.json()).then((result) => { if (result.ok) setUpdates(result.posts || []); }).catch(() => undefined);
     fetch("/api/v1/public/notices").then((r) => r.json()).then((result) => { if (result.ok) setNotices(result.notices || []); }).catch(() => undefined);
     fetch("/api/v1/public/gallery").then((r) => r.json()).then((result) => { if (result.ok) setGallery(result.items || []); }).catch(() => undefined);
