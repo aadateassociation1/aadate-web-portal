@@ -223,6 +223,8 @@ export function DashLayout({ kind, children }: Props) {
     : "";
   const ownerPrimaryName = ownerFirmName || user.name;
   const ownerSecondaryName = ownerFirmName ? user.name : displayText(title);
+  const displayOwnerPrimaryName = lang === "mr" ? translateToMarathi(ownerPrimaryName) : ownerPrimaryName;
+  const displayOwnerSecondaryName = ownerFirmName && lang === "mr" ? translateToMarathi(ownerSecondaryName) : ownerSecondaryName;
   const helpLink = kind === "owner" ? "/member/help" : "/admin/help";
   const passwordLink = kind === "owner" ? "/member/change-password" : "/admin/change-password";
 
@@ -268,8 +270,8 @@ export function DashLayout({ kind, children }: Props) {
                 )}
               </div>
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-white">{ownerPrimaryName}</div>
-                <div className="truncate text-xs text-sidebar-foreground/70">{ownerSecondaryName}</div>
+                <div className="truncate text-sm font-semibold text-white">{displayOwnerPrimaryName}</div>
+                <div className="truncate text-xs text-sidebar-foreground/70">{displayOwnerSecondaryName}</div>
               </div>
             </div>
           ) : (
@@ -283,7 +285,7 @@ export function DashLayout({ kind, children }: Props) {
         </div>
         <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
           <div className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/55">
-            {lang === "mr" ? "नेव्हिगेशन" : "Navigation"}
+            {displayText("Navigation")}
           </div>
           {nav.map((n) => {
             const active = n.exact ? pathname === n.to : pathname.startsWith(n.to) && n.to !== "/member" && n.to !== "/admin";
@@ -312,7 +314,7 @@ export function DashLayout({ kind, children }: Props) {
         </nav>
         <div className="shrink-0 border-t border-sidebar-border p-3 space-y-1">
           <div className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/55">
-            {lang === "mr" ? "खाते" : "Account"}
+            {displayText("Account")}
           </div>
           <Link to={helpLink} className={`flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.75 text-sm font-medium transition ${pathname === helpLink ? "bg-saffron text-saffron-foreground shadow-sm" : "text-sidebar-foreground/82 hover:bg-white/8 hover:text-white"}`}>
             <LifeBuoy className="h-4 w-4" /> {displayText("Help & Support")}
@@ -347,7 +349,7 @@ export function DashLayout({ kind, children }: Props) {
           <div className="min-w-0 flex-1">
             <div className="text-xs text-muted-foreground sm:text-sm">{kind === "owner" && ownerFirmName ? user.name : displayText(title)}</div>
             <div className="truncate font-display text-sm font-semibold text-foreground sm:text-base">
-              {lang === "mr" ? `पुन्हा स्वागत आहे, ${ownerPrimaryName}` : `Welcome back, ${ownerPrimaryName}`}
+              {lang === "mr" ? `${displayText("Welcome back")}, ${displayOwnerPrimaryName}` : `Welcome back, ${ownerPrimaryName}`}
             </div>
           </div>
           <Badge variant="secondary" className="hidden sm:inline-flex bg-secondary text-primary-dark">
@@ -364,8 +366,8 @@ export function DashLayout({ kind, children }: Props) {
               title="Get instant Market Yard notices and updates on your phone."
             >
               <Bell className="h-4 w-4 md:mr-1" />
-              <span className="hidden md:inline">Enable Notifications</span>
-              <span className="sr-only md:hidden">Enable notifications</span>
+              <span className="hidden md:inline">{displayText("Enable Notifications")}</span>
+              <span className="sr-only md:hidden">{displayText("Enable notifications")}</span>
             </Button>
           )}
           <Button asChild variant="outline" size="icon" className="h-10 w-10 shrink-0 sm:hidden" title="Open public site">
@@ -375,7 +377,7 @@ export function DashLayout({ kind, children }: Props) {
           </Button>
           <HeaderLangSwitcher />
           <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex shrink-0">
-            <Link to="/"><Home className="h-4 w-4 mr-1" /><span className="hidden md:inline">Public Site</span><span className="md:hidden">Site</span></Link>
+            <Link to="/"><Home className="h-4 w-4 mr-1" /><span className="hidden md:inline">{displayText("Public Site")}</span><span className="md:hidden">{displayText("Site")}</span></Link>
           </Button>
         </header>
         <main className={`min-w-0 flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 ${kind === "owner" ? "pb-24 lg:pb-8" : ""}`}>{children}</main>
@@ -409,7 +411,7 @@ export function DashLayout({ kind, children }: Props) {
                 className="flex min-h-14 flex-col items-center justify-center rounded-xl px-1 text-[11px] font-semibold text-muted-foreground transition hover:bg-secondary hover:text-primary-dark"
               >
                 <Menu className="h-5 w-5" />
-                <span className="mt-1">More</span>
+                <span className="mt-1">{displayText("More")}</span>
               </button>
             </div>
           </nav>

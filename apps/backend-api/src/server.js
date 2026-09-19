@@ -2325,6 +2325,11 @@ async function sendPasswordResetOtpHandler(req, res) {
     return;
   }
 
+  if (config.msg91.authKey && config.msg91.widgetId) {
+    res.json({ ok: true, mode: "msg91-widget", message: "You can request OTP now." });
+    return;
+  }
+
   const otp = String(crypto.randomInt(100000, 999999));
   passwordResetStore.set(mobile, {
     otpHash: crypto.createHash("sha256").update(otp).digest("hex"),
@@ -2342,6 +2347,97 @@ async function sendPasswordResetOtpHandler(req, res) {
 }
 
 app.post("/api/v1/auth/trader/password-reset/send-otp", sendPasswordResetOtpHandler);
+
+function findMsg91Identifier(value) {
+  if (!value || typeof value !== "object") return "";
+  const queue = [value];
+  const seen = new Set();
+  const likelyKeys = new Set(["identifier", "mobile", "phone", "contact", "number", "user"]);
+  while (queue.length) {
+    const item = queue.shift();
+    if (!item || typeof item !== "object" || seen.has(item)) continue;
+    seen.add(item);
+    for (const [key, child] of Object.entries(item)) {
+      if (likelyKeys.has(key.toLowerCase()) && (typeof child === "string" || typeof child === "number")) {
+        const digits = String(child).replace(/\D/g, "");
+        if (digits.length >= 10) return digits;
+      }
+      if (child && typeof child === "object") queue.push(child);
+    }
+  }
+  return "";
+}
+
+function isMsg91TokenVerified(payload) {
+  const text = JSON.stringify(payload || {}).toLowerCase();
+  if (payload?.type === "error" || payload?.status === "error" || text.includes("invalid") || text.includes("expired")) return false;
+  return payload?.type === "success" || payload?.status === "success" || payload?.success === true || text.includes("verified");
+}
+
+async function verifyMsg91AccessToken(accessToken, mobile) {
+  if (!config.msg91.authKey || !config.msg91.widgetId) {
+    throw new Error("MSG91 password reset is not configured.");
+  }
+  const response = await fetch("https://control.msg91.com/api/v5/widget/verifyAccessToken", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      authkey: config.msg91.authKey,
+      "access-token": accessToken,
+    }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !isMsg91TokenVerified(payload)) {
+    throw new Error(payload?.message || payload?.error || "OTP verification failed.");
+  }
+  const verifiedIdentifier = findMsg91Identifier(payload);
+  if (!verifiedIdentifier || !verifiedIdentifier.endsWith(mobile)) {
+    throw new Error("OTP verification mobile number mismatch.");
+  }
+  return payload;
+}
+
+async function verifyPasswordResetMsg91TokenHandler(req, res) {
+  const mobile = String(req.body?.mobile || "").trim();
+  const accessToken = String(req.body?.accessToken || req.body?.["access-token"] || "").trim();
+  if (!/^\d{10}$/.test(mobile)) {
+    res.status(400).json({ ok: false, error: "Enter a valid 10 digit mobile number." });
+    return;
+  }
+  if (!accessToken) {
+    res.status(400).json({ ok: false, error: "OTP verification token is required." });
+    return;
+  }
+  const [[user]] = await pool.query(
+    `SELECT u.id, u.status, r.code AS role
+       FROM users u
+       JOIN roles r ON r.id = u.role_id
+      WHERE u.mobile = :mobile
+        AND r.code = 'TRADER'
+      LIMIT 1`,
+    { mobile },
+  );
+  if (!user || user.status !== "active") {
+    res.status(404).json({ ok: false, error: "Member account not found." });
+    return;
+  }
+  try {
+    await verifyMsg91AccessToken(accessToken, mobile);
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error instanceof Error ? error.message : "Could not verify OTP." });
+    return;
+  }
+  const resetToken = crypto.randomUUID();
+  passwordResetStore.set(resetToken, {
+    mobile,
+    userId: user.id,
+    expiresAt: Date.now() + 10 * 60 * 1000,
+    verified: true,
+  });
+  res.json({ ok: true, resetToken });
+}
+
+app.post("/api/v1/auth/trader/password-reset/verify-msg91-token", verifyPasswordResetMsg91TokenHandler);
 
 async function verifyPasswordResetOtpHandler(req, res) {
   const mobile = String(req.body?.mobile || "").trim();

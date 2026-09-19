@@ -9,6 +9,116 @@ import { KeyRound, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
+const MSG91_SCRIPT_SRC = "https://verify.msg91.com/otp-provider.js";
+const MSG91_WIDGET_ID = String(import.meta.env.VITE_MSG91_WIDGET_ID || "").trim();
+const MSG91_TOKEN_AUTH = String(import.meta.env.VITE_MSG91_TOKEN_AUTH || "").trim();
+
+type Msg91Response = Record<string, unknown>;
+type Msg91Callback = (data: Msg91Response) => void;
+type Msg91ErrorCallback = (error: unknown) => void;
+
+declare global {
+  interface Window {
+    initSendOTP?: (configuration: Msg91WidgetConfiguration) => void;
+    sendOtp?: (identifier: string, success?: Msg91Callback, failure?: Msg91ErrorCallback) => void;
+    verifyOtp?: (otp: string, success?: Msg91Callback, failure?: Msg91ErrorCallback, widgetId?: string) => void;
+    retryOtp?: (channel: string | null, success?: Msg91Callback, failure?: Msg91ErrorCallback, widgetId?: string) => void;
+  }
+}
+
+type Msg91WidgetConfiguration = {
+  widgetId: string;
+  tokenAuth: string;
+  identifier?: string;
+  exposeMethods: true;
+  captchaRenderId: string;
+  success: Msg91Callback;
+  failure: Msg91ErrorCallback;
+};
+
+let msg91WidgetReadyPromise: Promise<void> | null = null;
+
+function msg91ErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object") {
+    const record = error as Record<string, unknown>;
+    return String(record.message || record.error || fallback);
+  }
+  return fallback;
+}
+
+function getMsg91AccessToken(data: Msg91Response | null | undefined) {
+  if (!data) return "";
+  return String(data["access-token"] || data.accessToken || data.token || data.message || "").trim();
+}
+
+async function loadMsg91Widget(identifier: string) {
+  if (!MSG91_WIDGET_ID || !MSG91_TOKEN_AUTH) {
+    throw new Error("MSG91 OTP is not configured.");
+  }
+
+  const init = () => {
+    if (!window.initSendOTP) throw new Error("MSG91 OTP service is not ready.");
+    window.initSendOTP({
+      widgetId: MSG91_WIDGET_ID,
+      tokenAuth: MSG91_TOKEN_AUTH,
+      identifier,
+      exposeMethods: true,
+      captchaRenderId: "",
+      success: () => undefined,
+      failure: () => undefined,
+    });
+  };
+
+  if (window.sendOtp && window.verifyOtp) {
+    init();
+    return;
+  }
+
+  if (!msg91WidgetReadyPromise) {
+    msg91WidgetReadyPromise = new Promise<void>((resolve, reject) => {
+      const existing = document.querySelector<HTMLScriptElement>(`script[src="${MSG91_SCRIPT_SRC}"]`);
+      const script = existing || document.createElement("script");
+      script.type = "text/javascript";
+      script.src = MSG91_SCRIPT_SRC;
+      script.async = true;
+      script.onload = () => {
+        try {
+          init();
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      };
+      script.onerror = () => reject(new Error("Could not load MSG91 OTP service."));
+      if (!existing) document.body.appendChild(script);
+    });
+  }
+
+  await msg91WidgetReadyPromise;
+  init();
+}
+
+function callMsg91SendOtp(identifier: string) {
+  return new Promise<Msg91Response>((resolve, reject) => {
+    if (!window.sendOtp) {
+      reject(new Error("MSG91 OTP service is not ready."));
+      return;
+    }
+    window.sendOtp(identifier, resolve, (error) => reject(new Error(msg91ErrorMessage(error, "Could not send OTP."))));
+  });
+}
+
+function callMsg91VerifyOtp(otp: string) {
+  return new Promise<Msg91Response>((resolve, reject) => {
+    if (!window.verifyOtp) {
+      reject(new Error("MSG91 OTP service is not ready."));
+      return;
+    }
+    window.verifyOtp(otp, resolve, (error) => reject(new Error(msg91ErrorMessage(error, "Incorrect or expired OTP."))), MSG91_WIDGET_ID);
+  });
+}
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({ meta: [{ title: "Forgot Password - Shree Chhatrapati Shivaji Market Yard Adte Association Portal" }] }),
@@ -23,7 +133,21 @@ function ForgotPasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [step, setStep] = useState<"mobile" | "otp" | "password">("mobile");
+  const [otpProvider, setOtpProvider] = useState<"local" | "msg91-widget">("local");
   const [loading, setLoading] = useState(false);
+
+  const createResetSessionFromMsg91Token = async (cleanedMobile: string, accessToken: string) => {
+    const response = await fetch("/api/v1/auth/trader/password-reset/verify-msg91-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile: cleanedMobile, accessToken }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Could not verify OTP.");
+    setResetToken(result.resetToken || "");
+    setStep("password");
+    toast.success("OTP verified.");
+  };
 
   const sendOtp = async () => {
     const cleaned = mobile.trim().replace(/\D/g, "");
@@ -41,6 +165,21 @@ function ForgotPasswordPage() {
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || "Could not send OTP.");
       setMobile(cleaned);
+      if (result.mode === "msg91-widget") {
+        setOtpProvider("msg91-widget");
+        const identifier = `91${cleaned}`;
+        await loadMsg91Widget(identifier);
+        const sendResult = await callMsg91SendOtp(identifier);
+        const accessToken = getMsg91AccessToken(sendResult);
+        if (accessToken) {
+          await createResetSessionFromMsg91Token(cleaned, accessToken);
+          return;
+        }
+        setStep("otp");
+        toast.success("OTP sent successfully.");
+        return;
+      }
+      setOtpProvider("local");
       setStep("otp");
       toast.success(result.message || "OTP sent to registered mobile number.");
       if (result.devOtp) toast.info(`Dev OTP: ${result.devOtp}`);
@@ -58,6 +197,14 @@ function ForgotPasswordPage() {
     }
     setLoading(true);
     try {
+      if (otpProvider === "msg91-widget") {
+        await loadMsg91Widget(`91${mobile.trim()}`);
+        const verifyResult = await callMsg91VerifyOtp(otp.trim());
+        const accessToken = getMsg91AccessToken(verifyResult);
+        if (!accessToken) throw new Error("OTP verified, but MSG91 did not return a verification token.");
+        await createResetSessionFromMsg91Token(mobile.trim(), accessToken);
+        return;
+      }
       const response = await fetch("/api/v1/auth/trader/password-reset/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

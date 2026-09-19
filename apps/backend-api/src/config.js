@@ -26,6 +26,7 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || "local-dev-session-secret",
   msg91: {
     authKey: process.env.MSG91_AUTH_KEY || "",
+    widgetId: process.env.MSG91_WIDGET_ID || "",
     templateId: process.env.MSG91_TEMPLATE_ID || "",
   },
   r2: {
