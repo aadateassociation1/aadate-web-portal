@@ -38,6 +38,24 @@ type Msg91WidgetConfiguration = {
 
 let msg91WidgetReadyPromise: Promise<void> | null = null;
 
+function waitForMsg91Ready(check: () => boolean, errorMessage: string) {
+  return new Promise<void>((resolve, reject) => {
+    const startedAt = Date.now();
+    const checkReady = () => {
+      if (check()) {
+        resolve();
+        return;
+      }
+      if (Date.now() - startedAt > 10000) {
+        reject(new Error(errorMessage));
+        return;
+      }
+      window.setTimeout(checkReady, 100);
+    };
+    checkReady();
+  });
+}
+
 function msg91ErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error) return error.message;
   if (typeof error === "string") return error;
@@ -58,8 +76,8 @@ async function loadMsg91Widget(identifier: string) {
     throw new Error("MSG91 OTP is not configured.");
   }
 
-  const init = () => {
-    if (!window.initSendOTP) throw new Error("MSG91 OTP service is not ready.");
+  const init = async () => {
+    await waitForMsg91Ready(() => Boolean(window.initSendOTP), "MSG91 OTP service is not ready.");
     window.initSendOTP({
       widgetId: MSG91_WIDGET_ID,
       tokenAuth: MSG91_TOKEN_AUTH,
@@ -69,10 +87,11 @@ async function loadMsg91Widget(identifier: string) {
       success: () => undefined,
       failure: () => undefined,
     });
+    await waitForMsg91Ready(() => Boolean(window.sendOtp && window.verifyOtp), "MSG91 OTP service is not ready.");
   };
 
   if (window.sendOtp && window.verifyOtp) {
-    init();
+    await init();
     return;
   }
 
@@ -83,21 +102,25 @@ async function loadMsg91Widget(identifier: string) {
       script.type = "text/javascript";
       script.src = MSG91_SCRIPT_SRC;
       script.async = true;
-      script.onload = () => {
+      script.onload = async () => {
         try {
-          init();
+          await init();
           resolve();
         } catch (error) {
+          msg91WidgetReadyPromise = null;
           reject(error);
         }
       };
-      script.onerror = () => reject(new Error("Could not load MSG91 OTP service."));
+      script.onerror = () => {
+        msg91WidgetReadyPromise = null;
+        reject(new Error("Could not load MSG91 OTP service."));
+      };
       if (!existing) document.body.appendChild(script);
     });
   }
 
   await msg91WidgetReadyPromise;
-  init();
+  await init();
 }
 
 function callMsg91SendOtp(identifier: string) {
