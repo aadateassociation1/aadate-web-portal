@@ -2734,6 +2734,95 @@ app.post("/api/v1/auth/trader-register", traderRegisterHandler);
 
 app.post("/api/v1/auth/trader/register", traderRegisterHandler);
 
+app.post("/api/v1/auth/trader/add-gala", async (req, res) => {
+  const {
+    mobile,
+    password,
+    business,
+    gala,
+    category = "Other",
+    section = null,
+    license = null,
+    associationSequenceNumber = null,
+    associationRegistrationNumber = null,
+  } = req.body || {};
+
+  const cleanMobile = String(mobile || "").replace(/\D/g, "");
+  if (!/^\d{10}$/.test(cleanMobile) || !password || !business || !gala || !String(section || "").trim()) {
+    res.status(400).json({ ok: false, error: "Existing mobile, password, firm name, gala/shop number, and market section are required." });
+    return;
+  }
+
+  const [[member]] = await pool.query(
+    `SELECT u.id AS user_id, u.full_name, u.password_hash, u.status AS user_status,
+            t.id AS trader_id, t.trader_code
+       FROM users u
+       JOIN roles r ON r.id = u.role_id
+       JOIN traders t ON t.user_id = u.id
+      WHERE u.mobile = :mobile AND r.code = 'TRADER'
+      LIMIT 1`,
+    { mobile: cleanMobile },
+  );
+  if (!member || member.password_hash !== hashPassword(password)) {
+    res.status(401).json({ ok: false, error: "Existing mobile number or password is incorrect." });
+    return;
+  }
+  if (member.user_status !== "active" && member.user_status !== "pending") {
+    res.status(403).json({ ok: false, error: "Member account is not active for adding another gala/shop." });
+    return;
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const { galaId, categoryId } = await ensureGalaAndCategory(connection, { gala, section, category });
+    const [[existingGala]] = await connection.query(
+      "SELECT id, status FROM trader_galas WHERE trader_id = :traderId AND gala_id = :galaId LIMIT 1",
+      { traderId: member.trader_id, galaId },
+    );
+    if (existingGala) {
+      await connection.rollback();
+      res.status(409).json({ ok: false, error: "This gala/shop is already linked to this member account." });
+      return;
+    }
+
+    const galaRecordId = await addTraderGala(connection, {
+      traderId: member.trader_id,
+      galaId,
+      businessName: business,
+      marketSection: section,
+      categoryId,
+      marketRegistrationNumber: license || null,
+      licenceNumber: license || null,
+      associationSequenceNumber: String(associationSequenceNumber || "").trim() || null,
+      associationRegistrationNumber: String(associationRegistrationNumber || "").trim() || null,
+      status: "submitted",
+      isPrimary: false,
+    });
+    await connection.query(
+      `INSERT INTO trader_verification_history (trader_id, old_status, new_status, remarks, changed_by)
+       VALUES (:traderId, NULL, 'submitted', :remarks, :userId)`,
+      {
+        traderId: member.trader_id,
+        remarks: `Additional gala/shop submitted: ${gala}`,
+        userId: member.user_id,
+      },
+    ).catch(() => undefined);
+    await connection.commit();
+    await writeAudit({ req, action: "trader.gala_submitted", module: "traders", entityType: "trader_galas", entityId: galaRecordId, newValues: { traderId: member.trader_id, gala, mobile: cleanMobile } }).catch(() => undefined);
+    res.status(201).json({ ok: true, applicationId: `${member.trader_code}-G${galaRecordId}`, traderId: member.trader_id, galaRecordId, status: "submitted" });
+  } catch (error) {
+    await connection.rollback();
+    if (error.code === "ER_DUP_ENTRY") {
+      res.status(409).json({ ok: false, error: "Registration number or gala/shop number is already linked." });
+      return;
+    }
+    throw error;
+  } finally {
+    connection.release();
+  }
+});
+
 app.get("/api/v1/auth/trader/application-status", async (req, res) => {
   const mobile = String(req.query.mobile || "").trim();
   const applicationNumber = String(req.query.applicationNumber || req.query.application_number || "").trim();

@@ -81,6 +81,9 @@ function LoginPage() {
                 <div className="font-display font-bold text-primary-dark">Member sign in</div>
               </div>
               <LoginForm role="owner" />
+              <div className="mt-6 border-t pt-4 text-center text-sm text-muted-foreground">
+                New here? <Link to="/register" className="font-semibold text-primary hover:underline">Register your gala</Link>
+              </div>
             </CardContent>
           </Card>
         </div>
