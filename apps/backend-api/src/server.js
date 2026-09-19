@@ -2305,6 +2305,45 @@ app.post("/api/v1/auth/verify-otp", verifyOtpHandler);
 
 app.post("/api/v1/auth/trader/verify-otp", verifyOtpHandler);
 
+function isMsg91Success(payload) {
+  const text = JSON.stringify(payload || {}).toLowerCase();
+  if (payload?.type === "error" || payload?.status === "error" || text.includes("invalid") || text.includes("failed")) return false;
+  return payload?.type === "success" || payload?.status === "success" || payload?.success === true || text.includes("success") || text.includes("verified");
+}
+
+async function sendMsg91Otp(mobile) {
+  const params = new URLSearchParams({
+    template_id: config.msg91.templateId,
+    mobile: `91${mobile}`,
+    authkey: config.msg91.authKey,
+  });
+  const response = await fetch(`https://control.msg91.com/api/v5/otp?${params.toString()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !isMsg91Success(payload)) {
+    throw new Error(payload?.message || payload?.error || "Could not send OTP.");
+  }
+  return payload;
+}
+
+async function verifyMsg91Otp(mobile, otp) {
+  const params = new URLSearchParams({
+    otp,
+    mobile: `91${mobile}`,
+  });
+  const response = await fetch(`https://control.msg91.com/api/v5/otp/verify?${params.toString()}`, {
+    method: "GET",
+    headers: { authkey: config.msg91.authKey },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !isMsg91Success(payload)) {
+    throw new Error(payload?.message || payload?.error || "Incorrect or expired OTP.");
+  }
+  return payload;
+}
+
 async function sendPasswordResetOtpHandler(req, res) {
   const mobile = String(req.body?.mobile || "").trim();
   if (!/^\d{10}$/.test(mobile)) {
@@ -2325,6 +2364,23 @@ async function sendPasswordResetOtpHandler(req, res) {
     return;
   }
 
+  if (config.msg91.authKey && config.msg91.templateId) {
+    try {
+      await sendMsg91Otp(mobile);
+    } catch (error) {
+      res.status(502).json({ ok: false, error: error instanceof Error ? error.message : "Could not send OTP." });
+      return;
+    }
+    passwordResetStore.set(mobile, {
+      provider: "msg91-api",
+      expiresAt: Date.now() + 15 * 60 * 1000,
+      verified: false,
+      userId: user.id,
+    });
+    res.json({ ok: true, mode: "msg91-api", message: "OTP sent to registered mobile number." });
+    return;
+  }
+
   if (config.msg91.authKey && config.msg91.widgetId) {
     res.json({ ok: true, mode: "msg91-widget", message: "You can request OTP now." });
     return;
@@ -2332,6 +2388,7 @@ async function sendPasswordResetOtpHandler(req, res) {
 
   const otp = String(crypto.randomInt(100000, 999999));
   passwordResetStore.set(mobile, {
+    provider: "local-dev",
     otpHash: crypto.createHash("sha256").update(otp).digest("hex"),
     expiresAt: Date.now() + 10 * 60 * 1000,
     verified: false,
@@ -2447,10 +2504,19 @@ async function verifyPasswordResetOtpHandler(req, res) {
     res.status(400).json({ ok: false, error: "OTP expired or not found." });
     return;
   }
-  const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
-  if (otpHash !== record.otpHash) {
-    res.status(400).json({ ok: false, error: "Incorrect OTP." });
-    return;
+  if (record.provider === "msg91-api") {
+    try {
+      await verifyMsg91Otp(mobile, otp);
+    } catch (error) {
+      res.status(400).json({ ok: false, error: error instanceof Error ? error.message : "Incorrect or expired OTP." });
+      return;
+    }
+  } else {
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+    if (otpHash !== record.otpHash) {
+      res.status(400).json({ ok: false, error: "Incorrect OTP." });
+      return;
+    }
   }
   const resetToken = crypto.randomUUID();
   passwordResetStore.set(resetToken, {

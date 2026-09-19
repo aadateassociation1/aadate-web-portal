@@ -221,8 +221,8 @@ function ForgotPasswordPage() {
   };
 
   const verifyOtp = async () => {
-    if (!/^\d{6}$/.test(otp.trim())) {
-      toast.error("Enter the 6-digit OTP.");
+    if (!/^\d{4,6}$/.test(otp.trim())) {
+      toast.error("Enter the OTP.");
       return;
     }
     setLoading(true);
@@ -314,7 +314,7 @@ function ForgotPasswordPage() {
                   <>
                     <div>
                       <Label>OTP</Label>
-                      <Input value={otp} onChange={(event) => setOtp(limitDigits(event.target.value, 6))} placeholder="6-digit OTP" inputMode="numeric" maxLength={6} pattern="\d{6}" />
+                      <Input value={otp} onChange={(event) => setOtp(limitDigits(event.target.value, 6))} placeholder="Enter OTP" inputMode="numeric" maxLength={6} pattern="\d{4,6}" />
                     </div>
                     <Button type="button" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={verifyOtp} disabled={loading || step !== "otp"}>
                       {loading && step === "otp" ? "Verifying..." : "Verify OTP"}
