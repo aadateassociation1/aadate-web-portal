@@ -12,6 +12,7 @@ const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "
 const MSG91_SCRIPT_SRC = "https://verify.msg91.com/otp-provider.js";
 const MSG91_WIDGET_ID = String(import.meta.env.VITE_MSG91_WIDGET_ID || "").trim();
 const MSG91_TOKEN_AUTH = String(import.meta.env.VITE_MSG91_TOKEN_AUTH || "").trim();
+const MSG91_CAPTCHA_RENDER_ID = "msg91-otp-captcha";
 
 type Msg91Response = Record<string, unknown>;
 type Msg91Callback = (data: Msg91Response) => void;
@@ -83,7 +84,7 @@ async function loadMsg91Widget(identifier: string) {
       tokenAuth: MSG91_TOKEN_AUTH,
       identifier,
       exposeMethods: true,
-      captchaRenderId: "",
+      captchaRenderId: MSG91_CAPTCHA_RENDER_ID,
       success: () => undefined,
       failure: () => undefined,
     });
@@ -297,6 +298,7 @@ function ForgotPasswordPage() {
                 <div>
                   <Label>Registered mobile number</Label>
                   <Input value={mobile} onChange={(event) => setMobile(limitDigits(event.target.value, 10))} placeholder="10-digit mobile number" inputMode="numeric" maxLength={10} pattern="\d{10}" disabled={step !== "mobile"} />
+                  <div id={MSG91_CAPTCHA_RENDER_ID} className="mt-3 min-h-0" />
                 </div>
                 <Button type="button" className="w-full bg-saffron text-saffron-foreground hover:bg-saffron/90" onClick={sendOtp} disabled={loading || step !== "mobile"}>
                   {loading && step === "mobile" ? "Sending..." : "Send OTP"}
