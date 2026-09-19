@@ -38,6 +38,7 @@ type Msg91WidgetConfiguration = {
 };
 
 let msg91WidgetReadyPromise: Promise<void> | null = null;
+let msg91InitializedIdentifier = "";
 
 function waitForMsg91Ready(check: () => boolean, errorMessage: string) {
   return new Promise<void>((resolve, reject) => {
@@ -72,28 +73,24 @@ function getMsg91AccessToken(data: Msg91Response | null | undefined) {
   return String(data["access-token"] || data.accessToken || data.token || data.message || "").trim();
 }
 
+function withTimeout<T>(operation: Promise<T>, message: string, timeoutMs = 30000) {
+  return new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+    operation
+      .then((value) => {
+        window.clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((error) => {
+        window.clearTimeout(timer);
+        reject(error);
+      });
+  });
+}
+
 async function loadMsg91Widget(identifier: string) {
   if (!MSG91_WIDGET_ID || !MSG91_TOKEN_AUTH) {
     throw new Error("MSG91 OTP is not configured.");
-  }
-
-  const init = async () => {
-    await waitForMsg91Ready(() => Boolean(window.initSendOTP), "MSG91 OTP service is not ready.");
-    window.initSendOTP({
-      widgetId: MSG91_WIDGET_ID,
-      tokenAuth: MSG91_TOKEN_AUTH,
-      identifier,
-      exposeMethods: true,
-      captchaRenderId: MSG91_CAPTCHA_RENDER_ID,
-      success: () => undefined,
-      failure: () => undefined,
-    });
-    await waitForMsg91Ready(() => Boolean(window.sendOtp && window.verifyOtp), "MSG91 OTP service is not ready.");
-  };
-
-  if (window.sendOtp && window.verifyOtp) {
-    await init();
-    return;
   }
 
   if (!msg91WidgetReadyPromise) {
@@ -103,45 +100,54 @@ async function loadMsg91Widget(identifier: string) {
       script.type = "text/javascript";
       script.src = MSG91_SCRIPT_SRC;
       script.async = true;
-      script.onload = async () => {
-        try {
-          await init();
-          resolve();
-        } catch (error) {
-          msg91WidgetReadyPromise = null;
-          reject(error);
-        }
-      };
+      script.onload = () => resolve();
       script.onerror = () => {
         msg91WidgetReadyPromise = null;
         reject(new Error("Could not load MSG91 OTP service."));
       };
       if (!existing) document.body.appendChild(script);
+      else resolve();
     });
   }
 
   await msg91WidgetReadyPromise;
-  await init();
+  await waitForMsg91Ready(() => Boolean(window.initSendOTP), "MSG91 OTP service is not ready.");
+  if (msg91InitializedIdentifier === identifier && window.sendOtp && window.verifyOtp) return;
+
+  const captchaContainer = document.getElementById(MSG91_CAPTCHA_RENDER_ID);
+  if (captchaContainer) captchaContainer.innerHTML = "";
+
+  window.initSendOTP({
+    widgetId: MSG91_WIDGET_ID,
+    tokenAuth: MSG91_TOKEN_AUTH,
+    identifier,
+    exposeMethods: true,
+    captchaRenderId: MSG91_CAPTCHA_RENDER_ID,
+    success: () => undefined,
+    failure: () => undefined,
+  });
+  await waitForMsg91Ready(() => Boolean(window.sendOtp && window.verifyOtp), "MSG91 OTP service is not ready.");
+  msg91InitializedIdentifier = identifier;
 }
 
 function callMsg91SendOtp(identifier: string) {
-  return new Promise<Msg91Response>((resolve, reject) => {
+  return withTimeout(new Promise<Msg91Response>((resolve, reject) => {
     if (!window.sendOtp) {
       reject(new Error("MSG91 OTP service is not ready."));
       return;
     }
     window.sendOtp(identifier, resolve, (error) => reject(new Error(msg91ErrorMessage(error, "Could not send OTP."))));
-  });
+  }), "MSG91 OTP request timed out. Please refresh and try again.");
 }
 
 function callMsg91VerifyOtp(otp: string) {
-  return new Promise<Msg91Response>((resolve, reject) => {
+  return withTimeout(new Promise<Msg91Response>((resolve, reject) => {
     if (!window.verifyOtp) {
       reject(new Error("MSG91 OTP service is not ready."));
       return;
     }
     window.verifyOtp(otp, resolve, (error) => reject(new Error(msg91ErrorMessage(error, "Incorrect or expired OTP."))), MSG91_WIDGET_ID);
-  });
+  }), "MSG91 OTP verification timed out. Please refresh and try again.");
 }
 
 export const Route = createFileRoute("/forgot-password")({
