@@ -251,12 +251,12 @@ export function PublicExPresidentPage() {
       <section className="py-14">
         <div className="container-page">
           <Card className="mx-auto max-w-7xl overflow-hidden rounded-xl border-border/60 shadow-sm">
-            <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,74%)_minmax(240px,26%)]">
-              <div className="relative min-h-[500px] bg-secondary sm:min-h-[700px]">
+            <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,70%)_minmax(260px,30%)]">
+              <div className="relative min-h-[500px] bg-secondary sm:min-h-[640px]">
                 <img
                   src={sourabhKunjirPhoto}
                   alt={chairmanCopy.name}
-                  className="absolute inset-0 h-full w-full object-contain object-center"
+                  className="absolute inset-0 h-full w-full object-cover object-[center_38%]"
                 />
                 <div className="absolute left-5 top-5">
                   <Badge className="bg-saffron px-4 py-1.5 text-sm text-saffron-foreground hover:bg-saffron">{chairmanCopy.label}</Badge>
