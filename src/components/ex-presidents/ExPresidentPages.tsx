@@ -250,9 +250,9 @@ export function PublicExPresidentPage() {
       </section>
       <section className="py-14">
         <div className="container-page">
-          <Card className="mx-auto max-w-6xl overflow-hidden rounded-xl border-border/60 shadow-sm">
-            <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,54%)_minmax(0,46%)]">
-              <div className="relative min-h-[340px] bg-secondary sm:min-h-[420px]">
+          <Card className="mx-auto max-w-7xl overflow-hidden rounded-xl border-border/60 shadow-sm">
+            <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,68%)_minmax(260px,32%)]">
+              <div className="relative min-h-[430px] bg-secondary sm:min-h-[560px]">
                 <img
                   src={sourabhKunjirPhoto}
                   alt={chairmanCopy.name}
@@ -267,17 +267,6 @@ export function PublicExPresidentPage() {
                 <h2 className="mt-5 font-display text-3xl font-bold leading-tight text-primary-dark sm:text-4xl">{chairmanCopy.name}</h2>
                 {chairmanCopy.secondaryName && <div className="mt-1 text-base text-muted-foreground">{chairmanCopy.secondaryName}</div>}
                 {chairman?.term_label && <div className="mt-3 text-sm font-semibold text-primary">{lang === "mr" ? TENURE_MR : "Term"}: {chairman.term_label}</div>}
-                <p className="mt-5 text-base leading-relaxed text-foreground/80">{chairmanCopy.intro}</p>
-                <p className="mt-5 border-l-4 border-saffron pl-4 text-base leading-relaxed text-foreground/80 italic">
-                  "{chairmanCopy.quote}"
-                </p>
-                <div className="mt-7 grid gap-3 sm:grid-cols-2">
-                  {chairmanCopy.focus.map((item) => (
-                    <div key={item} className="rounded-lg bg-secondary/55 px-4 py-3 text-sm font-semibold text-primary-dark">
-                      {item}
-                    </div>
-                  ))}
-                </div>
               </div>
             </CardContent>
           </Card>
