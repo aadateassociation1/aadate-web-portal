@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import sourabhKunjirImg from "@/assets/Sourabh Kunjir.jpeg";
 import { useI18n } from "@/lib/i18n";
 
+const BOARD_DIRECTORS_BANNER_VIDEO = "/assets/board-of-directors-banner.mp4";
+
 export const Route = createFileRoute("/chairman")({
   head: () => ({
     meta: [
@@ -123,6 +125,37 @@ function Chairman() {
 
   return (
     <SiteLayout>
+      <section className="relative overflow-hidden bg-primary-dark text-white">
+        <video
+          className="absolute inset-0 h-full w-full object-cover object-center"
+          src={BOARD_DIRECTORS_BANNER_VIDEO}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster={sourabhKunjirImg}
+          aria-hidden
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/82 via-primary-dark/48 to-primary-dark/18" aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/45 via-transparent to-white/5" aria-hidden />
+        <div className="container-page relative py-16 md:py-24">
+          <div className="max-w-3xl text-left">
+            <span className="inline-flex rounded-full border border-saffron/40 bg-saffron/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-saffron">
+              {isMr ? "\u0905\u0927\u093f\u0915\u0943\u0924 \u0928\u0947\u0924\u0943\u0924\u094d\u0935" : "Association Leadership"}
+            </span>
+            <h1 className="mt-5 font-display text-4xl font-bold leading-tight drop-shadow-[0_3px_14px_rgba(0,0,0,0.55)] sm:text-5xl lg:text-[3.5rem]">
+              {isMr ? "\u0938\u0902\u091a\u093e\u0932\u0915 \u092e\u0902\u0921\u0933" : "Board of Directors"}
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/95 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] sm:text-lg">
+              {isMr
+                ? "\u0936\u094d\u0930\u0940 \u091b\u0924\u094d\u0930\u092a\u0924\u0940 \u0936\u093f\u0935\u093e\u091c\u0940 \u092e\u093e\u0930\u094d\u0915\u0947\u091f \u092f\u093e\u0930\u094d\u0921 \u0906\u0921\u0924\u0947 \u0905\u0938\u094b\u0938\u093f\u090f\u0936\u0928\u091a\u0947 \u0928\u0947\u0924\u0943\u0924\u094d\u0935 \u0906\u0923\u093f \u0938\u092e\u093f\u0924\u0940 \u0938\u0926\u0938\u094d\u092f."
+                : "Meet the chairman, accepted directors, committee members and leadership serving the Market Yard association."}
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="py-14">
         <div className="container-page">
           <div className="max-w-2xl">
