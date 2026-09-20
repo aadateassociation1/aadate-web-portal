@@ -1,5 +1,5 @@
 import { createFileRoute } from "@/lib/simple-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Briefcase, Phone, Store, UserRound } from "lucide-react";
 import { SiteLayout } from "@/components/public/SiteLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,6 +37,7 @@ type CommitteeMemberRecord = {
 
 function Chairman() {
   const { lang } = useI18n();
+  const bannerVideoRef = useRef<HTMLVideoElement | null>(null);
   const [members, setMembers] = useState<CommitteeMemberRecord[]>([]);
   const [selectedMember, setSelectedMember] = useState<CommitteeMemberRecord | null>(null);
   const isMr = lang === "mr";
@@ -48,6 +49,24 @@ function Chairman() {
         if (result.ok) setMembers(result.members || []);
       })
       .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    const pauseVideoOnScroll = () => {
+      const video = bannerVideoRef.current;
+      if (!video) return;
+
+      if (window.scrollY > 40) {
+        video.pause();
+        return;
+      }
+
+      video.play().catch(() => undefined);
+    };
+
+    pauseVideoOnScroll();
+    window.addEventListener("scroll", pauseVideoOnScroll, { passive: true });
+    return () => window.removeEventListener("scroll", pauseVideoOnScroll);
   }, []);
 
   const isAcceptedDirector = (member: CommitteeMemberRecord) => {
@@ -127,6 +146,7 @@ function Chairman() {
     <SiteLayout>
       <section className="relative overflow-hidden bg-black">
         <video
+          ref={bannerVideoRef}
           className="block aspect-video w-full object-cover object-center"
           src={BOARD_DIRECTORS_BANNER_VIDEO}
           autoPlay
