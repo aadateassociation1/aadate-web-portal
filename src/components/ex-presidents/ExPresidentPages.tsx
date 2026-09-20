@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useI18n } from "@/lib/i18n";
+import sourabhKunjirImg from "@/assets/sourabh Kunjir.png";
 
 type ExPresidentRecord = {
   id: number;
@@ -29,6 +30,17 @@ type ExPresidentRecord = {
   tenure_to: number | null;
   sort_order: number;
   is_active: number;
+};
+
+type CommitteeMemberRecord = {
+  id: number;
+  full_name: string;
+  name_mr: string | null;
+  designation: string;
+  designation_mr: string | null;
+  term_label: string | null;
+  message: string | null;
+  photo_url: string | null;
 };
 
 const EX_PRESIDENT_MR = "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937";
@@ -140,6 +152,7 @@ function ExPresidentModal({ member, open, onOpenChange }: { member: ExPresidentR
 export function PublicExPresidentPage() {
   const { lang } = useI18n();
   const [members, setMembers] = useState<ExPresidentRecord[]>([]);
+  const [chairman, setChairman] = useState<CommitteeMemberRecord | null>(null);
   const [selected, setSelected] = useState<ExPresidentRecord | null>(null);
 
   useEffect(() => {
@@ -149,7 +162,36 @@ export function PublicExPresidentPage() {
         if (result.ok) setMembers(result.members || []);
       })
       .catch(() => undefined);
+    fetch("/api/v1/public/committee")
+      .then((response) => response.json())
+      .then((result) => {
+        if (!result.ok) return;
+        const committee = (result.members || []) as CommitteeMemberRecord[];
+        const current = committee.find((member) => member.designation.toLowerCase().includes("chairman") && !member.designation.toLowerCase().includes("lobby"));
+        setChairman(current || null);
+      })
+      .catch(() => undefined);
   }, []);
+
+  const chairmanCopy = lang === "mr"
+    ? {
+        label: "\u0938\u0927\u094d\u092f\u093e\u091a\u0947 \u0905\u0927\u094d\u092f\u0915\u094d\u0937",
+        role: "\u0905\u0927\u094d\u092f\u0915\u094d\u0937",
+        name: chairman?.name_mr || "\u0936\u094d\u0930\u0940. \u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930",
+        secondaryName: "",
+        intro: "\u0924\u094d\u092f\u093e\u0902\u091a\u094d\u092f\u093e \u0928\u0947\u0924\u0943\u0924\u094d\u0935\u093e\u0916\u093e\u0932\u0940 \u0938\u0902\u0918\u091f\u0928\u093e \u092a\u093e\u0930\u0926\u0930\u094d\u0936\u0915 \u092a\u094d\u0930\u0936\u093e\u0938\u0928, \u091c\u0932\u0926 \u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u093f\u0935\u093e\u0930\u0923 \u0906\u0923\u093f \u0909\u0924\u094d\u0924\u092e \u0921\u093f\u091c\u093f\u091f\u0932 \u0938\u0947\u0935\u093e\u0902\u0935\u0930 \u0932\u0915\u094d\u0937 \u0915\u0947\u0902\u0926\u094d\u0930\u093f\u0924 \u0915\u0930\u0924 \u0906\u0939\u0947.",
+        quote: "\u092a\u094d\u0930\u0924\u094d\u092f\u0947\u0915 \u0935\u094d\u092f\u093e\u092a\u093e\u0931\u094d\u092f\u093e\u0938\u093e\u0920\u0940 \u092a\u093e\u0930\u0926\u0930\u094d\u0936\u0915, \u0921\u093f\u091c\u093f\u091f\u0932 \u0906\u0923\u093f \u0938\u0947\u0935\u093e-\u0915\u0947\u0902\u0926\u094d\u0930\u093f\u0924 \u092e\u093e\u0930\u094d\u0915\u0947\u091f \u092f\u093e\u0930\u094d\u0921 \u0909\u092d\u093e\u0930\u0923\u094d\u092f\u093e\u0938\u093e\u0920\u0940 \u0906\u092a\u0923 \u0938\u0930\u094d\u0935\u091c\u0923 \u090f\u0915\u0924\u094d\u0930 \u0915\u093e\u092e \u0915\u0930\u0924 \u0906\u0939\u094b\u0924.",
+        focus: ["\u0921\u093f\u091c\u093f\u091f\u0932 \u0938\u0942\u091a\u0928\u093e \u092a\u094d\u0930\u0935\u0947\u0936", "\u0938\u092d\u093e\u0938\u0926-\u0915\u0947\u0902\u0926\u094d\u0930\u093f\u0924 \u092e\u0926\u0924", "\u092c\u093e\u091c\u093e\u0930 \u092e\u093e\u0939\u093f\u0924\u0940", "\u092a\u093e\u0930\u0926\u0930\u094d\u0936\u0915 \u0915\u093e\u0930\u094d\u092f\u092a\u094d\u0930\u0935\u093e\u0939"],
+      }
+    : {
+        label: "Current Chairman",
+        role: "Chairman",
+        name: chairman?.full_name || "Shri. Sourabh Shekhar Kunjir",
+        secondaryName: chairman?.name_mr || "",
+        intro: "Under his leadership, the association is focused on transparent administration, faster complaint resolution, regular market communication, and better digital services for every trader and gala owner.",
+        quote: chairman?.message || "Together, we are building a transparent, digital and service-focused market yard for every trader.",
+        focus: ["Digital notice access", "Member-first support", "Market updates", "Transparent workflow"],
+      };
 
   return (
     <SiteLayout>
@@ -196,6 +238,41 @@ export function PublicExPresidentPage() {
               </div>
             )}
           </div>
+        </div>
+      </section>
+      <section className="py-14">
+        <div className="container-page">
+          <Card className="mx-auto max-w-6xl overflow-hidden rounded-xl border-border/60 shadow-sm">
+            <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,54%)_minmax(0,46%)]">
+              <div className="relative min-h-[340px] bg-secondary sm:min-h-[420px]">
+                <img
+                  src={chairman?.photo_url || sourabhKunjirImg}
+                  alt={chairmanCopy.name}
+                  className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
+                />
+                <div className="absolute left-5 top-5">
+                  <Badge className="bg-saffron px-4 py-1.5 text-sm text-saffron-foreground hover:bg-saffron">{chairmanCopy.label}</Badge>
+                </div>
+              </div>
+              <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
+                <Badge variant="outline" className="w-fit border-primary px-5 py-1.5 text-sm text-primary">{chairmanCopy.role}</Badge>
+                <h2 className="mt-5 font-display text-3xl font-bold leading-tight text-primary-dark sm:text-4xl">{chairmanCopy.name}</h2>
+                {chairmanCopy.secondaryName && <div className="mt-1 text-base text-muted-foreground">{chairmanCopy.secondaryName}</div>}
+                {chairman?.term_label && <div className="mt-3 text-sm font-semibold text-primary">{lang === "mr" ? TENURE_MR : "Term"}: {chairman.term_label}</div>}
+                <p className="mt-5 text-base leading-relaxed text-foreground/80">{chairmanCopy.intro}</p>
+                <p className="mt-5 border-l-4 border-saffron pl-4 text-base leading-relaxed text-foreground/80 italic">
+                  "{chairmanCopy.quote}"
+                </p>
+                <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                  {chairmanCopy.focus.map((item) => (
+                    <div key={item} className="rounded-lg bg-secondary/55 px-4 py-3 text-sm font-semibold text-primary-dark">
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
       <ExPresidentModal member={selected} open={!!selected} onOpenChange={(open) => !open && setSelected(null)} />
