@@ -262,6 +262,12 @@ export function PublicExPresidentPage() {
                   <Badge className="bg-saffron px-4 py-1.5 text-sm text-saffron-foreground hover:bg-saffron">{chairmanCopy.label}</Badge>
                 </div>
               </div>
+              <div className="flex flex-col items-center p-6 text-center sm:p-8">
+                <Badge variant="outline" className="border-primary px-5 py-1.5 text-sm text-primary">{chairmanCopy.role}</Badge>
+                <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-primary-dark sm:text-5xl">{chairmanCopy.name}</h2>
+                {chairmanCopy.secondaryName && <div className="mt-1 text-base text-muted-foreground">{chairmanCopy.secondaryName}</div>}
+                {chairman?.term_label && <div className="mt-3 text-sm font-semibold text-primary">{lang === "mr" ? TENURE_MR : "Term"}: {chairman.term_label}</div>}
+              </div>
             </CardContent>
           </Card>
         </div>
