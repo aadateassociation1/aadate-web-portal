@@ -98,33 +98,37 @@ function ExPresidentModal({ member, open, onOpenChange }: { member: ExPresidentR
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl p-4 sm:p-5">
+      <DialogContent className="max-w-xl overflow-hidden p-0">
         {member && (
-          <div className="grid gap-4 md:grid-cols-[176px_minmax(0,1fr)]">
-            <div className="mx-auto h-56 w-44 overflow-hidden rounded-xl border bg-secondary shadow-sm md:mx-0">
-              <ProfilePhoto member={member} size="modal" />
+          <div className="grid md:grid-cols-[190px_minmax(0,1fr)]">
+            <div className="flex items-center justify-center bg-secondary/70 p-5">
+              <div className="h-44 w-36 overflow-hidden rounded-xl border-4 border-white bg-background shadow-md ring-1 ring-border">
+                <ProfilePhoto member={member} size="modal" />
+              </div>
             </div>
-            <div className="min-w-0">
+            <div className="flex min-w-0 flex-col justify-center p-5 sm:p-6">
               <DialogHeader>
-                <DialogTitle className="font-display text-xl leading-tight text-primary-dark sm:text-2xl">
+                <DialogTitle className="font-display text-xl leading-tight text-primary-dark sm:text-[1.65rem]">
                   {lang === "mr" ? member.name_mr || member.name_en : member.name_en}
                 </DialogTitle>
-                <DialogDescription className="space-y-1">
-                  {lang === "en" && member.name_mr ? <span className="block">{member.name_mr}</span> : null}
-                  <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-primary">
+                <DialogDescription className="space-y-2">
+                  {lang === "en" && member.name_mr ? <span className="block text-sm text-muted-foreground">{member.name_mr}</span> : null}
+                  <span className="inline-flex w-fit rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-primary">
                     {lang === "mr" ? member.designation_mr || member.designation_en : member.designation_en}
                   </span>
-                  {lang === "en" && member.designation_mr ? <span className="block text-xs">{member.designation_mr}</span> : null}
+                  {lang === "en" && member.designation_mr ? <span className="block text-xs text-muted-foreground">{member.designation_mr}</span> : null}
                 </DialogDescription>
               </DialogHeader>
-              <div className="mt-4 grid gap-2">
-                {rows.map((row) => (
-                  <div key={row.label} className="rounded-lg border bg-background px-3 py-2.5">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{row.label}</div>
-                    <div className="mt-1 font-medium text-primary-dark">{row.value}</div>
-                  </div>
-                ))}
-              </div>
+              {rows.length > 0 && (
+                <div className="mt-4 grid gap-2">
+                  {rows.map((row) => (
+                    <div key={row.label} className="rounded-lg border bg-secondary/30 px-3 py-2">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{row.label}</div>
+                      <div className="mt-0.5 font-medium text-primary-dark">{row.value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
