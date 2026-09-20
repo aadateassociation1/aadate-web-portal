@@ -12,10 +12,11 @@ import {
   CheckCircle2, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
   Briefcase, Store, UserRound, Play,
 } from "lucide-react";
-import heroVideo from "@/assets/home page banner.mp4";
 import marketyardImg from "@/assets/marketyard.webp";
 import sourabhKunjirImg from "@/assets/Sourabh Kunjir.jpeg";
 import { useI18n } from "@/lib/i18n";
+
+const HOME_BANNER_VIDEO = "/assets/home-page-banner-hd.mp4";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -428,7 +429,7 @@ function Home() {
           onCanPlay={playHeroVideo}
           preload="auto"
         >
-          <source src={heroVideo} type="video/mp4" />
+          <source src={HOME_BANNER_VIDEO} type="video/mp4" />
         </video>
         {heroVideoNeedsTap && (
           <button
