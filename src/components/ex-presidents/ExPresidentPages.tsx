@@ -98,10 +98,10 @@ function ExPresidentModal({ member, open, onOpenChange }: { member: ExPresidentR
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-4 sm:p-5">
+      <DialogContent className="max-w-xl p-4 sm:p-5">
         {member && (
-          <div className="grid gap-4 md:grid-cols-[190px_minmax(0,1fr)]">
-            <div className="mx-auto h-48 w-48 overflow-hidden rounded-xl border bg-secondary shadow-sm md:mx-0">
+          <div className="grid gap-4 md:grid-cols-[176px_minmax(0,1fr)]">
+            <div className="mx-auto h-56 w-44 overflow-hidden rounded-xl border bg-secondary shadow-sm md:mx-0">
               <ProfilePhoto member={member} size="modal" />
             </div>
             <div className="min-w-0">
