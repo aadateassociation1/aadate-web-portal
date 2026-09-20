@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useI18n } from "@/lib/i18n";
-import sourabhKunjirImg from "@/assets/sourabh Kunjir.png";
 
 type ExPresidentRecord = {
   id: number;
@@ -246,7 +245,7 @@ export function PublicExPresidentPage() {
             <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,54%)_minmax(0,46%)]">
               <div className="relative min-h-[340px] bg-secondary sm:min-h-[420px]">
                 <img
-                  src={chairman?.photo_url || sourabhKunjirImg}
+                  src={chairman?.photo_url || "/icons/favicon.png"}
                   alt={chairmanCopy.name}
                   className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
                 />
