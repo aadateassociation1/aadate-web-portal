@@ -250,9 +250,9 @@ export function PublicExPresidentPage() {
       </section>
       <section className="py-14">
         <div className="container-page">
-          <Card className="mx-auto max-w-4xl overflow-hidden rounded-xl border-border/60 shadow-sm">
+          <Card className="mx-auto max-w-3xl overflow-hidden rounded-xl border-border/60 shadow-sm">
             <CardContent className="p-0">
-              <div className="relative min-h-[500px] bg-secondary sm:min-h-[640px]">
+              <div className="relative min-h-[500px] bg-secondary sm:min-h-[620px]">
                 <img
                   src={sourabhKunjirPhoto}
                   alt={chairmanCopy.name}
@@ -261,12 +261,6 @@ export function PublicExPresidentPage() {
                 <div className="absolute left-5 top-5">
                   <Badge className="bg-saffron px-4 py-1.5 text-sm text-saffron-foreground hover:bg-saffron">{chairmanCopy.label}</Badge>
                 </div>
-              </div>
-              <div className="flex flex-col items-center p-6 text-center sm:p-8">
-                <Badge variant="outline" className="border-primary px-5 py-1.5 text-sm text-primary">{chairmanCopy.role}</Badge>
-                <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-primary-dark sm:text-5xl">{chairmanCopy.name}</h2>
-                {chairmanCopy.secondaryName && <div className="mt-1 text-base text-muted-foreground">{chairmanCopy.secondaryName}</div>}
-                {chairman?.term_label && <div className="mt-3 text-sm font-semibold text-primary">{lang === "mr" ? TENURE_MR : "Term"}: {chairman.term_label}</div>}
               </div>
             </CardContent>
           </Card>
