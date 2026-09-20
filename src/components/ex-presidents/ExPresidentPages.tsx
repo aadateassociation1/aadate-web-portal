@@ -280,6 +280,7 @@ export function PublicExPresidentPage() {
 }
 
 export function AdminExPresidentPage() {
+  const { lang } = useI18n();
   const [members, setMembers] = useState<ExPresidentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -305,6 +306,62 @@ export function AdminExPresidentPage() {
   useEffect(() => {
     loadMembers();
   }, []);
+
+  const labels = lang === "mr"
+    ? {
+        title: "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937 \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u0928",
+        subtitle: "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937\u093e\u0902\u091a\u094d\u092f\u093e \u0928\u094b\u0902\u0926\u0940 \u091c\u094b\u0921\u093e, \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u093e, \u0915\u094d\u0930\u092e \u0932\u093e\u0935\u093e \u0906\u0923\u093f \u092a\u094d\u0930\u0915\u093e\u0936\u093f\u0924 \u0915\u0930\u093e.",
+        add: "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937 \u091c\u094b\u0921\u093e",
+        photo: "\u092b\u094b\u091f\u094b",
+        name: "\u0928\u093e\u0935",
+        marathiName: "\u092e\u0930\u093e\u0920\u0940 \u0928\u093e\u0935",
+        tenure: "\u0915\u093e\u0930\u094d\u092f\u0915\u093e\u0933",
+        gala: "\u0917\u093e\u0933\u093e",
+        phone: "\u092b\u094b\u0928",
+        status: "\u0938\u094d\u0925\u093f\u0924\u0940",
+        order: "\u0915\u094d\u0930\u092e",
+        actions: "\u0915\u0943\u0924\u0940",
+        active: "\u0938\u0915\u094d\u0930\u093f\u092f",
+        inactive: "\u0928\u093f\u0937\u094d\u0915\u094d\u0930\u093f\u092f",
+        empty: "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937\u093e\u0902\u091a\u094d\u092f\u093e \u0928\u094b\u0902\u0926\u0940 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u093e\u0939\u0940\u0924.",
+        loading: "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937 \u0928\u094b\u0902\u0926\u0940 \u0932\u094b\u0921 \u0939\u094b\u0924 \u0906\u0939\u0947\u0924...",
+        editDialog: "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937 \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u093e",
+        addDialog: "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937 \u091c\u094b\u0921\u093e",
+        dialogDescription: "\u0938\u0915\u094d\u0930\u093f\u092f \u0928\u094b\u0902\u0926\u0940 \u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937 \u092a\u093e\u0928\u093e\u0935\u0930 \u0926\u093f\u0938\u0924\u0940\u0932.",
+        profilePhoto: "\u092a\u094d\u0930\u094b\u092b\u093e\u0907\u0932 \u092b\u094b\u091f\u094b",
+        photoSelected: "\u092b\u094b\u091f\u094b \u0928\u093f\u0935\u0921\u0932\u093e",
+        uploadPhoto: "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937\u093e\u0902\u091a\u093e \u092b\u094b\u091f\u094b \u0905\u092a\u0932\u094b\u0921 \u0915\u0930\u093e",
+        choosePhoto: "\u092b\u094b\u091f\u094b \u0928\u093f\u0935\u0921\u093e",
+        cancel: "\u0930\u0926\u094d\u0926 \u0915\u0930\u093e",
+        save: "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937 \u0938\u0947\u0935\u094d\u0939 \u0915\u0930\u093e",
+      }
+    : {
+        title: "Ex-President Management",
+        subtitle: "Add, edit, order and publish former president records.",
+        add: "Add Ex-President",
+        photo: "Photo",
+        name: "Name",
+        marathiName: "Marathi Name",
+        tenure: "Tenure",
+        gala: "Gala",
+        phone: "Phone",
+        status: "Status",
+        order: "Order",
+        actions: "Actions",
+        active: "active",
+        inactive: "inactive",
+        empty: "No Ex-President records available.",
+        loading: "Loading Ex-President records...",
+        editDialog: "Edit Ex-President",
+        addDialog: "Add Ex-President",
+        dialogDescription: "Saved active records are shown on the public Ex-President page.",
+        profilePhoto: "Profile photo",
+        photoSelected: "Photo selected",
+        uploadPhoto: "Upload Ex-President photo",
+        choosePhoto: "Choose photo",
+        cancel: "Cancel",
+        save: "Save Ex-President",
+      };
 
   const openNew = () => {
     setEditing(null);
@@ -375,11 +432,10 @@ export function AdminExPresidentPage() {
     <DashLayout kind="admin">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary-dark">Ex-President Management</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Add, edit, order and publish former president records.</p>
-          <p className="text-sm font-semibold text-primary">{"\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937 \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u0928"}</p>
+          <h1 className="font-display text-2xl font-bold text-primary-dark">{labels.title}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{labels.subtitle}</p>
         </div>
-        <Button onClick={openNew}><Plus className="mr-1 h-4 w-4" /> Add Ex-President</Button>
+        <Button onClick={openNew}><Plus className="mr-1 h-4 w-4" /> {labels.add}</Button>
       </div>
 
       <Card className="border-border/60">
@@ -388,15 +444,15 @@ export function AdminExPresidentPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Photo</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Marathi Name</TableHead>
-                  <TableHead>Tenure</TableHead>
-                  <TableHead>Gala</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Order</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{labels.photo}</TableHead>
+                  <TableHead>{labels.name}</TableHead>
+                  <TableHead>{labels.marathiName}</TableHead>
+                  <TableHead>{labels.tenure}</TableHead>
+                  <TableHead>{labels.gala}</TableHead>
+                  <TableHead>{labels.phone}</TableHead>
+                  <TableHead>{labels.status}</TableHead>
+                  <TableHead>{labels.order}</TableHead>
+                  <TableHead className="text-right">{labels.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -412,7 +468,7 @@ export function AdminExPresidentPage() {
                     <TableCell>{formatTenure(member)}</TableCell>
                     <TableCell>{member.gala_number || ""}</TableCell>
                     <TableCell>{member.phone || ""}</TableCell>
-                    <TableCell><Badge className={member.is_active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}>{member.is_active ? "active" : "inactive"}</Badge></TableCell>
+                    <TableCell><Badge className={member.is_active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}>{member.is_active ? labels.active : labels.inactive}</Badge></TableCell>
                     <TableCell>{member.sort_order}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -426,21 +482,21 @@ export function AdminExPresidentPage() {
               </TableBody>
             </Table>
           </div>
-          {!loading && members.length === 0 && <div className="p-8 text-center text-sm text-muted-foreground">No Ex-President records available.</div>}
-          {loading && <div className="p-8 text-center text-sm text-muted-foreground">Loading Ex-President records...</div>}
+          {!loading && members.length === 0 && <div className="p-8 text-center text-sm text-muted-foreground">{labels.empty}</div>}
+          {loading && <div className="p-8 text-center text-sm text-muted-foreground">{labels.loading}</div>}
         </CardContent>
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit Ex-President" : "Add Ex-President"}</DialogTitle>
-            <DialogDescription>Saved active records are shown on the public Ex-President page.</DialogDescription>
+            <DialogTitle>{editing ? labels.editDialog : labels.addDialog}</DialogTitle>
+            <DialogDescription>{labels.dialogDescription}</DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={saveMember}>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
-                <Label>Profile photo</Label>
+                <Label>{labels.profilePhoto}</Label>
                 <label className={`flex min-h-28 cursor-pointer items-center gap-4 rounded-lg border-2 border-dashed p-4 transition hover:border-primary ${photoFile ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>
                   <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-background text-primary shadow-sm">
                     {photoFile ? (
@@ -452,11 +508,11 @@ export function AdminExPresidentPage() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <div className="font-semibold text-primary-dark">{photoFile ? "Photo selected" : "Upload Ex-President photo"}</div>
+                    <div className="font-semibold text-primary-dark">{photoFile ? labels.photoSelected : labels.uploadPhoto}</div>
                     <div className={`mt-1 max-w-full truncate text-xs ${photoFile ? "font-medium text-success" : "text-muted-foreground"}`}>
                       {photoFile?.name || editing?.photo_original_filename || "JPG, PNG, or WEBP up to 5 MB"}
                     </div>
-                    <div className="mt-2 inline-flex rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white">Choose photo</div>
+                    <div className="mt-2 inline-flex rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white">{labels.choosePhoto}</div>
                   </div>
                   <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => setPhotoFile(event.target.files?.[0] || null)} />
                 </label>
@@ -484,8 +540,8 @@ export function AdminExPresidentPage() {
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" className="bg-saffron text-saffron-foreground hover:bg-saffron/90">Save Ex-President</Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>{labels.cancel}</Button>
+              <Button type="submit" className="bg-saffron text-saffron-foreground hover:bg-saffron/90">{labels.save}</Button>
             </div>
           </form>
         </DialogContent>
