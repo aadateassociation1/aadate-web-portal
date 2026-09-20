@@ -85,11 +85,12 @@ function Home() {
   const playHeroVideo = () => {
     const video = heroVideoRef.current;
     if (!video) return;
-    video.muted = true;
-    video.defaultMuted = true;
+    video.muted = false;
+    video.defaultMuted = false;
+    video.volume = 1;
     video.playsInline = true;
     video.autoplay = true;
-    video.setAttribute("muted", "");
+    video.removeAttribute("muted");
     video.setAttribute("playsinline", "");
     video.setAttribute("webkit-playsinline", "");
     video.play().then(() => setHeroVideoNeedsTap(false)).catch(() => setHeroVideoNeedsTap(true));
@@ -98,8 +99,9 @@ function Home() {
   const handleHeroVideoTap = () => {
     const video = heroVideoRef.current;
     if (!video) return;
-    video.muted = true;
-    video.defaultMuted = true;
+    video.muted = false;
+    video.defaultMuted = false;
+    video.volume = 1;
     video.playsInline = true;
     setHeroVideoNeedsTap(false);
     video.play().catch(() => {
@@ -419,8 +421,6 @@ function Home() {
           ref={heroVideoRef}
           className="absolute inset-0 h-full w-full object-contain object-center sm:object-cover sm:object-[center_18%]"
           autoPlay
-          muted
-          defaultMuted
           controls
           loop
           playsInline
