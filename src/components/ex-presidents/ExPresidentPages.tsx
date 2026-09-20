@@ -251,8 +251,8 @@ export function PublicExPresidentPage() {
       <section className="py-14">
         <div className="container-page">
           <Card className="mx-auto max-w-7xl overflow-hidden rounded-xl border-border/60 shadow-sm">
-            <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,68%)_minmax(260px,32%)]">
-              <div className="relative min-h-[430px] bg-secondary sm:min-h-[560px]">
+            <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,74%)_minmax(240px,26%)]">
+              <div className="relative min-h-[500px] bg-secondary sm:min-h-[700px]">
                 <img
                   src={sourabhKunjirPhoto}
                   alt={chairmanCopy.name}
