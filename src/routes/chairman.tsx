@@ -127,7 +127,7 @@ function Chairman() {
     <SiteLayout>
       <section className="relative overflow-hidden bg-black">
         <video
-          className="block h-[56vh] min-h-[460px] w-full object-cover object-center md:h-[68vh] lg:h-[760px]"
+          className="block h-[48vh] min-h-[360px] w-full object-cover object-center md:h-[56vh] lg:h-[620px]"
           src={BOARD_DIRECTORS_BANNER_VIDEO}
           autoPlay
           loop
