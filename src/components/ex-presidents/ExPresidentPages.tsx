@@ -98,28 +98,28 @@ function ExPresidentModal({ member, open, onOpenChange }: { member: ExPresidentR
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-2xl p-4 sm:p-5">
         {member && (
-          <div className="grid gap-5 md:grid-cols-[220px_minmax(0,1fr)]">
-            <div className="mx-auto h-56 w-56 overflow-hidden rounded-xl border bg-secondary shadow-sm md:mx-0">
+          <div className="grid gap-4 md:grid-cols-[190px_minmax(0,1fr)]">
+            <div className="mx-auto h-48 w-48 overflow-hidden rounded-xl border bg-secondary shadow-sm md:mx-0">
               <ProfilePhoto member={member} size="modal" />
             </div>
             <div className="min-w-0">
               <DialogHeader>
-                <DialogTitle className="font-display text-2xl text-primary-dark">
+                <DialogTitle className="font-display text-xl leading-tight text-primary-dark sm:text-2xl">
                   {lang === "mr" ? member.name_mr || member.name_en : member.name_en}
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="space-y-1">
                   {lang === "en" && member.name_mr ? <span className="block">{member.name_mr}</span> : null}
-                  <span className="mt-2 inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-primary">
+                  <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-primary">
                     {lang === "mr" ? member.designation_mr || member.designation_en : member.designation_en}
                   </span>
-                  {lang === "en" && member.designation_mr ? <span className="mt-1 block text-xs">{member.designation_mr}</span> : null}
+                  {lang === "en" && member.designation_mr ? <span className="block text-xs">{member.designation_mr}</span> : null}
                 </DialogDescription>
               </DialogHeader>
-              <div className="mt-5 grid gap-3">
+              <div className="mt-4 grid gap-2">
                 {rows.map((row) => (
-                  <div key={row.label} className="rounded-lg border bg-background px-4 py-3">
+                  <div key={row.label} className="rounded-lg border bg-background px-3 py-2.5">
                     <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{row.label}</div>
                     <div className="mt-1 font-medium text-primary-dark">{row.value}</div>
                   </div>
