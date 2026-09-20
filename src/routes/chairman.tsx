@@ -147,7 +147,7 @@ function Chairman() {
       <section className="relative overflow-hidden bg-black">
         <video
           ref={bannerVideoRef}
-          className="block aspect-video w-full object-cover object-center"
+          className="block aspect-video w-full object-cover object-center sm:aspect-auto sm:h-[calc(100svh-72px)] sm:min-h-[620px] sm:max-h-[760px]"
           src={BOARD_DIRECTORS_BANNER_VIDEO}
           autoPlay
           loop
