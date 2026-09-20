@@ -86,7 +86,11 @@ function TopBar() {
 }
 
 function Header() {
+<<<<<<< HEAD
   const { t, lang, setLang } = useI18n();
+=======
+  const { t, lang } = useI18n();
+>>>>>>> 5ca1901 (Fix chairman photo and Marathi ex-president label)
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -97,6 +101,9 @@ function Header() {
     user?.role === "main_admin" ? "/admin" :
     user?.role === "user_admin" ? "/admin" :
     user?.role === "owner" ? "/owner" : null;
+  const navLabel = (key: (typeof NAV)[number]["key"]) => (
+    lang === "mr" && key === "nav.exPresident" ? "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937" : t(key)
+  );
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 shadow-sm backdrop-blur-sm">
@@ -118,7 +125,7 @@ function Header() {
               activeProps={{ className: "whitespace-nowrap rounded-md bg-secondary px-2 py-2 text-[13px] font-semibold text-primary 2xl:px-3 2xl:text-sm" }}
               activeOptions={{ exact: n.to === "/" }}
             >
-              {t(n.key)}
+              {navLabel(n.key)}
             </Link>
           ))}
         </nav>
@@ -168,7 +175,7 @@ function Header() {
                 activeProps={{ className: "rounded-md bg-secondary px-3 py-2.5 text-sm font-semibold text-primary" }}
                 activeOptions={{ exact: n.to === "/" }}
               >
-                {t(n.key)}
+                {navLabel(n.key)}
               </Link>
             ))}
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -192,6 +199,7 @@ function Header() {
 
 function Footer() {
   const { t, lang } = useI18n();
+<<<<<<< HEAD
   const { user } = useAuth();
   const isMr = lang === "mr";
   const ideationPrefix = isMr ? "\u0938\u0902\u0915\u0932\u094d\u092a\u0928\u093e" : "Ideation by";
@@ -202,6 +210,16 @@ function Footer() {
   const launchingDateLine = isMr ? "सुरू दिनांक: २१ सप्टेंबर २०२६" : "Launching Date: 21 September 2026";
   const marketUpdatesLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/market-prices" : user?.role === "owner" ? "/member/market-prices" : "/market-prices";
   const complaintLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/complaints" : user?.role === "owner" ? "/member/new-complaint" : "/login";
+=======
+  const navLabel = (key: (typeof NAV)[number]["key"]) => (
+    lang === "mr" && key === "nav.exPresident" ? "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937" : t(key)
+  );
+  const ideationPrefix = lang === "mr" ? "\u0938\u0902\u0915\u0932\u094d\u092a\u0928\u093e" : "Ideation by";
+  const chairmanLine = lang === "mr"
+    ? "अध्यक्ष, श्री छत्रपती शिवाजी मार्केट यार्ड अडते असोसिएशन"
+    : "Chaiman of Shri Chhatrapati Shivaji Market Yard Adte Association";
+  const launchingDateLine = lang === "mr" ? "लोकार्पण दिनांक: २१ सप्टेंबर २०२६" : "Launching Date: 21 September 2026";
+>>>>>>> 5ca1901 (Fix chairman photo and Marathi ex-president label)
   return (
     <footer className="mt-16 bg-primary-dark text-white/90">
       <div className="container-page grid gap-10 py-14 md:grid-cols-4">
@@ -224,7 +242,7 @@ function Footer() {
             {NAV.map((n) => (
               <li key={n.to}>
                 <Link to={n.to} className="inline-flex items-center gap-1 text-white/70 hover:text-white">
-                  <ChevronRight className="h-3.5 w-3.5" /> {t(n.key)}
+                  <ChevronRight className="h-3.5 w-3.5" /> {navLabel(n.key)}
                 </Link>
               </li>
             ))}

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useI18n } from "@/lib/i18n";
+import sourabhKunjirPhoto from "@/assets/Sourabh kunjir photo.jpeg";
 
 type ExPresidentRecord = {
   id: number;
@@ -72,6 +73,14 @@ function formatTenure(member: Pick<ExPresidentRecord, "tenure_from" | "tenure_to
   return "";
 }
 
+function designationLabel(member: Pick<ExPresidentRecord, "designation_en" | "designation_mr">, lang: "en" | "mr") {
+  if (lang === "mr") {
+    const label = member.designation_mr?.trim();
+    return label && label.toLowerCase() !== "ex-president" ? label : EX_PRESIDENT_MR;
+  }
+  return member.designation_en || "Ex-President";
+}
+
 function fileToUploadPayload(file: File): Promise<{ originalFilename: string; mimeType: string; dataUrl: string }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -125,7 +134,7 @@ function ExPresidentModal({ member, open, onOpenChange }: { member: ExPresidentR
                 <DialogDescription className="space-y-2">
                   {lang === "en" && member.name_mr ? <span className="block text-sm text-muted-foreground">{member.name_mr}</span> : null}
                   <span className="inline-flex w-fit rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-primary">
-                    {lang === "mr" ? member.designation_mr || member.designation_en : member.designation_en}
+                    {designationLabel(member, lang)}
                   </span>
                   {lang === "en" && member.designation_mr ? <span className="block text-xs text-muted-foreground">{member.designation_mr}</span> : null}
                 </DialogDescription>
@@ -223,7 +232,7 @@ export function PublicExPresidentPage() {
                       <h2 className="mt-4 font-display text-lg font-semibold leading-snug text-primary-dark">{lang === "mr" ? member.name_mr || member.name_en : member.name_en}</h2>
                       {lang === "en" && member.name_mr && <div className="mt-0.5 text-xs text-muted-foreground">{member.name_mr}</div>}
                       <div className="mt-2 inline-flex max-w-full rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
-                        {lang === "mr" ? member.designation_mr || member.designation_en : member.designation_en}
+                        {designationLabel(member, lang)}
                       </div>
                       {tenure && <div className="mt-3 text-sm font-medium text-muted-foreground">{lang === "mr" ? TENURE_MR : "Tenure"}: {tenure}</div>}
                     </CardContent>
@@ -245,7 +254,7 @@ export function PublicExPresidentPage() {
             <CardContent className="grid gap-0 p-0 md:grid-cols-[minmax(0,54%)_minmax(0,46%)]">
               <div className="relative min-h-[340px] bg-secondary sm:min-h-[420px]">
                 <img
-                  src={chairman?.photo_url || "/icons/favicon.png"}
+                  src={sourabhKunjirPhoto}
                   alt={chairmanCopy.name}
                   className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
                 />
