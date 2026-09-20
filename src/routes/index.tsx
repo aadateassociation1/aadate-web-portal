@@ -12,6 +12,7 @@ import {
   CheckCircle2, LogIn, FolderCheck, Sparkles, Camera, Star, IndianRupee, Eye,
   Briefcase, Store, UserRound, Play,
 } from "lucide-react";
+import fallbackHeroVideo from "@/assets/home page banner.mp4";
 import marketyardImg from "@/assets/marketyard.webp";
 import sourabhKunjirImg from "@/assets/Sourabh Kunjir.jpeg";
 import { useI18n } from "@/lib/i18n";
@@ -430,6 +431,7 @@ function Home() {
           preload="auto"
         >
           <source src={HOME_BANNER_VIDEO} type="video/mp4" />
+          <source src={fallbackHeroVideo} type="video/mp4" />
         </video>
         {heroVideoNeedsTap && (
           <button
