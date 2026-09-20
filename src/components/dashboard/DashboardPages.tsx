@@ -3063,10 +3063,13 @@ export function AdminCommitteePage() {
                     {previewPhoto ? <img src={previewPhoto} alt="Committee member preview" className="h-full w-full object-cover object-top" /> : <Camera className="h-8 w-8" />}
                   </div>
                   <label className="mt-4 flex w-full cursor-pointer items-center justify-center rounded-md bg-primary px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">
-                    Upload Photo
+                    {editing ? "Replace Photo" : "Upload Photo"}
                     <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => setPhotoFile(event.target.files?.[0] || null)} />
                   </label>
-                  <div className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">Recommended<br />400 x 400 px<br />JPG/PNG</div>
+                  <div className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">
+                    {photoFile ? photoFile.name : editing?.photo_original_filename || "Shown on Home, Board and Ex-President pages"}
+                    <br />Recommended 800 x 800 px<br />JPG/PNG/WebP
+                  </div>
                 </div>
                 <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
                   <div className="space-y-2">
