@@ -256,7 +256,7 @@ export function PublicExPresidentPage() {
                 <img
                   src={sourabhKunjirPhoto}
                   alt={chairmanCopy.name}
-                  className="absolute inset-0 h-full w-full object-cover object-[center_18%]"
+                  className="absolute inset-0 h-full w-full object-contain object-center"
                 />
                 <div className="absolute left-5 top-5">
                   <Badge className="bg-saffron px-4 py-1.5 text-sm text-saffron-foreground hover:bg-saffron">{chairmanCopy.label}</Badge>
