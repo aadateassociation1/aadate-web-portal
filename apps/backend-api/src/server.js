@@ -20,6 +20,7 @@ const POST_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "post-documents");
 const CONTENT_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "content-documents");
 const CUSTOMER_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "customer-documents");
 const COMMITTEE_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "committee-photos");
+const EX_PRESIDENT_UPLOAD_ROOT = path.join(PERSISTENT_UPLOAD_ROOT, "ex-president-photos");
 const MAX_MEDIA_UPLOAD_BYTES = 5 * 1024 * 1024;
 const MAX_DOCUMENT_UPLOAD_BYTES = 5 * 1024 * 1024;
 const REQUIRED_TRADER_DASHBOARD_DOCUMENT_TYPES = ["profile_photo", "aadhaar_masked", "pan", "market_registration"];
@@ -729,6 +730,31 @@ async function saveCommitteePhotoFile({ memberId, originalFilename, mimeType, da
   const safeFileName = sanitizeFileName(originalFilename);
   const storageFileName = `${memberId}-${Date.now()}-${crypto.randomUUID()}-${safeFileName}`;
   const storagePath = path.join(COMMITTEE_UPLOAD_ROOT, storageFileName);
+  await fs.writeFile(storagePath, buffer);
+  return {
+    storageKey: path.relative(process.cwd(), storagePath),
+    originalFilename: safeFileName,
+    mimeType: safeMimeType,
+    fileSizeBytes: buffer.length,
+  };
+}
+
+async function saveExPresidentPhotoFile({ memberId, originalFilename, mimeType, dataUrl }) {
+  const match = String(dataUrl || "").match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) throw new Error("Invalid photo upload payload.");
+  const [, encodedMimeType, base64] = match;
+  const safeMimeType = mimeType || encodedMimeType;
+  const buffer = Buffer.from(base64, "base64");
+  const allowed = new Set(["image/jpeg", "image/png", "image/webp"]);
+  const extensions = new Set([".jpg", ".jpeg", ".png", ".webp"]);
+  if (buffer.length <= 0 || buffer.length > MAX_MEDIA_UPLOAD_BYTES) throw new Error("Ex-President photo must be 5 MB or smaller.");
+  if (!allowed.has(safeMimeType) || !extensions.has(path.extname(String(originalFilename || "")).toLowerCase())) {
+    throw new Error("Ex-President photo must be JPG, PNG, or WEBP.");
+  }
+  await fs.mkdir(EX_PRESIDENT_UPLOAD_ROOT, { recursive: true });
+  const safeFileName = sanitizeFileName(originalFilename);
+  const storageFileName = `${memberId}-${Date.now()}-${crypto.randomUUID()}-${safeFileName}`;
+  const storagePath = path.join(EX_PRESIDENT_UPLOAD_ROOT, storageFileName);
   await fs.writeFile(storagePath, buffer);
   return {
     storageKey: path.relative(process.cwd(), storagePath),
@@ -2016,6 +2042,32 @@ async function ensurePlatformExtensions() {
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       INDEX idx_committee_status_order (status, display_order)
+    ) ENGINE=InnoDB
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ex_presidents (
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      name_en VARCHAR(160) NOT NULL,
+      name_mr VARCHAR(160) NOT NULL,
+      designation_en VARCHAR(100) NOT NULL DEFAULT 'Ex-President',
+      designation_mr VARCHAR(100) NOT NULL DEFAULT 'माजी अध्यक्ष',
+      image_storage_key VARCHAR(500) NULL,
+      photo_original_filename VARCHAR(255) NULL,
+      photo_mime_type VARCHAR(100) NULL,
+      photo_file_size_bytes BIGINT UNSIGNED NULL,
+      phone VARCHAR(40) NULL,
+      gala_number VARCHAR(40) NULL,
+      category_en VARCHAR(120) NULL,
+      category_mr VARCHAR(120) NULL,
+      tenure_from SMALLINT UNSIGNED NULL,
+      tenure_to SMALLINT UNSIGNED NULL,
+      sort_order INT NOT NULL DEFAULT 100,
+      is_active TINYINT(1) NOT NULL DEFAULT 1,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_ex_presidents_active_order (is_active, sort_order),
+      INDEX idx_ex_presidents_tenure_from (tenure_from),
+      INDEX idx_ex_presidents_tenure_to (tenure_to)
     ) ENGINE=InnoDB
   `);
   const [[committeeCount]] = await pool.query("SELECT COUNT(*) AS count FROM committee_members");
@@ -3375,6 +3427,44 @@ app.get("/api/v1/public/committee/:id/photo", async (req, res) => {
   });
 });
 
+app.get("/api/v1/public/ex-presidents", async (_req, res) => {
+  const [members] = await pool.query(
+    `SELECT id, name_en, name_mr, designation_en, designation_mr, phone, gala_number,
+            category_en, category_mr, tenure_from, tenure_to, sort_order, is_active,
+            photo_original_filename, photo_mime_type, photo_file_size_bytes,
+            CASE WHEN image_storage_key IS NULL THEN NULL ELSE CONCAT('/api/v1/public/ex-presidents/', id, '/photo') END AS image_url,
+            updated_at
+       FROM ex_presidents
+      WHERE is_active = 1
+      ORDER BY sort_order ASC, COALESCE(tenure_from, 9999) ASC, id ASC`,
+  );
+  res.json({ ok: true, members });
+});
+
+app.get("/api/v1/public/ex-presidents/:id/photo", async (req, res) => {
+  const memberId = Number(req.params.id);
+  const [[member]] = await pool.query(
+    `SELECT image_storage_key, photo_original_filename, photo_mime_type
+       FROM ex_presidents
+      WHERE id = :memberId AND is_active = 1 AND image_storage_key IS NOT NULL
+      LIMIT 1`,
+    { memberId },
+  );
+  if (!member) {
+    res.status(404).json({ ok: false, error: "Photo not found." });
+    return;
+  }
+  const photoPath = await resolveExistingStoredFilePath(member.image_storage_key);
+  res.setHeader("Content-Type", member.photo_mime_type || "image/jpeg");
+  res.setHeader("Content-Disposition", `inline; filename="${String(member.photo_original_filename || "ex-president-photo").replace(/"/g, "")}"`);
+  await recordDownloadEvent({ sourceTable: "ex_presidents", sourceId: memberId, req });
+  res.sendFile(photoPath, (error) => {
+    if (error && !res.headersSent) {
+      res.status(404).json({ ok: false, error: "Photo file is missing on the server." });
+    }
+  });
+});
+
 app.get("/api/v1/public/content-attachments/:id/download", async (req, res) => {
   const attachmentId = Number(req.params.id);
   const [[attachment]] = await pool.query(
@@ -4420,6 +4510,174 @@ app.delete("/api/v1/admin/committee/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN
   const [result] = await pool.query("DELETE FROM committee_members WHERE id = :memberId", { memberId });
   if (result.affectedRows === 0) {
     res.status(404).json({ ok: false, error: "Committee member not found." });
+    return;
+  }
+  res.json({ ok: true });
+});
+
+app.get("/api/v1/admin/ex-presidents", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (_req, res) => {
+  const [members] = await pool.query(
+    `SELECT id, name_en, name_mr, designation_en, designation_mr, phone, gala_number,
+            category_en, category_mr, tenure_from, tenure_to, sort_order, is_active,
+            photo_original_filename, photo_mime_type, photo_file_size_bytes,
+            CASE WHEN image_storage_key IS NULL THEN NULL ELSE CONCAT('/api/v1/admin/ex-presidents/', id, '/photo') END AS image_url,
+            updated_at
+       FROM ex_presidents
+      ORDER BY sort_order ASC, COALESCE(tenure_from, 9999) ASC, id ASC`,
+  );
+  res.json({ ok: true, members });
+});
+
+app.get("/api/v1/admin/ex-presidents/:id/photo", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const memberId = Number(req.params.id);
+  const [[member]] = await pool.query(
+    `SELECT image_storage_key, photo_original_filename, photo_mime_type
+       FROM ex_presidents
+      WHERE id = :memberId AND image_storage_key IS NOT NULL
+      LIMIT 1`,
+    { memberId },
+  );
+  if (!member) {
+    res.status(404).json({ ok: false, error: "Photo not found." });
+    return;
+  }
+  const photoPath = await resolveExistingStoredFilePath(member.image_storage_key);
+  res.setHeader("Content-Type", member.photo_mime_type || "image/jpeg");
+  res.setHeader("Content-Disposition", `inline; filename="${String(member.photo_original_filename || "ex-president-photo").replace(/"/g, "")}"`);
+  await recordDownloadEvent({ sourceTable: "ex_presidents", sourceId: memberId, req });
+  res.sendFile(photoPath, (error) => {
+    if (error && !res.headersSent) {
+      res.status(404).json({ ok: false, error: "Photo file is missing on the server." });
+    }
+  });
+});
+
+function normalizeYear(value, label) {
+  if (value === null || value === undefined || String(value).trim() === "") return null;
+  const year = Number(value);
+  if (!Number.isInteger(year) || year < 1900 || year > 2200) throw new Error(`${label} must be a valid year.`);
+  return year;
+}
+
+function normalizeExPresidentPayload(body) {
+  const nameEn = String(body?.nameEn || body?.name_en || "").trim();
+  const nameMr = String(body?.nameMr || body?.name_mr || "").trim();
+  const designationEn = String(body?.designationEn || body?.designation_en || "Ex-President").trim();
+  const designationMr = String(body?.designationMr || body?.designation_mr || "माजी अध्यक्ष").trim();
+  if (!nameEn) throw new Error("Full Name - English is required.");
+  if (!nameMr) throw new Error("Full Name - Marathi is required.");
+  if (!designationEn) throw new Error("Designation - English is required.");
+  if (!designationMr) throw new Error("Designation - Marathi is required.");
+  return {
+    nameEn,
+    nameMr,
+    designationEn,
+    designationMr,
+    tenureFrom: normalizeYear(body?.tenureFrom ?? body?.tenure_from, "From Year"),
+    tenureTo: normalizeYear(body?.tenureTo ?? body?.tenure_to, "To Year"),
+    phone: String(body?.phone || "").trim() || null,
+    galaNumber: String(body?.galaNumber || body?.gala_number || "").trim() || null,
+    categoryEn: String(body?.categoryEn || body?.category_en || "").trim() || null,
+    categoryMr: String(body?.categoryMr || body?.category_mr || "").trim() || null,
+    sortOrder: Number.isFinite(Number(body?.sortOrder ?? body?.sort_order)) ? Number(body?.sortOrder ?? body?.sort_order) : 100,
+    isActive: body?.isActive === "0" || body?.is_active === 0 || body?.isActive === false || body?.is_active === false ? 0 : 1,
+  };
+}
+
+app.post("/api/v1/admin/ex-presidents", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  try {
+    const payload = normalizeExPresidentPayload(req.body);
+    const [result] = await pool.query(
+      `INSERT INTO ex_presidents
+        (name_en, name_mr, designation_en, designation_mr, phone, gala_number, category_en, category_mr, tenure_from, tenure_to, sort_order, is_active)
+       VALUES
+        (:nameEn, :nameMr, :designationEn, :designationMr, :phone, :galaNumber, :categoryEn, :categoryMr, :tenureFrom, :tenureTo, :sortOrder, :isActive)`,
+      payload,
+    );
+    if (req.body?.photo?.dataUrl) {
+      const saved = await saveExPresidentPhotoFile({
+        memberId: result.insertId,
+        originalFilename: req.body.photo.originalFilename,
+        mimeType: req.body.photo.mimeType,
+        dataUrl: req.body.photo.dataUrl,
+      });
+      await pool.query(
+        `UPDATE ex_presidents
+            SET image_storage_key = :storageKey,
+                photo_original_filename = :originalFilename,
+                photo_mime_type = :mimeType,
+                photo_file_size_bytes = :fileSizeBytes
+          WHERE id = :memberId`,
+        { ...saved, memberId: result.insertId },
+      );
+    }
+    res.status(201).json({ ok: true, id: result.insertId });
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
+});
+
+app.patch("/api/v1/admin/ex-presidents/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const memberId = Number(req.params.id);
+  if (!memberId) {
+    res.status(400).json({ ok: false, error: "Invalid Ex-President id." });
+    return;
+  }
+  try {
+    const payload = normalizeExPresidentPayload(req.body);
+    let photoSql = "";
+    let photoPayload = {};
+    if (req.body?.photo?.dataUrl) {
+      const saved = await saveExPresidentPhotoFile({
+        memberId,
+        originalFilename: req.body.photo.originalFilename,
+        mimeType: req.body.photo.mimeType,
+        dataUrl: req.body.photo.dataUrl,
+      });
+      photoSql = `,
+              image_storage_key = :storageKey,
+              photo_original_filename = :originalFilename,
+              photo_mime_type = :mimeType,
+              photo_file_size_bytes = :fileSizeBytes`;
+      photoPayload = saved;
+    }
+    const [result] = await pool.query(
+      `UPDATE ex_presidents
+          SET name_en = :nameEn,
+              name_mr = :nameMr,
+              designation_en = :designationEn,
+              designation_mr = :designationMr,
+              phone = :phone,
+              gala_number = :galaNumber,
+              category_en = :categoryEn,
+              category_mr = :categoryMr,
+              tenure_from = :tenureFrom,
+              tenure_to = :tenureTo,
+              sort_order = :sortOrder,
+              is_active = :isActive
+              ${photoSql}
+        WHERE id = :memberId`,
+      { ...payload, ...photoPayload, memberId },
+    );
+    if (result.affectedRows === 0) {
+      res.status(404).json({ ok: false, error: "Ex-President record not found." });
+      return;
+    }
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
+});
+
+app.delete("/api/v1/admin/ex-presidents/:id", requireRoles("MAIN_ADMIN", "USER_ADMIN"), async (req, res) => {
+  const memberId = Number(req.params.id);
+  if (!memberId) {
+    res.status(400).json({ ok: false, error: "Invalid Ex-President id." });
+    return;
+  }
+  const [result] = await pool.query("DELETE FROM ex_presidents WHERE id = :memberId", { memberId });
+  if (result.affectedRows === 0) {
+    res.status(404).json({ ok: false, error: "Ex-President record not found." });
     return;
   }
   res.json({ ok: true });

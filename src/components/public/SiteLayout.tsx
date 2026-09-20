@@ -15,6 +15,7 @@ const NAV = [
   { to: "/", key: "nav.home" as const },
   { to: "/about", key: "nav.about" as const },
   { to: "/chairman", key: "nav.chairman" as const },
+  { to: "/ex-president", key: "nav.exPresident" as const },
   { to: "/market-prices", key: "nav.marketPrices" as const },
   { to: "/updates", key: "nav.updates" as const },
   { to: "/notices", key: "nav.notices" as const },
@@ -160,7 +161,13 @@ function Header() {
         <div className="border-t border-border bg-background xl:hidden">
           <div className="container-page grid gap-1 py-3">
             {NAV.map((n) => (
-              <Link key={n.to} to={n.to} className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-secondary">
+              <Link
+                key={n.to}
+                to={n.to}
+                className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-secondary"
+                activeProps={{ className: "rounded-md bg-secondary px-3 py-2.5 text-sm font-semibold text-primary" }}
+                activeOptions={{ exact: n.to === "/" }}
+              >
                 {t(n.key)}
               </Link>
             ))}

@@ -9,6 +9,7 @@ import { translateToMarathi } from "@/lib/marathi";
 import { Route as HomeRoute } from "@/routes/index";
 import { Route as AboutRoute } from "@/routes/about";
 import { Route as ChairmanRoute } from "@/routes/chairman";
+import { Route as ExPresidentRoute } from "@/routes/ex-president";
 import { Route as UpdatesRoute } from "@/routes/updates";
 import { Route as NoticesRoute } from "@/routes/notices";
 import { Route as GalleryRoute } from "@/routes/gallery";
@@ -51,6 +52,7 @@ import { Route as AdminMarketPricesRoute } from "@/routes/admin.market-prices";
 import { Route as AdminNoticesRoute } from "@/routes/admin.notices";
 import { Route as AdminMobileRequestsRoute } from "@/routes/admin.mobile-requests";
 import { Route as AdminCommitteeRoute } from "@/routes/admin.committee";
+import { Route as AdminExPresidentsRoute } from "@/routes/admin.ex-presidents";
 import { Route as AdminReportsRoute } from "@/routes/admin.reports";
 import { Route as AdminAuditRoute } from "@/routes/admin.audit";
 import { Route as AdminHelpRoute } from "@/routes/admin.help";
@@ -67,6 +69,7 @@ const ROUTES: Record<string, LocalRoute> = {
   "/": HomeRoute,
   "/about": AboutRoute,
   "/chairman": ChairmanRoute,
+  "/ex-president": ExPresidentRoute,
   "/updates": UpdatesRoute,
   "/notices": NoticesRoute,
   "/gallery": GalleryRoute,
@@ -140,6 +143,7 @@ const ROUTES: Record<string, LocalRoute> = {
   "/admin/notices": AdminNoticesRoute,
   "/admin/mobile-requests": AdminMobileRequestsRoute,
   "/admin/committee": AdminCommitteeRoute,
+  "/admin/ex-presidents": AdminExPresidentsRoute,
   "/admin/reports": AdminReportsRoute,
   "/admin/audit": AdminAuditRoute,
   "/admin/help": AdminHelpRoute,

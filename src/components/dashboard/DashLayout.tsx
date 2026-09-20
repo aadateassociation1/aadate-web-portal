@@ -46,6 +46,7 @@ const ADMIN_NAV = [
   { to: "/admin/notices", label: "Notices & Documents", icon: FileStack },
   { to: "/admin/mobile-requests", label: "Mobile Change Requests", icon: Phone },
   { to: "/admin/committee", label: "Chairman & Committee", icon: Users },
+  { to: "/admin/ex-presidents", label: "Ex-President", icon: Users },
   { to: "/admin/reports", label: "Reports & Analytics", icon: ChartBar },
   { to: "/admin/audit", label: "Audit Logs", icon: ShieldAlert },
 ];
