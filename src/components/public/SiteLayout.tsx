@@ -276,12 +276,12 @@ function Footer() {
           <div>
             © 2026 {t("assoc.name")}. {t("footer.rights")} By{" "}
             <a
-              href="https://webakoof.com"
+              href="https://praaviconsultants.in/"
               target="_blank"
               rel="noreferrer"
               className="font-semibold text-saffron hover:text-saffron/80"
             >
-              Webakoof
+              Praavi Consultants
             </a>
           </div>
         </div>
