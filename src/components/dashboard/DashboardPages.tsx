@@ -3754,7 +3754,7 @@ const PROFILE_DOCUMENT_LABELS: Record<string, string> = {
 const PROFILE_DOCUMENT_LABELS_MR: Record<string, string> = {
   profile_photo: "प्रोफाइल फोटो",
   aadhaar_masked: "आधार ओळखपत्र",
-  pan: "PAN कार्ड",
+  pan: "पॅन कार्ड",
   market_registration: "परवाना कागदपत्र",
 };
 const PROFILE_DOCUMENT_STATUS_LABELS_MR: Record<string, string> = {
@@ -3816,6 +3816,123 @@ export function OwnerProfilePage() {
   }, [profile?.full_name, profile?.full_name_en]);
   const displayFullName = localizedDashboardName(lang, fullNameMr || profile?.full_name, fullNameEn || profile?.full_name_en);
   const displayBusinessName = localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
+  const profileCopy = lang === "mr"
+    ? {
+        title: "माझे प्रोफाइल",
+        subtitle: "ओळख, आरोग्य, परवाना आणि प्रोफाइल फोटोची आवश्यक माहिती पूर्ण करा.",
+        pendingTitle: "डॅशबोर्डसाठी आवश्यक कागदपत्रे प्रलंबित",
+        pendingBody: "तुमच्या सभासद डॅशबोर्ड नोंदीसाठी पूर्ण करणे आवश्यक आहे.",
+        pending: "प्रलंबित",
+        aadhaarNumber: "आधार क्रमांक",
+        panNumber: "पॅन क्रमांक",
+        bloodGroup: "रक्तगट",
+        licenceNumber: "परवाना क्रमांक",
+        requiredDocuments: "आवश्यक कागदपत्रे",
+        openCamera: "कॅमेरा उघडा",
+        uploadPhoto: "फोटो अपलोड करा",
+        uploadingPhoto: "फोटो अपलोड होत आहे...",
+        fullNameEnglish: "पूर्ण नाव (इंग्रजी)",
+        fullNameMarathi: "पूर्ण नाव (मराठी)",
+        fullNamePlaceholder: "पूर्ण नाव",
+        email: "ईमेल",
+        registeredMobile: "नोंदणीकृत मोबाईल",
+        firmName: "फर्मचे नाव",
+        galaNumber: "गाळा क्रमांक",
+        aadhaarPlaceholder: "१२ अंकी आधार",
+        panPlaceholder: "ABCDE1234F",
+        savedAs: "आधी जतन केलेले",
+        enterOnlyToReplace: "बदलायचे असल्यासच नवीन माहिती टाका.",
+        selectBloodGroup: "रक्तगट निवडा",
+        alternateMobile: "पर्यायी मोबाईल",
+        mobilePlaceholder: "१० अंकी मोबाईल",
+        addressLine1: "पत्ता ओळ १",
+        addressLine2: "पत्ता ओळ २",
+        villageCity: "गाव / शहर",
+        taluka: "तालुका",
+        district: "जिल्हा",
+        pincode: "पिनकोड",
+        pincodePlaceholder: "६ अंकी पिनकोड",
+        authorizedTitle: "अधिकृत प्रवेश व्यक्ती",
+        authorizedBody: "या मुख्य सभासद प्रवेशासाठी जास्तीत जास्त ३ विश्वासू व्यक्ती जोडा.",
+        persons: "३ व्यक्ती",
+        person: "व्यक्ती",
+        name: "नाव",
+        phoneNumber: "फोन नंबर",
+        currentAddress: "सध्याचा पत्ता",
+        saving: "जतन करत आहे...",
+        save: "आवश्यक माहिती जतन करा",
+        allGalas: "सर्व गाळे / दुकाने",
+        allGalasBody: "या सभासद प्रवेश आणि मोबाईल क्रमांकाशी जोडलेली सर्व दुकाने.",
+        notUploaded: "अपलोड केलेले नाही",
+        view: "पाहा",
+        replace: "बदला",
+        upload: "अपलोड",
+        uploading: "अपलोड होत आहे...",
+        fullNameRequired: "पूर्ण नाव आणि मराठी पूर्ण नाव आवश्यक आहे.",
+        aadhaarInvalid: "कृपया वैध आधार क्रमांक टाका.",
+        panInvalid: "कृपया वैध पॅन क्रमांक टाका.",
+        bloodGroupRequired: "रक्तगट आवश्यक आहे.",
+        saveSuccess: "प्रोफाइल माहिती जतन झाली.",
+        saveError: "प्रोफाइल माहिती जतन करता आली नाही.",
+      }
+    : {
+        title: "My Profile",
+        subtitle: "Complete mandatory identity, health, licence, and profile photo details.",
+        pendingTitle: "Mandatory dashboard documents pending",
+        pendingBody: "must be completed for your member dashboard record.",
+        pending: "pending",
+        aadhaarNumber: "Aadhaar number",
+        panNumber: "PAN number",
+        bloodGroup: "Blood group",
+        licenceNumber: "Licence number",
+        requiredDocuments: "Required documents",
+        openCamera: "Open camera",
+        uploadPhoto: "Upload photo",
+        uploadingPhoto: "Uploading photo...",
+        fullNameEnglish: "Full name",
+        fullNameMarathi: "Full name in Marathi",
+        fullNamePlaceholder: "Full name",
+        email: "Email",
+        registeredMobile: "Registered mobile",
+        firmName: "Firm name",
+        galaNumber: "Gala number",
+        aadhaarPlaceholder: "12 digit Aadhaar",
+        panPlaceholder: "ABCDE1234F",
+        savedAs: "Saved as",
+        enterOnlyToReplace: "Enter only to replace.",
+        selectBloodGroup: "Select blood group",
+        alternateMobile: "Alternate mobile",
+        mobilePlaceholder: "10 digit mobile",
+        addressLine1: "Address line 1",
+        addressLine2: "Address line 2",
+        villageCity: "Village / City",
+        taluka: "Taluka",
+        district: "District",
+        pincode: "Pincode",
+        pincodePlaceholder: "6 digit pincode",
+        authorizedTitle: "Authorized login persons",
+        authorizedBody: "Add up to 3 trusted people who can use this main member login credential.",
+        persons: "3 persons",
+        person: "Person",
+        name: "Name",
+        phoneNumber: "Phone number",
+        currentAddress: "Current address",
+        saving: "Saving...",
+        save: "Save mandatory details",
+        allGalas: "All Galas / Shops",
+        allGalasBody: "All shops linked to this member login and mobile number.",
+        notUploaded: "Not uploaded",
+        view: "View",
+        replace: "Replace",
+        upload: "Upload",
+        uploading: "Uploading...",
+        fullNameRequired: "Full name and Marathi full name are required.",
+        aadhaarInvalid: "Please enter a valid Aadhaar number.",
+        panInvalid: "Enter a valid PAN number.",
+        bloodGroupRequired: "Blood group is required.",
+        saveSuccess: "Profile details saved.",
+        saveError: "Could not save profile.",
+      };
   const authorizedContacts = getAuthorizedLoginContacts(profile);
   const initials = (displayFullName || "Member")
     .split(" ")
@@ -3831,10 +3948,10 @@ export function OwnerProfilePage() {
   }, {});
   const profilePhoto = latestDocumentByType.profile_photo;
   const missingProfileDetails = [
-    !profile?.aadhaar_masked && "Aadhaar number",
-    !profile?.pan_masked && "PAN number",
-    !profile?.blood_group && "Blood group",
-    !(profile?.licence_number || profile?.market_registration_number) && "Licence number",
+    !profile?.aadhaar_masked && profileCopy.aadhaarNumber,
+    !profile?.pan_masked && profileCopy.panNumber,
+    !profile?.blood_group && profileCopy.bloodGroup,
+    !(profile?.licence_number || profile?.market_registration_number) && profileCopy.licenceNumber,
   ].filter(Boolean) as string[];
   const requiredMissingLabels = [
     ...missingProfileDetails,
@@ -3882,19 +3999,19 @@ export function OwnerProfilePage() {
     const pan = String(data.get("pan") || "").trim().toUpperCase();
     const licenceNumber = String(data.get("licenceNumber") || "").trim();
     if (!cleanFullNameEn || !cleanFullNameMr) {
-      toast.error("Full name and Marathi full name are required.");
+      toast.error(profileCopy.fullNameRequired);
       return;
     }
     if (!profile?.aadhaar_masked && !isValidAadhaar(aadhaar)) {
-      toast.error("Please enter a valid Aadhaar number.");
+      toast.error(profileCopy.aadhaarInvalid);
       return;
     }
     if (!profile?.pan_masked && !/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) {
-      toast.error("Enter a valid PAN number.");
+      toast.error(profileCopy.panInvalid);
       return;
     }
     if (!bloodGroup) {
-      toast.error("Blood group is required.");
+      toast.error(profileCopy.bloodGroupRequired);
       return;
     }
     setSaving(true);
@@ -3924,11 +4041,11 @@ export function OwnerProfilePage() {
         }),
       });
       const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.error || "Could not save profile.");
-      toast.success("Profile details saved.");
+      if (!response.ok || !result.ok) throw new Error(result.error || profileCopy.saveError);
+      toast.success(profileCopy.saveSuccess);
       await reload();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not save profile.");
+      toast.error(error instanceof Error ? error.message : profileCopy.saveError);
     } finally {
       setSaving(false);
     }
@@ -3936,15 +4053,15 @@ export function OwnerProfilePage() {
 
   return (
     <DashLayout kind="owner">
-      <PageTitle title="My Profile" subtitle="Complete mandatory identity, health, licence, and profile photo details." />
+      <PageTitle title={profileCopy.title} subtitle={profileCopy.subtitle} />
       {requiredMissingLabels.length > 0 && (
         <Card className="mb-6 border-saffron/50 bg-saffron/10">
           <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
             <div>
-              <h2 className="font-display font-semibold text-primary-dark">Mandatory dashboard documents pending</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{requiredMissingLabels.join(", ")} must be completed for your member dashboard record.</p>
+              <h2 className="font-display font-semibold text-primary-dark">{profileCopy.pendingTitle}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{requiredMissingLabels.join(", ")} {profileCopy.pendingBody}</p>
             </div>
-            <Badge className="bg-saffron text-primary-dark">{requiredMissingLabels.length} pending</Badge>
+            <Badge className="bg-saffron text-primary-dark">{requiredMissingLabels.length} {profileCopy.pending}</Badge>
           </CardContent>
         </Card>
       )}
@@ -3957,12 +4074,12 @@ export function OwnerProfilePage() {
               ) : (
                 <div className="mx-auto grid h-28 w-28 place-items-center rounded-full bg-secondary font-display text-3xl font-bold text-primary">{initials}</div>
               )}
-              <h2 className="mt-4 font-display text-xl font-bold text-primary-dark">{displayFullName || (loading ? "Loading..." : "Member")}</h2>
+              <h2 className="mt-4 font-display text-xl font-bold text-primary-dark">{displayFullName || (loading ? (lang === "mr" ? "लोड होत आहे..." : "Loading...") : (lang === "mr" ? "सभासद" : "Member"))}</h2>
               <p className="text-sm text-muted-foreground">{displayBusinessName || "-"}</p>
               <div className="mt-3"><StatusBadge status={profile?.verification_status || "loading"} /></div>
               <div className="mt-5 grid gap-2">
                 <label className="inline-flex cursor-pointer items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90">
-                  <Camera className="mr-2 h-4 w-4" /> {lang === "mr" ? "कॅमेरा उघडा" : "Open camera"}
+                  <Camera className="mr-2 h-4 w-4" /> {profileCopy.openCamera}
                   <input
                     type="file"
                     accept="image/*"
@@ -3975,7 +4092,7 @@ export function OwnerProfilePage() {
                   />
                 </label>
                 <label className="inline-flex cursor-pointer items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition hover:bg-secondary">
-                  <Upload className="mr-2 h-4 w-4" /> {lang === "mr" ? "फोटो अपलोड करा" : "Upload photo"}
+                  <Upload className="mr-2 h-4 w-4" /> {profileCopy.uploadPhoto}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
@@ -3986,13 +4103,13 @@ export function OwnerProfilePage() {
                     }}
                   />
                 </label>
-                {uploadingType === "profile_photo" && <div className="text-xs text-muted-foreground">{lang === "mr" ? "फोटो अपलोड होत आहे..." : "Uploading photo..."}</div>}
+                {uploadingType === "profile_photo" && <div className="text-xs text-muted-foreground">{profileCopy.uploadingPhoto}</div>}
               </div>
             </CardContent>
           </Card>
           <Card className="border-border/60">
             <CardContent className="p-6">
-              <h2 className="font-display font-semibold text-primary-dark">{lang === "mr" ? "आवश्यक कागदपत्रे" : "Required documents"}</h2>
+              <h2 className="font-display font-semibold text-primary-dark">{profileCopy.requiredDocuments}</h2>
               <div className="mt-4 space-y-3">
                 {requiredDocuments.map((document) => {
                   const uploaded = latestDocumentByType[document.documentType];
@@ -4001,14 +4118,14 @@ export function OwnerProfilePage() {
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="min-w-0">
                           <div className="font-medium text-primary-dark">{profileDocumentLabel(document.documentType, lang, document.label)}</div>
-                          <div className="max-w-full truncate text-xs text-muted-foreground">{uploaded?.original_filename || (lang === "mr" ? "अपलोड केलेले नाही" : "Not uploaded")}</div>
+                          <div className="max-w-full truncate text-xs text-muted-foreground">{uploaded?.original_filename || profileCopy.notUploaded}</div>
                         </div>
                         <StatusBadge status={uploaded?.status || "pending"} label={profileDocumentStatusLabel(uploaded?.status || "pending", lang)} />
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {uploaded && <Button size="sm" variant="outline" type="button" onClick={() => window.open(`/api/v1/trader/documents/${uploaded.id}/download`, "_blank")}><Eye className="mr-1 h-4 w-4" /> {lang === "mr" ? "पाहा" : "View"}</Button>}
+                        {uploaded && <Button size="sm" variant="outline" type="button" onClick={() => window.open(`/api/v1/trader/documents/${uploaded.id}/download`, "_blank")}><Eye className="mr-1 h-4 w-4" /> {profileCopy.view}</Button>}
                         <label className="inline-flex cursor-pointer items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium transition hover:bg-secondary">
-                          <Upload className="mr-1 h-4 w-4" /> {uploaded ? (lang === "mr" ? "बदला" : "Replace") : (lang === "mr" ? "अपलोड" : "Upload")}
+                          <Upload className="mr-1 h-4 w-4" /> {uploaded ? profileCopy.replace : profileCopy.upload}
                           <input
                             type="file"
                             accept={document.documentType === "profile_photo" ? "image/jpeg,image/png,image/webp" : "image/jpeg,image/png,image/webp,application/pdf"}
@@ -4017,7 +4134,7 @@ export function OwnerProfilePage() {
                           />
                         </label>
                       </div>
-                      {uploadingType === document.documentType && <div className="mt-2 text-xs text-muted-foreground">{lang === "mr" ? "अपलोड होत आहे..." : "Uploading..."}</div>}
+                      {uploadingType === document.documentType && <div className="mt-2 text-xs text-muted-foreground">{profileCopy.uploading}</div>}
                     </div>
                   );
                 })}
@@ -4029,7 +4146,7 @@ export function OwnerProfilePage() {
           <CardContent className="p-6">
             <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveProfile}>
               <div>
-                <Label>{lang === "mr" ? "पूर्ण नाव (इंग्रजी)" : "Full name"}</Label>
+                <Label>{profileCopy.fullNameEnglish}</Label>
                 <Input
                   name="fullNameEn"
                   value={fullNameEn}
@@ -4040,11 +4157,11 @@ export function OwnerProfilePage() {
                       setFullNameMr(englishNameToMarathiName(next));
                     }
                   }}
-                  placeholder="Full name"
+                  placeholder={profileCopy.fullNamePlaceholder}
                 />
               </div>
               <div>
-                <Label>{lang === "mr" ? "पूर्ण नाव (मराठी)" : "Full name in Marathi"}</Label>
+                <Label>{profileCopy.fullNameMarathi}</Label>
                 <Input
                   name="fullName"
                   value={fullNameMr}
@@ -4052,78 +4169,78 @@ export function OwnerProfilePage() {
                     setFullNameMrTouched(true);
                     setFullNameMr(event.currentTarget.value);
                   }}
-                  placeholder="पूर्ण नाव"
+                  placeholder={profileCopy.fullNamePlaceholder}
                 />
               </div>
-              <Field label="Email" value={profile?.email || ""} readOnly />
-              <Field label="Registered mobile" value={profile?.mobile || ""} readOnly />
-              <Field label="Firm name" value={displayBusinessName} readOnly />
-              <Field label="Gala number" value={profile?.gala_number || ""} readOnly />
+              <Field label={profileCopy.email} value={profile?.email || ""} readOnly />
+              <Field label={profileCopy.registeredMobile} value={profile?.mobile || ""} readOnly />
+              <Field label={profileCopy.firmName} value={displayBusinessName} readOnly />
+              <Field label={profileCopy.galaNumber} value={profile?.gala_number || ""} readOnly />
               <div>
-                <Label>Aadhaar number *</Label>
-                <Input name="aadhaar" required={!profile?.aadhaar_masked} inputMode="numeric" maxLength={12} pattern="\d{12}" placeholder={profile?.aadhaar_masked || "12 digit Aadhaar"} onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 12); }} />
-                {profile?.aadhaar_masked && <p className="mt-1 text-xs text-muted-foreground">Saved as {profile.aadhaar_masked}. Enter only to replace.</p>}
+                <Label>{profileCopy.aadhaarNumber} *</Label>
+                <Input name="aadhaar" required={!profile?.aadhaar_masked} inputMode="numeric" maxLength={12} pattern="\d{12}" placeholder={profile?.aadhaar_masked || profileCopy.aadhaarPlaceholder} onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 12); }} />
+                {profile?.aadhaar_masked && <p className="mt-1 text-xs text-muted-foreground">{profileCopy.savedAs} {profile.aadhaar_masked}. {profileCopy.enterOnlyToReplace}</p>}
               </div>
               <div>
-                <Label>PAN number *</Label>
-                <Input name="pan" required={!profile?.pan_masked} maxLength={10} pattern="[A-Za-z]{5}\d{4}[A-Za-z]" placeholder={profile?.pan_masked || "ABCDE1234F"} className="uppercase" onInput={(event) => { event.currentTarget.value = limitPan(event.currentTarget.value); }} />
-                {profile?.pan_masked && <p className="mt-1 text-xs text-muted-foreground">Saved as {profile.pan_masked}. Enter only to replace.</p>}
+                <Label>{profileCopy.panNumber} *</Label>
+                <Input name="pan" required={!profile?.pan_masked} maxLength={10} pattern="[A-Za-z]{5}\d{4}[A-Za-z]" placeholder={profile?.pan_masked || profileCopy.panPlaceholder} className="uppercase" onInput={(event) => { event.currentTarget.value = limitPan(event.currentTarget.value); }} />
+                {profile?.pan_masked && <p className="mt-1 text-xs text-muted-foreground">{profileCopy.savedAs} {profile.pan_masked}. {profileCopy.enterOnlyToReplace}</p>}
               </div>
               <div>
-                <Label>Blood group *</Label>
+                <Label>{profileCopy.bloodGroup} *</Label>
                 <Select value={bloodGroup} onValueChange={setBloodGroup}>
-                  <SelectTrigger><SelectValue placeholder="Select blood group" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={profileCopy.selectBloodGroup} /></SelectTrigger>
                   <SelectContent>{BLOOD_GROUPS.map((group) => <SelectItem key={group} value={group}>{group}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>Licence number</Label>
+                <Label>{profileCopy.licenceNumber}</Label>
                 <Input name="licenceNumber" defaultValue={profile?.licence_number || profile?.market_registration_number || ""} />
               </div>
               <div>
-                <Label>Alternate mobile</Label>
-                <Input name="alternateMobile" defaultValue={profile?.alternate_mobile || ""} type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10 digit mobile" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
+                <Label>{profileCopy.alternateMobile}</Label>
+                <Input name="alternateMobile" defaultValue={profile?.alternate_mobile || ""} type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder={profileCopy.mobilePlaceholder} onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
               </div>
-              <Field label="Address line 1" name="addressLine1" value={profile?.address_line1 || ""} />
-              <Field label="Address line 2" name="addressLine2" value={profile?.address_line2 || ""} />
-              <Field label="Village / City" name="villageCity" value={profile?.village_city || ""} />
-              <Field label="Taluka" name="taluka" value={profile?.taluka || ""} />
-              <Field label="District" name="district" value={profile?.district || ""} />
+              <Field label={profileCopy.addressLine1} name="addressLine1" value={profile?.address_line1 || ""} />
+              <Field label={profileCopy.addressLine2} name="addressLine2" value={profile?.address_line2 || ""} />
+              <Field label={profileCopy.villageCity} name="villageCity" value={profile?.village_city || ""} />
+              <Field label={profileCopy.taluka} name="taluka" value={profile?.taluka || ""} />
+              <Field label={profileCopy.district} name="district" value={profile?.district || ""} />
               <div>
-                <Label>Pincode</Label>
-                <Input name="pincode" defaultValue={profile?.pincode || ""} inputMode="numeric" maxLength={6} pattern="\d{6}" placeholder="6 digit pincode" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 6); }} />
+                <Label>{profileCopy.pincode}</Label>
+                <Input name="pincode" defaultValue={profile?.pincode || ""} inputMode="numeric" maxLength={6} pattern="\d{6}" placeholder={profileCopy.pincodePlaceholder} onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 6); }} />
               </div>
               <div className="sm:col-span-2 rounded-xl border border-primary/15 bg-secondary/20 p-4">
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-primary-dark"><KeyRound className="h-5 w-5 text-primary" /> Authorized login persons</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">Add up to 3 trusted people who can use this main member login credential.</p>
+                    <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-primary-dark"><KeyRound className="h-5 w-5 text-primary" /> {profileCopy.authorizedTitle}</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">{profileCopy.authorizedBody}</p>
                   </div>
-                  <Badge variant="outline" className="border-primary/30 text-primary">3 persons</Badge>
+                  <Badge variant="outline" className="border-primary/30 text-primary">{profileCopy.persons}</Badge>
                 </div>
                 <div className="grid gap-3 lg:grid-cols-3">
                   {authorizedContacts.map((contact, index) => (
                     <div key={index} className="rounded-lg border bg-background p-3 shadow-sm">
                       <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary-dark">
-                        <User className="h-4 w-4 text-primary" /> Person {index + 1}
+                        <User className="h-4 w-4 text-primary" /> {profileCopy.person} {index + 1}
                       </div>
                       <div className="space-y-3">
                         <div>
-                          <Label>Name</Label>
-                          <Input name={`authorizedContactName${index}`} defaultValue={contact.name} placeholder="Full name" />
+                          <Label>{profileCopy.name}</Label>
+                          <Input name={`authorizedContactName${index}`} defaultValue={contact.name} placeholder={profileCopy.fullNamePlaceholder} />
                         </div>
                         <div>
-                          <Label>Phone number</Label>
-                          <Input name={`authorizedContactPhone${index}`} defaultValue={contact.phone} type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder="10 digit mobile" onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
+                          <Label>{profileCopy.phoneNumber}</Label>
+                          <Input name={`authorizedContactPhone${index}`} defaultValue={contact.phone} type="tel" inputMode="numeric" maxLength={10} pattern="\d{10}" placeholder={profileCopy.mobilePlaceholder} onInput={(event) => { event.currentTarget.value = limitDigits(event.currentTarget.value, 10); }} />
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="sm:col-span-2 rounded-lg bg-secondary/50 p-3 text-sm text-muted-foreground">Current address: {formatTraderAddress(profile) || "-"}</div>
+              <div className="sm:col-span-2 rounded-lg bg-secondary/50 p-3 text-sm text-muted-foreground">{profileCopy.currentAddress}: {formatTraderAddress(profile) || "-"}</div>
               <div className="sm:col-span-2 flex justify-end">
-                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={saving}>{saving ? "Saving..." : "Save mandatory details"}</Button>
+                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={saving}>{saving ? profileCopy.saving : profileCopy.save}</Button>
               </div>
             </form>
           </CardContent>
@@ -4133,8 +4250,8 @@ export function OwnerProfilePage() {
         <CardContent className="p-6">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="font-display font-semibold text-primary-dark">All Galas / Shops</h2>
-              <p className="mt-1 text-sm text-muted-foreground">All shops linked to this member login and mobile number.</p>
+              <h2 className="font-display font-semibold text-primary-dark">{profileCopy.allGalas}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{profileCopy.allGalasBody}</p>
             </div>
           </div>
           <TraderGalaCards galas={galas} onUpdated={reload} />
