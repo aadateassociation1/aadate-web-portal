@@ -3601,6 +3601,50 @@ function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records 
   const [editingGala, setEditingGala] = useState<TraderGalaRecord | null>(null);
   const [savingGala, setSavingGala] = useState(false);
   const { lang } = useI18n();
+  const isMr = lang === "mr";
+  const copy = isMr
+    ? {
+        galaPrefix: "गाळा",
+        primary: "मुख्य",
+        general: "सामान्य",
+        marketSection: "बाजार विभाग",
+        registration: "नोंदणी क्रमांक",
+        licence: "परवाना क्रमांक",
+        associationSequence: "अनु. क्रमांक",
+        associationRegistration: "क्रमांक",
+        edit: "संपादित करा",
+        title: "गाळा / दुकान संपादित करा",
+        description: "बदल अंतिम होण्यापूर्वी प्रशासकाच्या मंजुरीसाठी पाठवले जातील.",
+        galaNumber: "गाळा / दुकान क्रमांक",
+        firmName: "फर्मचे नाव",
+        businessCategory: "व्यवसाय श्रेणी",
+        cancel: "रद्द करा",
+        submitting: "सादर करत आहे...",
+        submit: "मंजुरीसाठी सादर करा",
+        success: "गाळा / दुकान बदल प्रशासकाच्या मंजुरीसाठी सादर केले.",
+        updateError: "गाळा / दुकान अपडेट करता आले नाही.",
+      }
+    : {
+        galaPrefix: "Gala",
+        primary: "Primary",
+        general: "General",
+        marketSection: "Market section",
+        registration: "Registration",
+        licence: "Licence",
+        associationSequence: "Anu. kramank",
+        associationRegistration: "Kramank",
+        edit: "Edit",
+        title: "Edit Gala / Shop",
+        description: "Changes are submitted to admin for approval before they become final.",
+        galaNumber: "Gala / Shop number",
+        firmName: "Firm name",
+        businessCategory: "Business category",
+        cancel: "Cancel",
+        submitting: "Submitting...",
+        submit: "Submit for approval",
+        success: "Gala/shop update submitted for admin approval.",
+        updateError: "Could not update gala/shop.",
+      };
 
   const saveGala = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -3624,12 +3668,12 @@ function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records 
         }),
       });
       const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.error || "Could not update gala/shop.");
-      toast.success("Gala/shop update submitted for admin approval.");
+      if (!response.ok || !result.ok) throw new Error(result.error || copy.updateError);
+      toast.success(copy.success);
       setEditingGala(null);
       await onUpdated?.();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not update gala/shop.");
+      toast.error(error instanceof Error ? error.message : copy.updateError);
     } finally {
       setSavingGala(false);
     }
@@ -3643,25 +3687,25 @@ function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records 
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="font-display font-semibold text-primary-dark">Gala {gala.gala_number}</div>
+                  <div className="font-display font-semibold text-primary-dark">{copy.galaPrefix} {gala.gala_number}</div>
                   <div className="mt-1 text-sm text-muted-foreground">{localizedDashboardName(lang, gala.business_name, gala.business_name_en)}</div>
                 </div>
-                {gala.is_primary ? <Badge className="bg-primary text-white">Primary</Badge> : null}
+                {gala.is_primary ? <Badge className="bg-primary text-white">{copy.primary}</Badge> : null}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Badge variant="outline">{gala.business_category || gala.market_section || "General"}</Badge>
+                <Badge variant="outline">{gala.business_category || gala.market_section || copy.general}</Badge>
                 <StatusBadge status={gala.status} />
               </div>
               <div className="mt-3 grid gap-2 text-xs text-muted-foreground">
-                <div><span className="font-medium text-foreground">Market section:</span> {gala.market_section || "-"}</div>
-                <div><span className="font-medium text-foreground">Registration:</span> {gala.market_registration_number || "-"}</div>
-                <div><span className="font-medium text-foreground">Licence:</span> {gala.licence_number || "-"}</div>
-                <div><span className="font-medium text-foreground">Anu. kramank:</span> {gala.association_sequence_number || "-"}</div>
-                <div><span className="font-medium text-foreground">Kramank:</span> {gala.association_registration_number || "-"}</div>
+                <div><span className="font-medium text-foreground">{copy.marketSection}:</span> {gala.market_section || "-"}</div>
+                <div><span className="font-medium text-foreground">{copy.registration}:</span> {gala.market_registration_number || "-"}</div>
+                <div><span className="font-medium text-foreground">{copy.licence}:</span> {gala.licence_number || "-"}</div>
+                <div><span className="font-medium text-foreground">{copy.associationSequence}:</span> {gala.association_sequence_number || "-"}</div>
+                <div><span className="font-medium text-foreground">{copy.associationRegistration}:</span> {gala.association_registration_number || "-"}</div>
               </div>
               {gala.admin_remarks && <div className="mt-3 rounded-md bg-destructive/10 p-2 text-xs text-destructive">{gala.admin_remarks}</div>}
               <Button type="button" size="sm" variant="outline" className="mt-4" onClick={() => setEditingGala(gala)}>
-                <Pencil className="mr-1 h-4 w-4" /> Edit
+                <Pencil className="mr-1 h-4 w-4" /> {copy.edit}
               </Button>
             </CardContent>
           </Card>
@@ -3671,46 +3715,46 @@ function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records 
       <Dialog open={!!editingGala} onOpenChange={(open) => !open && setEditingGala(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit Gala / Shop</DialogTitle>
-            <DialogDescription>Changes are submitted to admin for approval before they become final.</DialogDescription>
+            <DialogTitle>{copy.title}</DialogTitle>
+            <DialogDescription>{copy.description}</DialogDescription>
           </DialogHeader>
           {editingGala && (
             <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveGala}>
               <div>
-                <Label>Gala / Shop number</Label>
+                <Label>{copy.galaNumber}</Label>
                 <Input name="galaNumber" defaultValue={editingGala.gala_number} />
               </div>
               <div>
-                <Label>Firm name *</Label>
+                <Label>{copy.firmName} *</Label>
                 <Input name="businessName" required defaultValue={editingGala.business_name} />
               </div>
               <div>
-                <Label>Market section *</Label>
+                <Label>{copy.marketSection} *</Label>
                 <Input name="marketSection" required defaultValue={editingGala.market_section || ""} />
               </div>
               <div>
-                <Label>Business category</Label>
+                <Label>{copy.businessCategory}</Label>
                 <Input name="category" defaultValue={editingGala.business_category || editingGala.market_section || "Other"} />
               </div>
               <div>
-                <Label>Registration number</Label>
+                <Label>{copy.registration}</Label>
                 <Input name="marketRegistrationNumber" defaultValue={editingGala.market_registration_number || ""} />
               </div>
               <div>
-                <Label>Licence number</Label>
+                <Label>{copy.licence}</Label>
                 <Input name="licenceNumber" defaultValue={editingGala.licence_number || ""} />
               </div>
               <div>
-                <Label>Anu. kramank</Label>
+                <Label>{copy.associationSequence}</Label>
                 <Input name="associationSequenceNumber" defaultValue={editingGala.association_sequence_number || ""} />
               </div>
               <div>
-                <Label>Kramank</Label>
+                <Label>{copy.associationRegistration}</Label>
                 <Input name="associationRegistrationNumber" defaultValue={editingGala.association_registration_number || ""} />
               </div>
               <div className="flex justify-end gap-2 sm:col-span-2">
-                <Button type="button" variant="outline" onClick={() => setEditingGala(null)}>Cancel</Button>
-                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={savingGala}>{savingGala ? "Submitting..." : "Submit for approval"}</Button>
+                <Button type="button" variant="outline" onClick={() => setEditingGala(null)}>{copy.cancel}</Button>
+                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={savingGala}>{savingGala ? copy.submitting : copy.submit}</Button>
               </div>
             </form>
           )}
