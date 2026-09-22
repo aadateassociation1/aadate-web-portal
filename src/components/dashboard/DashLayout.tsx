@@ -56,6 +56,42 @@ interface Props {
   children: ReactNode;
 }
 
+const MEMBER_NAME_MARATHI_WORDS: Record<string, string> = {
+  vaishnavi: "वैष्णवी",
+  vijay: "विजय",
+  pawar: "पवार",
+  stall: "स्टॉल",
+  shop: "दुकान",
+  firm: "फर्म",
+  company: "कंपनी",
+  trading: "ट्रेडिंग",
+  traders: "ट्रेडर्स",
+  brothers: "ब्रदर्स",
+  sons: "सन्स",
+  fruit: "फळ",
+  fruits: "फळे",
+  vegetable: "भाजीपाला",
+  vegetables: "भाजीपाला",
+};
+
+function toMarathiMemberDisplay(value: string) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  const translated = translateToMarathi(text);
+  if (!/[A-Za-z]/.test(translated)) return translated;
+
+  return translated
+    .split(/(\s+|[./,&()-])/)
+    .map((part) => {
+      if (!/[A-Za-z]/.test(part)) return part;
+      const key = part.toLowerCase().replace(/[^a-z]/g, "");
+      return MEMBER_NAME_MARATHI_WORDS[key] || part;
+    })
+    .join("")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function HeaderLangSwitcher() {
   const { lang, setLang } = useI18n();
   const active = "bg-primary text-primary-foreground";
@@ -224,8 +260,9 @@ export function DashLayout({ kind, children }: Props) {
     : "";
   const ownerPrimaryName = ownerFirmName || user.name;
   const ownerSecondaryName = ownerFirmName ? user.name : displayText(title);
-  const displayOwnerPrimaryName = lang === "mr" ? translateToMarathi(ownerPrimaryName) : ownerPrimaryName;
-  const displayOwnerSecondaryName = ownerFirmName && lang === "mr" ? translateToMarathi(ownerSecondaryName) : ownerSecondaryName;
+  const displayOwnerPrimaryName = lang === "mr" ? toMarathiMemberDisplay(ownerPrimaryName) : ownerPrimaryName;
+  const displayOwnerSecondaryName = lang === "mr" ? toMarathiMemberDisplay(ownerSecondaryName) : ownerSecondaryName;
+  const displayUserName = lang === "mr" ? toMarathiMemberDisplay(user.name) : user.name;
   const helpLink = kind === "owner" ? "/member/help" : "/admin/help";
   const passwordLink = kind === "owner" ? "/member/change-password" : "/admin/change-password";
 
@@ -263,7 +300,7 @@ export function DashLayout({ kind, children }: Props) {
             <div className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/8 px-3 py-3">
               <div className="grid h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-white/20 bg-white/10 ring-2 ring-white/10">
                 {user.photoUrl ? (
-                  <img src={user.photoUrl} alt={user.name} className="h-full w-full object-cover" />
+                  <img src={user.photoUrl} alt={displayUserName} className="h-full w-full object-cover" />
                 ) : (
                   <div className="grid h-full w-full place-items-center bg-secondary font-display text-sm font-bold text-primary-dark">
                     {memberInitials || "M"}
@@ -279,7 +316,7 @@ export function DashLayout({ kind, children }: Props) {
             <div className="flex h-full w-full items-center justify-center rounded-2xl border border-white/10 bg-white/8 px-3 py-3">
               <div className="text-center">
                 <div className="text-sm font-semibold text-white">{displayText(title)}</div>
-                <div className="mt-1 text-xs text-sidebar-foreground/70">Signed in as {user.name}</div>
+                <div className="mt-1 text-xs text-sidebar-foreground/70">{lang === "mr" ? `लॉगिन: ${displayUserName}` : `Signed in as ${user.name}`}</div>
               </div>
             </div>
           )}
@@ -348,7 +385,7 @@ export function DashLayout({ kind, children }: Props) {
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <div className="min-w-0 flex-1">
-            <div className="text-xs text-muted-foreground sm:text-sm">{kind === "owner" && ownerFirmName ? user.name : displayText(title)}</div>
+            <div className="text-xs text-muted-foreground sm:text-sm">{kind === "owner" && ownerFirmName ? displayUserName : displayText(title)}</div>
             <div className="truncate font-display text-sm font-semibold text-foreground sm:text-base">
               {lang === "mr" ? `${displayText("Welcome back")}, ${displayOwnerPrimaryName}` : `Welcome back, ${ownerPrimaryName}`}
             </div>
