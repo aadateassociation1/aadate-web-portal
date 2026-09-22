@@ -3938,7 +3938,7 @@ export function OwnerProfilePage() {
               <div className="mt-3"><StatusBadge status={profile?.verification_status || "loading"} /></div>
               <div className="mt-5 grid gap-2">
                 <label className="inline-flex cursor-pointer items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90">
-                  <Camera className="mr-2 h-4 w-4" /> Open camera
+                  <Camera className="mr-2 h-4 w-4" /> {lang === "mr" ? "कॅमेरा उघडा" : "Open camera"}
                   <input
                     type="file"
                     accept="image/*"
@@ -4679,14 +4679,14 @@ export function OwnerKycPage() {
                 <Input name="pan" required maxLength={10} pattern="[A-Za-z]{5}\d{4}[A-Za-z]" placeholder="ABCDE1234F" className="uppercase" onInput={(event) => { event.currentTarget.value = limitPan(event.currentTarget.value); }} />
               </div>
               <div>
-                <Label>Customer live photo *</Label>
+                <Label>{lang === "mr" ? "ग्राहकाचा थेट फोटो *" : "Customer live photo *"}</Label>
                 <div className="mt-2 rounded-lg border bg-secondary/30 p-3">
                   {customerPhoto ? (
                     <div className="grid gap-3">
                       <img src={customerPhoto.dataUrl} alt="Captured customer" className="h-44 w-full rounded-md bg-background object-cover" />
                       <div className="flex flex-wrap gap-2">
-                        <Button type="button" variant="outline" onClick={startCustomerCamera}><Camera className="mr-1 h-4 w-4" /> Retake photo</Button>
-                        <Button type="button" variant="ghost" onClick={() => setCustomerPhoto(null)}><Trash2 className="mr-1 h-4 w-4" /> Remove</Button>
+                        <Button type="button" variant="outline" onClick={startCustomerCamera}><Camera className="mr-1 h-4 w-4" /> {lang === "mr" ? "फोटो पुन्हा घ्या" : "Retake photo"}</Button>
+                        <Button type="button" variant="ghost" onClick={() => setCustomerPhoto(null)}><Trash2 className="mr-1 h-4 w-4" /> {lang === "mr" ? "काढून टाका" : "Remove"}</Button>
                       </div>
                     </div>
                   ) : (
@@ -4695,12 +4695,12 @@ export function OwnerKycPage() {
                         <>
                           <video ref={videoRef} autoPlay playsInline muted className="h-44 w-full rounded-md bg-black object-cover" />
                           <div className="flex flex-wrap gap-2">
-                            <Button type="button" onClick={captureCustomerPhoto} className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Camera className="mr-1 h-4 w-4" /> Capture photo</Button>
-                            <Button type="button" variant="outline" onClick={stopCustomerCamera}>Cancel</Button>
+                            <Button type="button" onClick={captureCustomerPhoto} className="bg-saffron text-saffron-foreground hover:bg-saffron/90"><Camera className="mr-1 h-4 w-4" /> {lang === "mr" ? "फोटो घ्या" : "Capture photo"}</Button>
+                            <Button type="button" variant="outline" onClick={stopCustomerCamera}>{lang === "mr" ? "रद्द करा" : "Cancel"}</Button>
                           </div>
                         </>
                       ) : (
-                        <Button type="button" variant="outline" onClick={startCustomerCamera}><Camera className="mr-1 h-4 w-4" /> Open camera</Button>
+                        <Button type="button" variant="outline" onClick={startCustomerCamera}><Camera className="mr-1 h-4 w-4" /> {lang === "mr" ? "कॅमेरा उघडा" : "Open camera"}</Button>
                       )}
                       <canvas ref={canvasRef} className="hidden" />
                     </div>
