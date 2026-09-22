@@ -209,6 +209,12 @@ const ENGLISH_TO_MARATHI_NAME_WORDS: Record<string, string> = {
   prashant: "प्रशांत",
   sachin: "सचिन",
   sanjay: "संजय",
+  ayush: "आयुष",
+  abhi: "अभी",
+  priyanka: "प्रियंका",
+  borkar: "बोरकर",
+  jambhale: "जांभळे",
+  katore: "काटोरे",
   ajay: "अजय",
   amol: "अमोल",
   amit: "अमित",
@@ -4400,8 +4406,12 @@ export function OwnerKycPage() {
     return record.kyc_status || "pending";
   };
   const isMarketRestricted = (record: { market_action_type?: string | null }) => Boolean(record.market_action_type);
-  const displayCustomerName = (record: Pick<TraderKycRecord, "full_name" | "full_name_en" | "full_name_mr">) =>
-    isMr ? record.full_name_mr || record.full_name : record.full_name_en || record.full_name;
+  const displayCustomerName = (record: Pick<TraderKycRecord, "full_name" | "full_name_en" | "full_name_mr">) => {
+    if (!isMr) return cleanDisplayEnglish(record.full_name_en || record.full_name);
+    const savedMarathiName = cleanDisplayMarathi(record.full_name_mr || record.full_name);
+    if (/[\u0900-\u097F]/.test(savedMarathiName)) return savedMarathiName;
+    return englishNameToMarathiName(record.full_name_en || record.full_name || savedMarathiName);
+  };
   const getCustomerStatusLabel = (status: string) => {
     const normalized = status.replace(/_/g, " ");
     if (!isMr) return normalized;
