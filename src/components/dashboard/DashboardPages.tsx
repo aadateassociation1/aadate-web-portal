@@ -38,6 +38,7 @@ import {
 } from "@/lib/mock";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { translateToMarathi } from "@/lib/marathi";
 
 const CHART_COLORS = ["#86c127", "#e37814", "#86c127", "#D92D20", "#7C3AED", "#0284C7"];
 
@@ -181,6 +182,7 @@ const ENGLISH_TO_MARATHI_NAME_WORDS: Record<string, string> = {
   vaishnavi: "वैष्णवी",
   vijay: "विजय",
   pawar: "पवार",
+  stall: "स्टॉल",
   saurabh: "सौरभ",
   shekhar: "शेखर",
   kunjir: "कुंजिर",
@@ -416,6 +418,61 @@ const MEMBER_POST_CATEGORIES = [
   "Help Required",
   "Other",
 ];
+
+const MEMBER_POST_CATEGORY_MR: Record<string, string> = {
+  "Market Rate Update": "बाजार भाव अपडेट",
+  "Stock Available": "माल उपलब्ध",
+  "Bulk Sale Offer": "घाऊक विक्री ऑफर",
+  "Fresh Arrival": "नवीन माल आवक",
+  "Gala Announcement": "गाळा घोषणा",
+  "Transport / Loading Help": "वाहतूक / लोडिंग मदत",
+  "Payment / Billing Issue": "पेमेंट / बिल समस्या",
+  "Facility Issue": "सुविधा समस्या",
+  "Lost and Found": "हरवले-सापडले",
+  "General Request": "सामान्य विनंती",
+  "Buyer Requirement": "खरेदीदाराची गरज",
+  "Urgent Buyer Requirement": "तातडीची खरेदीदार गरज",
+  "Wholesale Requirement": "घाऊक गरज",
+  "Product Requirement": "मालाची गरज",
+  "Excess Stock Clearance": "जादा माल विक्री",
+  "Discount / Special Offer": "सवलत / विशेष ऑफर",
+  "Price Drop Alert": "भाव घट सूचना",
+  "Price Increase Alert": "भाव वाढ सूचना",
+  "Daily Market Update": "दैनंदिन बाजार अपडेट",
+  "Auction / Sale Notice": "लिलाव / विक्री सूचना",
+  "Vehicle Available": "वाहन उपलब्ध",
+  "Vehicle Required": "वाहन हवे आहे",
+  "Loading Labour Required": "लोडिंग मजूर हवे आहेत",
+  "Loading Labour Available": "लोडिंग मजूर उपलब्ध",
+  "Delivery / Transport Delay": "डिलिव्हरी / वाहतूक उशीर",
+  "Warehouse / Storage Required": "गोदाम / साठवणूक हवी आहे",
+  "Warehouse / Storage Available": "गोदाम / साठवणूक उपलब्ध",
+  "Packaging Material Required": "पॅकिंग साहित्य हवे आहे",
+  "Crates / Boxes Required": "क्रेट / बॉक्स हवे आहेत",
+  "Crates / Boxes Available": "क्रेट / बॉक्स उपलब्ध",
+  "Market Timing Update": "बाजार वेळ अपडेट",
+  "Holiday / Market Closure Notice": "सुट्टी / बाजार बंद सूचना",
+  "Weather Alert": "हवामान सूचना",
+  "Rain / Waterlogging Alert": "पाऊस / पाणी साचणे सूचना",
+  "Traffic / Entry Alert": "वाहतूक / प्रवेश सूचना",
+  "Parking Update": "पार्किंग अपडेट",
+  "Security Alert": "सुरक्षा सूचना",
+  "Electricity Issue": "वीज समस्या",
+  "Water Supply Issue": "पाणी पुरवठा समस्या",
+  "Cleanliness Issue": "स्वच्छता समस्या",
+  "Drainage Issue": "ड्रेनेज समस्या",
+  "Shop / Gala Maintenance": "दुकान / गाळा देखभाल",
+  "Association Notice": "संघटना सूचना",
+  "Meeting Announcement": "बैठक घोषणा",
+  "Member Announcement": "सभासद घोषणा",
+  "Government / APMC Notice": "शासकीय / एपीएमसी सूचना",
+  "Document / Licence Reminder": "कागदपत्र / परवाना स्मरणपत्र",
+  "Payment Reminder": "पेमेंट स्मरणपत्र",
+  "Emergency Alert": "आपत्कालीन सूचना",
+  "Help Required": "मदत हवी आहे",
+  Other: "इतर",
+};
+
 const limitDigits = (value: string, maxLength: number) => value.replace(/\D/g, "").slice(0, maxLength);
 const limitPan = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
 const normalizePan = (value: string) => limitPan(String(value || "").replace(/\\s+/g, ""));
@@ -5798,6 +5855,7 @@ export function OwnerNewComplaintPage() {
 export function OwnerPostPage() {
   const { profile } = useTraderProfile();
   const { lang } = useI18n();
+  const isMr = lang === "mr";
   const { logout } = useAuth();
   const router = useRouter();
 
@@ -5807,8 +5865,96 @@ export function OwnerPostPage() {
   const [myPosts, setMyPosts] = useState<DashboardPost[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const section = profile?.business_category ? `${profile.business_category} Section` : "";
-  const displayFullName = localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
-  const displayBusinessName = localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
+  const displayFullName = isMr
+    ? englishNameToMarathiName(localizedDashboardName(lang, profile?.full_name, profile?.full_name_en))
+    : localizedDashboardName(lang, profile?.full_name, profile?.full_name_en);
+  const displayBusinessName = isMr
+    ? englishNameToMarathiName(localizedDashboardName(lang, profile?.business_name, profile?.business_name_en))
+    : localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
+  const displaySection = isMr ? translateToMarathi(section).replace(/\bSection\b/g, "विभाग") : section;
+  const postCopy = isMr
+    ? {
+        title: "पोस्ट तयार करा",
+        subtitle: "बाजार अपडेट, गाळा घोषणा किंवा विनंती फोटो आणि व्हिडिओ जोडून शेअर करा.",
+        postingAs: "पोस्ट करणारे",
+        galaOwnerName: "गाळा मालकाचे नाव",
+        galaNumber: "गाळा क्रमांक",
+        businessName: "व्यवसायाचे नाव",
+        marketSection: "बाजार विभाग",
+        postType: "पोस्ट प्रकार *",
+        visibleTo: "कोणाला दिसेल *",
+        adminOnly: "फक्त संघटना प्रशासक",
+        postTitle: "पोस्ट शीर्षक *",
+        postTitlePlaceholder: "पोस्टसाठी छोटे शीर्षक",
+        postDetails: "पोस्ट तपशील *",
+        postDetailsPlaceholder: "अपडेट, घोषणा, विनंती किंवा तपशील स्पष्टपणे लिहा.",
+        uploadImages: "पोस्टचे फोटो अपलोड करा",
+        uploadVideos: "पोस्टचे व्हिडिओ अपलोड करा",
+        imageHelp: "JPG, PNG, WEBP. अनेक फोटो चालतील.",
+        videoHelp: "MP4, MOV, WEBM. अनेक व्हिडिओ चालतील.",
+        selected: "निवडले",
+        chooseImages: "फोटो निवडा",
+        chooseVideos: "व्हिडिओ निवडा",
+        selectedImages: "निवडलेले फोटो",
+        selectedVideos: "निवडलेले व्हिडिओ",
+        noImages: "फोटो निवडलेले नाहीत.",
+        noVideos: "व्हिडिओ निवडलेले नाहीत.",
+        clear: "काढा",
+        confirm: "ही पोस्ट माझ्या गाळा किंवा मार्केट यार्ड कामाशी संबंधित आहे आणि संघटना टीम तपासू शकते, याची मी पुष्टी करतो/करते.",
+        adminNote: "तुमची पोस्ट फक्त प्रशासकाकडे जाईल. प्रशासकाने शेअर केल्यानंतरच इतर सभासदांना दिसेल.",
+        submitting: "सादर करत आहे...",
+        submit: "पोस्ट सादर करा",
+        guidelines: "पोस्ट मार्गदर्शक सूचना",
+        guidelineItems: ["स्पष्ट फोटो किंवा व्हिडिओ वापरा", "गरज असल्यास ठिकाण किंवा गाळा तपशील जोडा", "तीच पोस्ट पुन्हा टाकू नका", "प्रशासक मंजुरी लागू शकते"],
+        myPosts: "माझ्या सादर केलेल्या पोस्ट",
+        noSubmittedPosts: "अजून पोस्ट सादर केलेल्या नाहीत.",
+        visibleAfterReshare: "पुन्हा शेअर केल्यानंतर दिसेल",
+        visibleAfterReshareText: "प्रशासकाने मंजूर केलेल्या पोस्ट निवडलेल्या सभासद गटाला मालकाचे नाव आणि डाउनलोड पर्यायांसह दिसतात.",
+        openSharedPosts: "शेअर केलेल्या पोस्ट उघडा",
+        generalRequest: "सामान्य विनंती",
+      }
+    : {
+        title: "Create Post",
+        subtitle: "Share a market update, gala announcement, or request with image and video attachments.",
+        postingAs: "Posting as",
+        galaOwnerName: "Gala owner name",
+        galaNumber: "Gala number",
+        businessName: "Business name",
+        marketSection: "Market section",
+        postType: "Post type *",
+        visibleTo: "Visible to *",
+        adminOnly: "Association Admin only",
+        postTitle: "Post title *",
+        postTitlePlaceholder: "Short title for your post",
+        postDetails: "Post details *",
+        postDetailsPlaceholder: "Write the update, announcement, request, or details clearly.",
+        uploadImages: "Upload post images",
+        uploadVideos: "Upload post videos",
+        imageHelp: "JPG, PNG, WEBP. Multiple allowed.",
+        videoHelp: "MP4, MOV, WEBM. Multiple allowed.",
+        selected: "selected",
+        chooseImages: "Choose images",
+        chooseVideos: "Choose videos",
+        selectedImages: "Selected images",
+        selectedVideos: "Selected videos",
+        noImages: "No images selected.",
+        noVideos: "No videos selected.",
+        clear: "Clear",
+        confirm: "I confirm this post is related to my gala or market yard activity and can be reviewed by the association team.",
+        adminNote: "Your post will go only to admin. Other Members can see it only after admin reshares it.",
+        submitting: "Submitting...",
+        submit: "Submit Post",
+        guidelines: "Post guidelines",
+        guidelineItems: ["Use clear photos or videos", "Add location or gala details when needed", "Avoid duplicate posts", "Admin approval may be required"],
+        myPosts: "My submitted posts",
+        noSubmittedPosts: "No submitted posts yet.",
+        visibleAfterReshare: "Visible after reshare",
+        visibleAfterReshareText: "Admin-approved posts appear only for the selected Member audience with owner name and download options.",
+        openSharedPosts: "Open Shared Posts",
+        generalRequest: "General Request",
+      };
+  const postCategoryLabel = (value?: string | null) => isMr ? MEMBER_POST_CATEGORY_MR[value || ""] || translateToMarathi(value || postCopy.generalRequest) : value || postCopy.generalRequest;
+  const postTitleLabel = (value?: string | null) => isMr ? translateToMarathi(value || "").replace(/^test$/i, "चाचणी") : value || "";
   const loadMyPosts = async () => {
     try {
       const response = await fetch("/api/v1/trader/posts", { credentials: "include" });
@@ -5871,7 +6017,7 @@ export function OwnerPostPage() {
 
   return (
     <DashLayout kind="owner">
-      <PageTitle title="Create Post" subtitle="Share a market update, gala announcement, or request with image and video attachments." />
+      <PageTitle title={postCopy.title} subtitle={postCopy.subtitle} />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
         <Card className="border-border/60">
           <CardContent className="p-6">
@@ -5880,68 +6026,68 @@ export function OwnerPostPage() {
               onSubmit={submitPost}
             >
               <div className="rounded-lg bg-secondary/60 p-4">
-                <h2 className="font-display font-semibold text-primary-dark">Posting as</h2>
+                <h2 className="font-display font-semibold text-primary-dark">{postCopy.postingAs}</h2>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   <div>
-                    <Label>Gala owner name</Label>
+                    <Label>{postCopy.galaOwnerName}</Label>
                     <Input value={displayFullName} disabled />
                   </div>
                   <div>
-                    <Label>Gala number</Label>
+                    <Label>{postCopy.galaNumber}</Label>
                     <Input value={profile?.gala_number || ""} disabled />
                   </div>
                   <div>
-                    <Label>Business name</Label>
+                    <Label>{postCopy.businessName}</Label>
                     <Input value={displayBusinessName} disabled />
                   </div>
                   <div>
-                    <Label>Market section</Label>
-                    <Input value={section} disabled />
+                    <Label>{postCopy.marketSection}</Label>
+                    <Input value={displaySection} disabled />
                   </div>
                 </div>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <Label>Post type *</Label>
+                  <Label>{postCopy.postType}</Label>
                   <Select value={postCategory} onValueChange={setPostCategory}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {MEMBER_POST_CATEGORIES.map((type) => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                        <SelectItem key={type} value={type}>{postCategoryLabel(type)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Visible to *</Label>
-                  <Input value="Association Admin only" disabled />
+                  <Label>{postCopy.visibleTo}</Label>
+                  <Input value={postCopy.adminOnly} disabled />
                 </div>
               </div>
 
               <div>
-                <Label>Post title *</Label>
-                <Input name="titleEn" required placeholder="Short title for your post" />
+                <Label>{postCopy.postTitle}</Label>
+                <Input name="titleEn" required placeholder={postCopy.postTitlePlaceholder} />
               </div>
 
               <div>
-                <Label>Post details *</Label>
-                <Textarea name="contentEn" required rows={6} placeholder="Write the update, announcement, request, or details clearly." />
+                <Label>{postCopy.postDetails}</Label>
+                <Textarea name="contentEn" required rows={6} placeholder={postCopy.postDetailsPlaceholder} />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className={`flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm transition hover:border-primary ${imageFiles.length ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>
                   <Camera className="h-7 w-7 text-primary" />
-                  <span className="font-medium text-primary-dark">Upload post images</span>
-                  <span className={`max-w-full truncate text-xs ${imageFiles.length ? "font-medium text-success" : "text-muted-foreground"}`}>{imageFiles.length ? `${imageFiles.length} selected - ${imageFiles[0].name}` : "JPG, PNG, WEBP. Multiple allowed."}</span>
-                  <span className="mt-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white">Choose images</span>
+                  <span className="font-medium text-primary-dark">{postCopy.uploadImages}</span>
+                  <span className={`max-w-full truncate text-xs ${imageFiles.length ? "font-medium text-success" : "text-muted-foreground"}`}>{imageFiles.length ? `${imageFiles.length} ${postCopy.selected} - ${imageFiles[0].name}` : postCopy.imageHelp}</span>
+                  <span className="mt-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white">{postCopy.chooseImages}</span>
                   <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" multiple onChange={(event) => setImageFiles(Array.from(event.target.files || []))} />
                 </label>
                 <label className={`flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm transition hover:border-primary ${videoFiles.length ? "border-success bg-success/10" : "border-border bg-secondary/40 hover:bg-secondary"}`}>
                   <Video className="h-7 w-7 text-primary" />
-                  <span className="font-medium text-primary-dark">Upload post videos</span>
-                  <span className={`max-w-full truncate text-xs ${videoFiles.length ? "font-medium text-success" : "text-muted-foreground"}`}>{videoFiles.length ? `${videoFiles.length} selected - ${videoFiles[0].name}` : "MP4, MOV, WEBM. Multiple allowed."}</span>
-                  <span className="mt-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white">Choose videos</span>
+                  <span className="font-medium text-primary-dark">{postCopy.uploadVideos}</span>
+                  <span className={`max-w-full truncate text-xs ${videoFiles.length ? "font-medium text-success" : "text-muted-foreground"}`}>{videoFiles.length ? `${videoFiles.length} ${postCopy.selected} - ${videoFiles[0].name}` : postCopy.videoHelp}</span>
+                  <span className="mt-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white">{postCopy.chooseVideos}</span>
                   <input type="file" accept="video/mp4,video/quicktime,video/webm" className="hidden" multiple onChange={(event) => setVideoFiles(Array.from(event.target.files || []))} />
                 </label>
               </div>
@@ -5950,11 +6096,11 @@ export function OwnerPostPage() {
                 <div className="grid gap-3 rounded-lg border bg-secondary/20 p-4 sm:grid-cols-2">
                   <div>
                     <div className="mb-2 flex items-center justify-between gap-2">
-                      <div className="text-sm font-semibold text-primary-dark">Selected images</div>
-                      {imageFiles.length > 0 && <Button type="button" size="sm" variant="ghost" onClick={() => setImageFiles([])}>Clear</Button>}
+                      <div className="text-sm font-semibold text-primary-dark">{postCopy.selectedImages}</div>
+                      {imageFiles.length > 0 && <Button type="button" size="sm" variant="ghost" onClick={() => setImageFiles([])}>{postCopy.clear}</Button>}
                     </div>
                     <div className="space-y-2">
-                      {imageFiles.length === 0 && <div className="rounded-md border bg-background px-3 py-2 text-xs text-muted-foreground">No images selected.</div>}
+                      {imageFiles.length === 0 && <div className="rounded-md border bg-background px-3 py-2 text-xs text-muted-foreground">{postCopy.noImages}</div>}
                       {imageFiles.map((file) => (
                         <div key={`${file.name}-${file.size}`} className="flex min-w-0 items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs">
                           <Camera className="h-4 w-4 shrink-0 text-success" />
@@ -5966,11 +6112,11 @@ export function OwnerPostPage() {
                   </div>
                   <div>
                     <div className="mb-2 flex items-center justify-between gap-2">
-                      <div className="text-sm font-semibold text-primary-dark">Selected videos</div>
-                      {videoFiles.length > 0 && <Button type="button" size="sm" variant="ghost" onClick={() => setVideoFiles([])}>Clear</Button>}
+                      <div className="text-sm font-semibold text-primary-dark">{postCopy.selectedVideos}</div>
+                      {videoFiles.length > 0 && <Button type="button" size="sm" variant="ghost" onClick={() => setVideoFiles([])}>{postCopy.clear}</Button>}
                     </div>
                     <div className="space-y-2">
-                      {videoFiles.length === 0 && <div className="rounded-md border bg-background px-3 py-2 text-xs text-muted-foreground">No videos selected.</div>}
+                      {videoFiles.length === 0 && <div className="rounded-md border bg-background px-3 py-2 text-xs text-muted-foreground">{postCopy.noVideos}</div>}
                       {videoFiles.map((file) => (
                         <div key={`${file.name}-${file.size}`} className="flex min-w-0 items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs">
                           <Video className="h-4 w-4 shrink-0 text-success" />
@@ -5985,12 +6131,12 @@ export function OwnerPostPage() {
 
               <label className="flex items-start gap-3 rounded-lg border p-4 text-sm">
                 <input type="checkbox" required className="mt-1 h-4 w-4 rounded border-border" />
-                <span>I confirm this post is related to my gala or market yard activity and can be reviewed by the association team.</span>
+                <span>{postCopy.confirm}</span>
               </label>
 
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs text-muted-foreground">Your post will go only to admin. Other Members can see it only after admin reshares it.</p>
-                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={submitting}><Upload className="mr-1 h-4 w-4" /> {submitting ? "Submitting..." : "Submit Post"}</Button>
+                <p className="text-xs text-muted-foreground">{postCopy.adminNote}</p>
+                <Button className="bg-saffron text-saffron-foreground hover:bg-saffron/90" disabled={submitting}><Upload className="mr-1 h-4 w-4" /> {submitting ? postCopy.submitting : postCopy.submit}</Button>
               </div>
             </form>
           </CardContent>
@@ -5999,9 +6145,9 @@ export function OwnerPostPage() {
         <div className="space-y-6">
           <Card className="border-saffron/40 bg-saffron/5">
             <CardContent className="p-6">
-              <h2 className="font-display font-bold text-primary-dark">Post guidelines</h2>
+              <h2 className="font-display font-bold text-primary-dark">{postCopy.guidelines}</h2>
               <div className="mt-4 space-y-3 text-sm">
-                {["Use clear photos or videos", "Add location or gala details when needed", "Avoid duplicate posts", "Admin approval may be required"].map((item) => (
+                {postCopy.guidelineItems.map((item) => (
                   <div key={item} className="flex gap-2">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
                     <span>{item}</span>
@@ -6012,29 +6158,29 @@ export function OwnerPostPage() {
           </Card>
           <Card className="border-border/60">
             <CardContent className="p-6">
-              <h2 className="font-display font-bold text-primary-dark">My submitted posts</h2>
+              <h2 className="font-display font-bold text-primary-dark">{postCopy.myPosts}</h2>
               <div className="mt-4 space-y-3">
                 {myPosts.slice(0, 5).map((post) => (
                   <div key={post.id} className="rounded-lg border p-3 text-sm">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="font-medium text-primary-dark">{post.title_en}</div>
-                        <div className="text-xs text-muted-foreground">{post.parsed?.category || "General Request"}</div>
+                        <div className="font-medium text-primary-dark">{postTitleLabel(post.title_en)}</div>
+                        <div className="text-xs text-muted-foreground">{postCategoryLabel(post.parsed?.category)}</div>
                       </div>
                       <StatusBadge status={postStatusLabel(post.status)} />
                     </div>
                   </div>
                 ))}
-                {myPosts.length === 0 && <div className="rounded-lg border p-4 text-center text-sm text-muted-foreground">No submitted posts yet.</div>}
+                {myPosts.length === 0 && <div className="rounded-lg border p-4 text-center text-sm text-muted-foreground">{postCopy.noSubmittedPosts}</div>}
               </div>
             </CardContent>
           </Card>
           <Card className="border-border/60">
             <CardContent className="p-6">
-              <h2 className="font-display font-bold text-primary-dark">Visible after reshare</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Admin-approved posts appear only for the selected Member audience with owner name and download options.</p>
+              <h2 className="font-display font-bold text-primary-dark">{postCopy.visibleAfterReshare}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">{postCopy.visibleAfterReshareText}</p>
               <Button asChild className="mt-4 w-full bg-saffron text-saffron-foreground hover:bg-saffron/90">
-                <Link to="/owner/shared-posts"><Newspaper className="mr-1 h-4 w-4" /> Open Shared Posts</Link>
+                <Link to="/owner/shared-posts"><Newspaper className="mr-1 h-4 w-4" /> {postCopy.openSharedPosts}</Link>
               </Button>
             </CardContent>
           </Card>
