@@ -3751,7 +3751,31 @@ const PROFILE_DOCUMENT_LABELS: Record<string, string> = {
   pan: "PAN card",
   market_registration: "Licence document",
 };
+const PROFILE_DOCUMENT_LABELS_MR: Record<string, string> = {
+  profile_photo: "प्रोफाइल फोटो",
+  aadhaar_masked: "आधार ओळखपत्र",
+  pan: "PAN कार्ड",
+  market_registration: "परवाना कागदपत्र",
+};
+const PROFILE_DOCUMENT_STATUS_LABELS_MR: Record<string, string> = {
+  approved: "मंजूर",
+  pending: "प्रलंबित",
+  rejected: "नाकारले",
+  submitted: "सादर केले",
+  under_review: "तपासणी सुरू",
+  uploaded: "अपलोड केले",
+  verified: "पडताळले",
+  replaced: "बदलले",
+};
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+function profileDocumentLabel(type: string, lang: string, fallback?: string) {
+  return lang === "mr" ? PROFILE_DOCUMENT_LABELS_MR[type] || fallback || type : PROFILE_DOCUMENT_LABELS[type] || fallback || type;
+}
+
+function profileDocumentStatusLabel(status: string, lang: string) {
+  return lang === "mr" ? PROFILE_DOCUMENT_STATUS_LABELS_MR[status] || status.replace(/_/g, " ") : status.replace(/_/g, " ");
+}
 
 function isAllowedTraderDocumentFile(file: File, documentType: string) {
   const extension = file.name.split(".").pop()?.toLowerCase() || "";
@@ -3814,7 +3838,7 @@ export function OwnerProfilePage() {
   ].filter(Boolean) as string[];
   const requiredMissingLabels = [
     ...missingProfileDetails,
-    ...missingRequiredDocuments.map((type) => PROFILE_DOCUMENT_LABELS[type] || type),
+    ...missingRequiredDocuments.map((type) => profileDocumentLabel(type, lang)),
   ];
 
   const uploadDocument = async (documentType: string, file: File | null) => {
@@ -3840,7 +3864,7 @@ export function OwnerProfilePage() {
       });
       const result = await readApiResponse(response);
       if (!result?.ok) throw new Error(result?.message || result?.error || "Could not upload document.");
-      toast.success(`${PROFILE_DOCUMENT_LABELS[documentType] || "Document"} uploaded for verification.`);
+      toast.success(`${profileDocumentLabel(documentType, lang, "Document")} ${lang === "mr" ? "पडताळणीसाठी अपलोड केले." : "uploaded for verification."}`);
       await reload();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not upload document.");
@@ -3951,7 +3975,7 @@ export function OwnerProfilePage() {
                   />
                 </label>
                 <label className="inline-flex cursor-pointer items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition hover:bg-secondary">
-                  <Upload className="mr-2 h-4 w-4" /> Upload photo
+                  <Upload className="mr-2 h-4 w-4" /> {lang === "mr" ? "फोटो अपलोड करा" : "Upload photo"}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
@@ -3962,13 +3986,13 @@ export function OwnerProfilePage() {
                     }}
                   />
                 </label>
-                {uploadingType === "profile_photo" && <div className="text-xs text-muted-foreground">Uploading photo...</div>}
+                {uploadingType === "profile_photo" && <div className="text-xs text-muted-foreground">{lang === "mr" ? "फोटो अपलोड होत आहे..." : "Uploading photo..."}</div>}
               </div>
             </CardContent>
           </Card>
           <Card className="border-border/60">
             <CardContent className="p-6">
-              <h2 className="font-display font-semibold text-primary-dark">Required documents</h2>
+              <h2 className="font-display font-semibold text-primary-dark">{lang === "mr" ? "आवश्यक कागदपत्रे" : "Required documents"}</h2>
               <div className="mt-4 space-y-3">
                 {requiredDocuments.map((document) => {
                   const uploaded = latestDocumentByType[document.documentType];
@@ -3976,15 +4000,15 @@ export function OwnerProfilePage() {
                     <div key={document.documentType} className="rounded-lg border p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <div className="font-medium text-primary-dark">{document.label}</div>
-                          <div className="max-w-full truncate text-xs text-muted-foreground">{uploaded?.original_filename || "Not uploaded"}</div>
+                          <div className="font-medium text-primary-dark">{profileDocumentLabel(document.documentType, lang, document.label)}</div>
+                          <div className="max-w-full truncate text-xs text-muted-foreground">{uploaded?.original_filename || (lang === "mr" ? "अपलोड केलेले नाही" : "Not uploaded")}</div>
                         </div>
-                        <StatusBadge status={uploaded?.status || "pending"} />
+                        <StatusBadge status={uploaded?.status || "pending"} label={profileDocumentStatusLabel(uploaded?.status || "pending", lang)} />
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {uploaded && <Button size="sm" variant="outline" type="button" onClick={() => window.open(`/api/v1/trader/documents/${uploaded.id}/download`, "_blank")}><Eye className="mr-1 h-4 w-4" /> View</Button>}
+                        {uploaded && <Button size="sm" variant="outline" type="button" onClick={() => window.open(`/api/v1/trader/documents/${uploaded.id}/download`, "_blank")}><Eye className="mr-1 h-4 w-4" /> {lang === "mr" ? "पाहा" : "View"}</Button>}
                         <label className="inline-flex cursor-pointer items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium transition hover:bg-secondary">
-                          <Upload className="mr-1 h-4 w-4" /> {uploaded ? "Replace" : "Upload"}
+                          <Upload className="mr-1 h-4 w-4" /> {uploaded ? (lang === "mr" ? "बदला" : "Replace") : (lang === "mr" ? "अपलोड" : "Upload")}
                           <input
                             type="file"
                             accept={document.documentType === "profile_photo" ? "image/jpeg,image/png,image/webp" : "image/jpeg,image/png,image/webp,application/pdf"}
@@ -3993,7 +4017,7 @@ export function OwnerProfilePage() {
                           />
                         </label>
                       </div>
-                      {uploadingType === document.documentType && <div className="mt-2 text-xs text-muted-foreground">Uploading...</div>}
+                      {uploadingType === document.documentType && <div className="mt-2 text-xs text-muted-foreground">{lang === "mr" ? "अपलोड होत आहे..." : "Uploading..."}</div>}
                     </div>
                   );
                 })}
