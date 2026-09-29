@@ -5682,6 +5682,7 @@ app.patch("/api/v1/trader/galas/:id", requireRoles("TRADER"), async (req, res) =
   const {
     galaNumber,
     businessName,
+    businessNameEn,
     marketSection,
     category = "Other",
     marketRegistrationNumber = null,
@@ -5692,14 +5693,15 @@ app.patch("/api/v1/trader/galas/:id", requireRoles("TRADER"), async (req, res) =
 
   const cleanGalaNumber = String(galaNumber || "").trim();
   const cleanBusinessName = String(businessName || "").trim();
+  const cleanBusinessNameEn = cleanMemberEnglishDisplay(String(businessNameEn || "").trim());
   const cleanMarketSection = String(marketSection || "").trim();
-  if (!req.user.trader_id || !galaRecordId || !cleanBusinessName || !cleanMarketSection) {
-    res.status(400).json({ ok: false, error: "Firm name and market section are required." });
+  if (!req.user.trader_id || !galaRecordId || !cleanBusinessName || !cleanBusinessNameEn || !cleanMarketSection) {
+    res.status(400).json({ ok: false, error: "Firm name in Marathi, firm name in English, and market section are required." });
     return;
   }
 
   const [[existing]] = await pool.query(
-    "SELECT id, trader_id, gala_id, status FROM trader_galas WHERE id = :galaRecordId AND trader_id = :traderId LIMIT 1",
+    "SELECT id, trader_id, gala_id, status, is_primary FROM trader_galas WHERE id = :galaRecordId AND trader_id = :traderId LIMIT 1",
     { galaRecordId, traderId: req.user.trader_id },
   );
   if (!existing) {
@@ -5749,6 +5751,7 @@ app.patch("/api/v1/trader/galas/:id", requireRoles("TRADER"), async (req, res) =
       `UPDATE trader_galas
           SET gala_id = :galaId,
               business_name = :businessName,
+              business_name_en = :businessNameEn,
               market_section = :marketSection,
               business_category_id = :categoryId,
               market_registration_number = NULLIF(:marketRegistrationNumber, ''),
@@ -5763,6 +5766,7 @@ app.patch("/api/v1/trader/galas/:id", requireRoles("TRADER"), async (req, res) =
       {
         galaId,
         businessName: cleanBusinessName,
+        businessNameEn: cleanBusinessNameEn,
         marketSection: cleanMarketSection,
         categoryId,
         marketRegistrationNumber: String(marketRegistrationNumber || "").trim(),
@@ -5773,6 +5777,20 @@ app.patch("/api/v1/trader/galas/:id", requireRoles("TRADER"), async (req, res) =
         traderId: req.user.trader_id,
       },
     );
+    if (existing.is_primary) {
+      await connection.query(
+        `UPDATE traders
+            SET business_name = :businessName,
+                business_name_en = :businessNameEn,
+                updated_at = NOW()
+          WHERE id = :traderId`,
+        {
+          businessName: cleanBusinessName,
+          businessNameEn: cleanBusinessNameEn,
+          traderId: req.user.trader_id,
+        },
+      );
+    }
     await connection.query(
       `INSERT INTO trader_verification_history (trader_id, old_status, new_status, remarks, changed_by)
        VALUES (:traderId, :oldStatus, 'gala:submitted', :remarks, :userId)`,
@@ -5784,7 +5802,7 @@ app.patch("/api/v1/trader/galas/:id", requireRoles("TRADER"), async (req, res) =
       },
     ).catch(() => undefined);
     await connection.commit();
-    await writeAudit({ req, action: "trader.gala_update_submitted", module: "traders", entityType: "trader_galas", entityId: galaRecordId, oldValues: { status: existing.status }, newValues: { galaNumber: cleanGalaNumber, businessName: cleanBusinessName, marketSection: cleanMarketSection, status: "submitted" } }).catch(() => undefined);
+    await writeAudit({ req, action: "trader.gala_update_submitted", module: "traders", entityType: "trader_galas", entityId: galaRecordId, oldValues: { status: existing.status }, newValues: { galaNumber: cleanGalaNumber, businessName: cleanBusinessName, businessNameEn: cleanBusinessNameEn, marketSection: cleanMarketSection, status: "submitted" } }).catch(() => undefined);
     res.json({ ok: true, galaRecordId, status: "submitted" });
   } catch (error) {
     await connection.rollback();

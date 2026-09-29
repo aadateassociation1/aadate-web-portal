@@ -3726,6 +3726,7 @@ function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records 
         body: JSON.stringify({
           galaNumber: String(data.get("galaNumber") || "").trim(),
           businessName: String(data.get("businessName") || "").trim(),
+          businessNameEn: String(data.get("businessNameEn") || "").trim(),
           marketSection: String(data.get("marketSection") || "").trim(),
           category: String(data.get("category") || "").trim(),
           marketRegistrationNumber: String(data.get("marketRegistrationNumber") || "").trim(),
@@ -3792,8 +3793,12 @@ function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records 
                 <Input name="galaNumber" defaultValue={editingGala.gala_number} />
               </div>
               <div>
-                <Label>{copy.firmName} *</Label>
+                <Label>{isMr ? "फर्मचे नाव (मराठी)" : "Firm name (Marathi)"} *</Label>
                 <Input name="businessName" required defaultValue={editingGala.business_name} />
+              </div>
+              <div>
+                <Label>{isMr ? "फर्मचे नाव (इंग्रजी)" : "Firm name (English)"} *</Label>
+                <Input name="businessNameEn" required defaultValue={cleanDisplayEnglish(editingGala.business_name_en || transliterateMarathiToEnglish(editingGala.business_name) || editingGala.business_name)} />
               </div>
               <div>
                 <Label>{copy.marketSection} *</Label>
