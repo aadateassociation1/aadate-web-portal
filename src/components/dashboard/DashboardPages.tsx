@@ -3661,7 +3661,7 @@ function getAuthorizedLoginContacts(profile: TraderProfile | null): AuthorizedLo
 }
 
 function localizedDashboardName(lang: string, marathiValue?: string | null, englishValue?: string | null) {
-  return lang === "en" ? englishValue || marathiValue || "" : marathiValue || englishValue || "";
+  return lang === "en" ? cleanDisplayEnglish(englishValue || marathiValue) : marathiValue || englishValue || "";
 }
 
 function TraderGalaCards({ galas, onUpdated, emptyLabel = "No gala/shop records found." }: { galas: TraderGalaRecord[]; onUpdated?: () => Promise<void> | void; emptyLabel?: string }) {
@@ -3913,6 +3913,9 @@ export function OwnerProfilePage() {
   const [fullNameEn, setFullNameEn] = useState("");
   const [fullNameMr, setFullNameMr] = useState("");
   const [fullNameMrTouched, setFullNameMrTouched] = useState(false);
+  const [firmNameEn, setFirmNameEn] = useState("");
+  const [firmNameMr, setFirmNameMr] = useState("");
+  const [firmNameMrTouched, setFirmNameMrTouched] = useState(false);
   const { lang } = useI18n();
   useEffect(() => {
     setBloodGroup(profile?.blood_group || "");
@@ -3925,8 +3928,16 @@ export function OwnerProfilePage() {
     setFullNameMr(marathiName);
     setFullNameMrTouched(false);
   }, [profile?.full_name, profile?.full_name_en]);
+  useEffect(() => {
+    const englishFirmName = cleanDisplayEnglish(profile?.business_name_en || transliterateMarathiToEnglish(profile?.business_name) || profile?.business_name || "");
+    const savedMarathiFirmName = cleanDisplayMarathi(profile?.business_name || "");
+    const marathiFirmName = /[\u0900-\u097F]/.test(savedMarathiFirmName) ? savedMarathiFirmName : englishNameToMarathiName(englishFirmName || savedMarathiFirmName);
+    setFirmNameEn(englishFirmName);
+    setFirmNameMr(marathiFirmName);
+    setFirmNameMrTouched(false);
+  }, [profile?.business_name, profile?.business_name_en]);
   const displayFullName = localizedDashboardName(lang, fullNameMr || profile?.full_name, fullNameEn || profile?.full_name_en);
-  const displayBusinessName = localizedDashboardName(lang, profile?.business_name, profile?.business_name_en);
+  const displayBusinessName = localizedDashboardName(lang, firmNameMr || profile?.business_name, firmNameEn || profile?.business_name_en);
   const profileCopy = lang === "mr"
     ? {
         title: "माझे प्रोफाइल",
@@ -4106,11 +4117,17 @@ export function OwnerProfilePage() {
     const data = new FormData(event.currentTarget);
     const cleanFullNameEn = fullNameEn.trim();
     const cleanFullNameMr = fullNameMr.trim();
+    const cleanFirmNameEn = firmNameEn.trim();
+    const cleanFirmNameMr = firmNameMr.trim();
     const aadhaar = String(data.get("aadhaar") || "").replace(/\D/g, "");
     const pan = String(data.get("pan") || "").trim().toUpperCase();
     const licenceNumber = String(data.get("licenceNumber") || "").trim();
     if (!cleanFullNameEn || !cleanFullNameMr) {
       toast.error(profileCopy.fullNameRequired);
+      return;
+    }
+    if (!cleanFirmNameEn || !cleanFirmNameMr) {
+      toast.error("Firm name and Marathi firm name are required.");
       return;
     }
     if (!profile?.aadhaar_masked && !isValidAadhaar(aadhaar)) {
@@ -4134,6 +4151,8 @@ export function OwnerProfilePage() {
         body: JSON.stringify({
           fullName: cleanFullNameMr,
           fullNameEn: cleanFullNameEn,
+          firmName: cleanFirmNameMr,
+          firmNameEn: cleanFirmNameEn,
           aadhaar,
           pan,
           bloodGroup,
@@ -4285,7 +4304,33 @@ export function OwnerProfilePage() {
               </div>
               <Field label={profileCopy.email} value={profile?.email || ""} readOnly />
               <Field label={profileCopy.registeredMobile} value={profile?.mobile || ""} readOnly />
-              <Field label={profileCopy.firmName} value={displayBusinessName} readOnly />
+              <div>
+                <Label>{profileCopy.firmName}</Label>
+                <Input
+                  name="firmNameEn"
+                  value={firmNameEn}
+                  onChange={(event) => {
+                    const next = event.currentTarget.value;
+                    setFirmNameEn(next);
+                    if (!firmNameMrTouched || !/[\u0900-\u097F]/.test(firmNameMr.trim())) {
+                      setFirmNameMr(englishNameToMarathiName(next));
+                    }
+                  }}
+                  placeholder={profileCopy.firmName}
+                />
+              </div>
+              <div>
+                <Label>{lang === "mr" ? "फर्मचे नाव (मराठी)" : "Firm name in Marathi"}</Label>
+                <Input
+                  name="firmName"
+                  value={firmNameMr}
+                  onChange={(event) => {
+                    setFirmNameMrTouched(true);
+                    setFirmNameMr(event.currentTarget.value);
+                  }}
+                  placeholder={profileCopy.firmName}
+                />
+              </div>
               <Field label={profileCopy.galaNumber} value={profile?.gala_number || ""} readOnly />
               <div>
                 <Label>{profileCopy.aadhaarNumber} *</Label>

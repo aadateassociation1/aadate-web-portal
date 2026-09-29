@@ -5551,6 +5551,8 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
   const {
     fullName = null,
     fullNameEn = null,
+    firmName = null,
+    firmNameEn = null,
     alternateMobile = null,
     addressLine1 = null,
     addressLine2 = null,
@@ -5570,9 +5572,15 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
   const cleanLicenceNumber = String(licenceNumber || "").trim();
   const cleanFullName = String(fullName || "").trim();
   const cleanFullNameEn = String(fullNameEn || "").trim();
+  const cleanFirmName = String(firmName || "").trim();
+  const cleanFirmNameEn = cleanMemberEnglishDisplay(String(firmNameEn || "").trim());
   const cleanAuthorizedLoginContacts = normalizeAuthorizedLoginContacts(authorizedLoginContacts);
   if ((fullName !== null && !cleanFullName) || (fullNameEn !== null && !cleanFullNameEn)) {
     res.status(400).json({ ok: false, error: "Full name and Marathi full name are required." });
+    return;
+  }
+  if ((firmName !== null && !cleanFirmName) || (firmNameEn !== null && !cleanFirmNameEn)) {
+    res.status(400).json({ ok: false, error: "Firm name and Marathi firm name are required." });
     return;
   }
   if (cleanAadhaar && !isValidAadhaar(cleanAadhaar)) {
@@ -5600,6 +5608,8 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
   await pool.query(
     `UPDATE traders
         SET alternate_mobile = COALESCE(:alternateMobile, alternate_mobile),
+            business_name = COALESCE(:firmName, business_name),
+            business_name_en = COALESCE(:firmNameEn, business_name_en),
             address_line1 = COALESCE(:addressLine1, address_line1),
             address_line2 = COALESCE(:addressLine2, address_line2),
             village_city = COALESCE(:villageCity, village_city),
@@ -5617,6 +5627,8 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
       WHERE id = :traderId`,
     {
       alternateMobile,
+      firmName: cleanFirmName || null,
+      firmNameEn: cleanFirmNameEn || null,
       addressLine1,
       addressLine2,
       villageCity,
@@ -5633,6 +5645,20 @@ app.patch("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => 
       traderId: req.user.trader_id,
     },
   );
+  if (cleanFirmName || cleanFirmNameEn) {
+    await pool.query(
+      `UPDATE trader_galas
+          SET business_name = COALESCE(:firmName, business_name),
+              business_name_en = COALESCE(:firmNameEn, business_name_en),
+              updated_at = NOW()
+        WHERE trader_id = :traderId`,
+      {
+        firmName: cleanFirmName || null,
+        firmNameEn: cleanFirmNameEn || null,
+        traderId: req.user.trader_id,
+      },
+    );
+  }
   if (cleanFullName || cleanFullNameEn) {
     await pool.query(
       `UPDATE users u
