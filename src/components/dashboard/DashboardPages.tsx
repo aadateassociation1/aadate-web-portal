@@ -4305,7 +4305,7 @@ export function OwnerProfilePage() {
               <Field label={profileCopy.email} value={profile?.email || ""} readOnly />
               <Field label={profileCopy.registeredMobile} value={profile?.mobile || ""} readOnly />
               <div>
-                <Label>{profileCopy.firmName}</Label>
+                <Label>{lang === "mr" ? "फर्मचे नाव (इंग्रजी)" : "Firm name (English)"}</Label>
                 <Input
                   name="firmNameEn"
                   value={firmNameEn}
@@ -4320,7 +4320,7 @@ export function OwnerProfilePage() {
                 />
               </div>
               <div>
-                <Label>{lang === "mr" ? "फर्मचे नाव (मराठी)" : "Firm name in Marathi"}</Label>
+                <Label>{lang === "mr" ? "फर्मचे नाव (मराठी)" : "Firm name (Marathi)"}</Label>
                 <Input
                   name="firmName"
                   value={firmNameMr}
