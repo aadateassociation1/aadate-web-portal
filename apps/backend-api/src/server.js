@@ -881,6 +881,7 @@ const MEMBER_ENGLISH_DISPLAY_FIXES = [
   ["Dipk", "Dipak"], ["Sttaramdas", "Sattaramdas"], ["Krmcdani", "Karamchandani"], ["Rghunath", "Raghunath"],
   ["Vishvnath", "Vishwanath"], ["Mnoj", "Manoj"], ["Prdeshi", "Pardeshi"], ["Pritmdas", "Pritamdas"], ["Shjram", "Sahajram"],
   ["Jysinghani", "Jaisinghani"], ["Vijy", "Vijay"], ["Vamn", "Vaman"], ["Borkr", "Borkar"], ["Ttredding", "Trading"], ["Tredding", "Trading"],
+  ["Treddrs", "Traders"], ["Tredders", "Traders"], ["Treders", "Traders"],
   ["Rnjnit", "Ranjit"], ["Mdhukr", "Madhukar"], ["Prkash", "Prakash"], ["Nivrttinath", "Nivruttinath"], ["Sjy", "Sanjay"],
   ["Anptt", "Anpat"], ["Sndip", "Sandip"], ["Nthsaheb", "Nathasaheb"], ["Khere", "Khaire"], ["Prshuram", "Parshuram"],
   ["Lkssmn", "Laxman"], ["Sagr", "Sagar"], ["Slman", "Salman"], ["Sdesh", "Sudesh"], ["Paddurg", "Pandurang"], ["Ghole", "Ghule"],

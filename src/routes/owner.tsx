@@ -106,16 +106,24 @@ function OwnerDash() {
   const [selectedGalaId, setSelectedGalaId] = useState<number | null>(null);
   const selectedGala = galas.find((gala) => gala.id === selectedGalaId) || galas[0] || null;
   const metrics = dashboard?.metrics;
-  const mrText = (value: string | null | undefined) => value ? translateToMarathi(value) : "";
+  const cleanBusinessDisplay = (value: string | null | undefined) =>
+    String(value || "")
+      .replace(/\bPrdeshi\b/g, "Pardeshi")
+      .replace(/\bTreddrs\b/g, "Traders")
+      .replace(/\bTredders\b/g, "Traders")
+      .replace(/\bTreders\b/g, "Traders")
+      .replace(/\s+/g, " ")
+      .trim();
+  const mrText = (value: string | null | undefined) => value ? translateToMarathi(cleanBusinessDisplay(value)) : "";
   const labelText = (value: string) => isMr ? translateToMarathi(value) : value;
   const displayMemberName = lang === "en" ? profile?.full_name_en || profile?.full_name : mrText(profile?.full_name || profile?.full_name_en);
   const displayBusinessName = lang === "en"
-    ? selectedGala?.business_name_en || profile?.business_name_en || selectedGala?.business_name || profile?.business_name
+    ? cleanBusinessDisplay(selectedGala?.business_name_en || profile?.business_name_en || selectedGala?.business_name || profile?.business_name)
     : mrText(selectedGala?.business_name || profile?.business_name || selectedGala?.business_name_en || profile?.business_name_en);
   const dashboardPrimaryName = displayBusinessName || displayMemberName || (isMr ? "\u0938\u092d\u093e\u0938\u0926" : "Member");
   const dashboardSecondaryName = displayBusinessName ? displayMemberName : (isMr ? "\u092e\u0902\u091c\u0941\u0930\u0940\u0928\u0902\u0924\u0930 \u0924\u0941\u092e\u091a\u093e \u0935\u094d\u092f\u0935\u0938\u093e\u092f \u0921\u0945\u0936\u092c\u094b\u0930\u094d\u0921 \u0926\u093f\u0938\u0947\u0932." : "Your business dashboard will appear after approval.");
   const galaBusinessName = (gala: { business_name: string; business_name_en?: string | null }) =>
-    lang === "en" ? gala.business_name_en || gala.business_name : mrText(gala.business_name || gala.business_name_en);
+    lang === "en" ? cleanBusinessDisplay(gala.business_name_en || gala.business_name) : mrText(gala.business_name || gala.business_name_en);
   const categoryLabel = (value: string | null | undefined) => {
     const label = value || "General";
     return isMr ? translateToMarathi(label) : label;
