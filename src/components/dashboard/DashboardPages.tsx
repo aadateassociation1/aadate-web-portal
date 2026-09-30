@@ -1293,18 +1293,45 @@ export function AdminRegistrationsPage() {
 
               <div>
                 <h3 className="font-display font-semibold text-primary-dark">Uploaded documents</h3>
-                <div className="mt-3 overflow-x-auto rounded-lg border">
-                  <Table>
+                <div className="mt-3 grid gap-3 md:hidden">
+                  {details.documents.map((document) => (
+                    <Card key={document.id} className="border-border/60 shadow-sm">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="capitalize font-medium text-primary-dark">{document.document_type.replace(/_/g, " ")}</div>
+                            <div className="mt-1 break-all text-sm text-muted-foreground">{document.original_filename}</div>
+                          </div>
+                          <StatusBadge status={document.status} />
+                        </div>
+                        <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+                          <span className="text-muted-foreground">Size</span>
+                          <span className="font-medium text-primary-dark">{Math.max(1, Math.round(document.file_size_bytes / 1024))} KB</span>
+                        </div>
+                        {document.rejection_reason && <div className="mt-2 text-xs text-destructive">{document.rejection_reason}</div>}
+                        <div className="mt-4 grid grid-cols-4 gap-2">
+                          <Button size="sm" variant="ghost" onClick={() => window.open(`/api/v1/admin/trader-documents/${document.id}/download`, "_blank")}><Eye className="h-4 w-4" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => downloadDocument(document)}><Download className="h-4 w-4" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => decideDocument(document, "verify")}><ThumbsUp className="h-4 w-4 text-success" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => decideDocument(document, "reject")}><ThumbsDown className="h-4 w-4 text-destructive" /></Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {details.documents.length === 0 && <div className="rounded-lg border p-4 text-center text-sm text-muted-foreground">No documents uploaded with this application.</div>}
+                </div>
+                <div className="mt-3 hidden overflow-x-auto rounded-lg border md:block">
+                  <Table className="min-w-[720px]">
                     <TableHeader><TableRow><TableHead>Type</TableHead><TableHead>File</TableHead><TableHead>Size</TableHead><TableHead className="whitespace-nowrap">Status</TableHead><TableHead className="text-right">Review</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {details.documents.map((document) => (
                         <TableRow key={document.id}>
-                          <TableCell className="capitalize">{document.document_type.replace(/_/g, " ")}</TableCell>
+                          <TableCell className="whitespace-nowrap capitalize">{document.document_type.replace(/_/g, " ")}</TableCell>
                           <TableCell>
-                            <div className="font-medium">{document.original_filename}</div>
+                            <div className="break-all font-medium">{document.original_filename}</div>
                             {document.rejection_reason && <div className="text-xs text-destructive">{document.rejection_reason}</div>}
                           </TableCell>
-                          <TableCell>{Math.max(1, Math.round(document.file_size_bytes / 1024))} KB</TableCell>
+                          <TableCell className="whitespace-nowrap">{Math.max(1, Math.round(document.file_size_bytes / 1024))} KB</TableCell>
                           <TableCell><StatusBadge status={document.status} /></TableCell>
                           <TableCell className="text-right">
                             <Button size="sm" variant="ghost" onClick={() => window.open(`/api/v1/admin/trader-documents/${document.id}/download`, "_blank")}><Eye className="h-4 w-4" /></Button>
@@ -3123,18 +3150,18 @@ export function AdminCommitteePage() {
           <CardContent className="p-5 sm:p-6">
             <h2 className="font-display text-xl font-bold text-primary-dark">{editing ? "Edit Committee Member" : "Add Committee Member"}</h2>
             <form className="mt-5 space-y-5" onSubmit={saveMember}>
-              <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-                <div className="rounded-lg border border-border/70 bg-secondary/30 p-4">
+              <div className="grid min-w-0 gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+                <div className="min-w-0 overflow-hidden rounded-lg border border-border/70 bg-secondary/30 p-4">
                   <Label className="text-sm font-semibold">Photo</Label>
                   <div className="mx-auto mt-3 grid h-28 w-28 place-items-center overflow-hidden rounded-full border bg-white text-primary shadow-sm ring-1 ring-border/70">
                     {previewPhoto ? <img src={previewPhoto} alt="Committee member preview" className="h-full w-full object-cover object-top" /> : <Camera className="h-8 w-8" />}
                   </div>
-                  <label className="mt-4 flex w-full cursor-pointer items-center justify-center rounded-md bg-primary px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">
+                  <label className="mt-4 flex w-full cursor-pointer items-center justify-center rounded-md bg-primary px-3 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-primary/90">
                     {editing ? "Replace Photo" : "Upload Photo"}
                     <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => setPhotoFile(event.target.files?.[0] || null)} />
                   </label>
                   <div className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">
-                    {photoFile ? photoFile.name : editing?.photo_original_filename || "Shown on Home, Board and Ex-President pages"}
+                    <span className="break-words">{photoFile ? photoFile.name : editing?.photo_original_filename || "Shown on Home, Board and Ex-President pages"}</span>
                     <br />Recommended 800 x 800 px<br />JPG/PNG/WebP
                   </div>
                 </div>
@@ -3206,7 +3233,42 @@ export function AdminCommitteePage() {
               <h2 className="font-display text-xl font-bold text-primary-dark">Committee Members ({members.length})</h2>
               <Button type="button" onClick={resetForm} size="sm" className="bg-primary text-white hover:bg-primary/90"><Plus className="mr-1 h-4 w-4" /> Add Member</Button>
             </div>
-            <div className="overflow-x-auto">
+            <div className="grid gap-3 p-4 md:hidden">
+              {members.map((member) => (
+                <Card key={member.id} className="border-border/60 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-secondary font-display font-semibold text-primary">
+                        {member.photo_url ? <img src={member.photo_url} alt={member.full_name} className="h-full w-full object-cover object-top" /> : initials(member.full_name)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="break-words font-semibold text-primary-dark">{displayCommitteeName(member)}</div>
+                        {member.name_mr && <div className="mt-1 break-words text-xs text-muted-foreground">{member.name_mr}</div>}
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Badge className={member.status === "active" ? "bg-success/15 text-success hover:bg-success/15" : "bg-muted text-muted-foreground hover:bg-muted"}>{member.status === "active" ? "Active" : "Inactive"}</Badge>
+                          <Badge variant="outline">{member.gala_number || "-"}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid gap-2 text-sm">
+                      <div className="flex justify-between gap-3">
+                        <span className="text-muted-foreground">Designation</span>
+                        <span className="text-right font-medium text-primary-dark">{displayCommitteeDesignation(member)}</span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span className="text-muted-foreground">Phone</span>
+                        <span className="font-medium text-primary-dark">{member.phone_number || "-"}</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <Button type="button" size="sm" variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-100" onClick={() => openEdit(member)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
+                      <Button type="button" size="sm" variant="outline" className="bg-red-50 text-destructive hover:bg-red-100 hover:text-destructive" disabled={deletingId === member.id} onClick={() => deleteMember(member)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
             <Table className="min-w-[980px]">
                 <TableHeader>
                   <TableRow className="bg-secondary/50">
@@ -5490,8 +5552,32 @@ export function AdminTraderKycPage() {
 
               <div>
                 <h3 className="font-display font-semibold text-primary-dark">Uploaded documents</h3>
-                <div className="mt-3 overflow-x-auto rounded-lg border">
-                  <Table>
+                <div className="mt-3 grid gap-3 md:hidden">
+                  {details.documents.map((document) => (
+                    <Card key={document.id} className="border-border/60 shadow-sm">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="capitalize font-medium text-primary-dark">{document.document_type.replace(/_/g, " ")}</div>
+                            <div className="mt-1 break-all text-sm text-muted-foreground">{document.original_filename}</div>
+                          </div>
+                          <StatusBadge status={document.status} />
+                        </div>
+                        <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+                          <span className="text-muted-foreground">Size</span>
+                          <span className="font-medium text-primary-dark">{Math.max(1, Math.round(document.file_size_bytes / 1024))} KB</span>
+                        </div>
+                        {document.rejection_reason && <div className="mt-2 text-xs text-destructive">{document.rejection_reason}</div>}
+                        <Button size="sm" variant="outline" className="mt-4 w-full" onClick={() => window.open(`/api/v1/admin/trader-documents/${document.id}/download?download=1`, "_blank")}>
+                          <Download className="mr-1 h-4 w-4" /> Download
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {details.documents.length === 0 && <div className="rounded-lg border p-4 text-center text-sm text-muted-foreground">No documents uploaded with this member application.</div>}
+                </div>
+                <div className="mt-3 hidden overflow-x-auto rounded-lg border md:block">
+                  <Table className="min-w-[680px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Type</TableHead>
@@ -5504,12 +5590,12 @@ export function AdminTraderKycPage() {
                     <TableBody>
                       {details.documents.map((document) => (
                         <TableRow key={document.id}>
-                          <TableCell className="capitalize">{document.document_type.replace(/_/g, " ")}</TableCell>
+                          <TableCell className="whitespace-nowrap capitalize">{document.document_type.replace(/_/g, " ")}</TableCell>
                           <TableCell>
-                            <div className="font-medium">{document.original_filename}</div>
+                            <div className="break-all font-medium">{document.original_filename}</div>
                             {document.rejection_reason && <div className="text-xs text-destructive">{document.rejection_reason}</div>}
                           </TableCell>
-                          <TableCell>{Math.max(1, Math.round(document.file_size_bytes / 1024))} KB</TableCell>
+                          <TableCell className="whitespace-nowrap">{Math.max(1, Math.round(document.file_size_bytes / 1024))} KB</TableCell>
                           <TableCell><StatusBadge status={document.status} /></TableCell>
                           <TableCell className="text-right">
                             <Button size="sm" variant="ghost" onClick={() => window.open(`/api/v1/admin/trader-documents/${document.id}/download?download=1`, "_blank")}>

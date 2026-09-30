@@ -126,8 +126,57 @@ function AdminReviews() {
         </div>
 
         <Card className="border-border/60">
-          <CardContent className="p-6">
-            <Table>
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid gap-3 md:hidden">
+              {reviews.map((review) => (
+                <Card key={review.id} className="border-border/60 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <Stars value={review.rating_value} />
+                        <div className="mt-2 break-words font-medium text-primary-dark">{review.business_name}</div>
+                        <div className="mt-1 break-words text-xs text-muted-foreground">{review.trader_name} - {review.trader_code} - Gala {review.gala_number || "-"}</div>
+                      </div>
+                      <StatusBadge status={review.moderation_status} />
+                    </div>
+                    <div className="mt-3 space-y-2 text-sm">
+                      <div>
+                        <div className="text-xs text-muted-foreground">Reviewer</div>
+                        <div className="font-medium text-primary-dark">{review.reviewer_name || "Portal user"}</div>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          <Badge variant="outline" className="capitalize">{review.reviewer_type}</Badge>
+                          {review.customer_code && <Badge variant="outline">{review.customer_code}</Badge>}
+                        </div>
+                        {review.reviewer_mobile && <div className="mt-1 text-xs text-muted-foreground">{review.reviewer_mobile}</div>}
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">Review</div>
+                        <div className="break-words text-muted-foreground">{review.review_text || "No text review"}</div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {(review.attachments || []).length > 0 ? review.attachments!.map((file) => (
+                          <Button key={file.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/admin/rating-attachments/${file.id}/download`, "_blank", "noopener,noreferrer")}>
+                            <Download className="mr-1 h-4 w-4" /> {file.attachment_type === "image" ? "Image" : "Video"}
+                          </Button>
+                        )) : <span className="text-xs text-muted-foreground">No media</span>}
+                      </div>
+                    </div>
+                    <div className="mt-4 grid gap-2">
+                      {review.moderation_status === "pending" ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button size="sm" className="bg-success text-white" onClick={() => decide(review, "approve")}><CheckCircle2 className="mr-1 h-4 w-4" />Reshare</Button>
+                          <Button size="sm" variant="outline" onClick={() => decide(review, "reject")}><ThumbsDown className="mr-1 h-4 w-4" />Reject</Button>
+                        </div>
+                      ) : (
+                        <Button size="sm" variant="destructive" className="w-full" onClick={() => deleteReview(review)}><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto rounded-lg border md:block">
+            <Table className="min-w-[980px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Rating</TableHead>
@@ -181,6 +230,7 @@ function AdminReviews() {
                 ))}
               </TableBody>
             </Table>
+            </div>
             {!loading && reviews.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No reviews found for this status.</div>}
             {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading reviews...</div>}
           </CardContent>

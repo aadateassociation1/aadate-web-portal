@@ -428,18 +428,58 @@ export function AdminExPresidentPage() {
 
   return (
     <DashLayout kind="admin">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
+      <div className="mb-6 grid gap-3 sm:flex sm:items-end sm:justify-between">
+        <div className="min-w-0">
           <h1 className="font-display text-2xl font-bold text-primary-dark">{labels.title}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{labels.subtitle}</p>
         </div>
-        <Button onClick={openNew}><Plus className="mr-1 h-4 w-4" /> {labels.add}</Button>
+        <Button className="w-full sm:w-auto" onClick={openNew}><Plus className="mr-1 h-4 w-4" /> {labels.add}</Button>
       </div>
 
       <Card className="border-border/60">
         <CardContent className="p-4 sm:p-5">
-          <div className="overflow-x-auto rounded-lg border">
-            <Table>
+          <div className="grid gap-3 md:hidden">
+            {members.map((member) => (
+              <Card key={member.id} className="border-border/60 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-secondary">
+                      <ProfilePhoto member={member} size="admin" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="break-words font-medium text-primary-dark">{member.name_en}</div>
+                      <div className="mt-1 break-words text-xs text-muted-foreground">{member.name_mr}</div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Badge className={member.is_active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}>{member.is_active ? labels.active : labels.inactive}</Badge>
+                        <Badge variant="outline">{labels.order}: {member.sort_order}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid gap-2 text-sm">
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted-foreground">{labels.tenure}</span>
+                      <span className="font-medium text-primary-dark">{formatTenure(member)}</span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted-foreground">{labels.gala}</span>
+                      <span className="font-medium text-primary-dark">{member.gala_number || "-"}</span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted-foreground">{labels.phone}</span>
+                      <span className="font-medium text-primary-dark">{member.phone || "-"}</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    <Button size="sm" variant="outline" onClick={() => setViewing(member)}><Eye className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="outline" onClick={() => openEdit(member)}><Pencil className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => deleteMember(member)}><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto rounded-lg border md:block">
+            <Table className="min-w-[920px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>{labels.photo}</TableHead>
@@ -461,11 +501,11 @@ export function AdminExPresidentPage() {
                         <ProfilePhoto member={member} size="admin" />
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium text-primary-dark">{member.name_en}</TableCell>
-                    <TableCell>{member.name_mr}</TableCell>
-                    <TableCell>{formatTenure(member)}</TableCell>
-                    <TableCell>{member.gala_number || ""}</TableCell>
-                    <TableCell>{member.phone || ""}</TableCell>
+                    <TableCell className="min-w-44 font-medium text-primary-dark">{member.name_en}</TableCell>
+                    <TableCell className="min-w-44">{member.name_mr}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatTenure(member)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{member.gala_number || ""}</TableCell>
+                    <TableCell className="whitespace-nowrap">{member.phone || ""}</TableCell>
                     <TableCell><Badge className={member.is_active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}>{member.is_active ? labels.active : labels.inactive}</Badge></TableCell>
                     <TableCell>{member.sort_order}</TableCell>
                     <TableCell className="text-right">
