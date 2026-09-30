@@ -9,14 +9,33 @@
     />
     <link rel="icon" href="/favicon.png" type="image/png" sizes="any" />
     <link rel="shortcut icon" href="/favicon.png" type="image/png" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <script>
+      (function () {
+        var isAdminApp = location.pathname.indexOf("/admin") === 0 || location.hostname.indexOf("admin.") === 0;
+        var manifestBase = isAdminApp ? "/admin-manifest" : "/manifest";
+        var themeColor = isAdminApp ? "#003c2b" : "#86c127";
+        [
+          { href: manifestBase + ".json" },
+          { href: manifestBase + ".webmanifest" }
+        ].forEach(function (item) {
+          var link = document.createElement("link");
+          link.rel = "manifest";
+          link.href = item.href;
+          document.head.appendChild(link);
+        });
+        window.__AADATE_PWA_CONTEXT__ = isAdminApp ? "admin" : "public";
+        document.documentElement.dataset.pwaContext = window.__AADATE_PWA_CONTEXT__;
+        var theme = document.createElement("meta");
+        theme.name = "theme-color";
+        theme.content = themeColor;
+        document.head.appendChild(theme);
+      })();
+    </script>
     <link rel="apple-touch-icon" href="/favicon.png" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Adte Association" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="theme-color" content="#86c127" />
     <meta property="og:image" content="/favicon.png" />
     <meta name="twitter:image" content="/favicon.png" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-MTJ6464G34"></script>
