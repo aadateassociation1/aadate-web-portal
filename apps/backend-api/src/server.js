@@ -39,6 +39,12 @@ const DOCUMENT_TYPE_LABELS = {
   pan: "PAN card",
   other: "Other document",
 };
+
+function normalizeTraderDocumentType(type) {
+  const value = String(type || "").trim();
+  return value === "aadhaar" ? "aadhaar_masked" : value;
+}
+
 const MARKET_PRICE_CATEGORIES = new Set(["vegetable", "fruit"]);
 const MARKET_PRICE_UNITS = new Set(["Kg", "Quintal", "Dozen", "Piece", "Bunch", "Bundle", "Crate", "Box", "Tray"]);
 const documentUpload = multer({
@@ -5523,7 +5529,7 @@ app.get("/api/v1/trader/profile", requireRoles("TRADER"), async (req, res) => {
       ORDER BY tg.is_primary DESC, tg.created_at ASC, tg.id ASC`,
     { traderId: req.user.trader_id },
   );
-  const activeDocumentTypes = new Set(documents.filter((document) => document.status !== "replaced").map((document) => document.document_type));
+  const activeDocumentTypes = new Set(documents.filter((document) => document.status !== "replaced").map((document) => normalizeTraderDocumentType(document.document_type)));
   const missingRequiredDocuments = REQUIRED_TRADER_DASHBOARD_DOCUMENT_TYPES.filter((documentType) => !activeDocumentTypes.has(documentType));
   res.json({
     ok: true,
@@ -5842,7 +5848,7 @@ app.post("/api/v1/trader/documents", requireRoles("TRADER"), uploadTraderDocumen
     res.status(404).json({ ok: false, error: "Member profile not found." });
     return;
   }
-  const documentType = String(req.body?.documentType || "");
+  const documentType = normalizeTraderDocumentType(req.body?.documentType);
   if (!DOCUMENT_TYPE_LABELS[documentType]) {
     res.status(400).json({ ok: false, error: "Invalid document type." });
     return;
@@ -6013,7 +6019,7 @@ app.get("/api/v1/trader/dashboard", requireRoles("TRADER"), async (req, res) => 
       ORDER BY tg.is_primary DESC, tg.created_at ASC, tg.id ASC`,
     { traderId },
   );
-  const activeDocumentTypes = new Set(documents.filter((document) => document.status !== "replaced").map((document) => document.document_type));
+  const activeDocumentTypes = new Set(documents.filter((document) => document.status !== "replaced").map((document) => normalizeTraderDocumentType(document.document_type)));
   const missingRequiredDocuments = REQUIRED_TRADER_DASHBOARD_DOCUMENT_TYPES.filter((documentType) => !activeDocumentTypes.has(documentType));
   res.json({
     ok: true,

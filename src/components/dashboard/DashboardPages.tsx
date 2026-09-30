@@ -4042,6 +4042,10 @@ function profileDocumentStatusLabel(status: string, lang: string) {
   return lang === "mr" ? PROFILE_DOCUMENT_STATUS_LABELS_MR[status] || status.replace(/_/g, " ") : status.replace(/_/g, " ");
 }
 
+function canonicalProfileDocumentType(type: string) {
+  return type === "aadhaar" ? "aadhaar_masked" : type;
+}
+
 function isAllowedTraderDocumentFile(file: File, documentType: string) {
   const extension = file.name.split(".").pop()?.toLowerCase() || "";
   const imageOnly = documentType === "profile_photo";
@@ -4220,7 +4224,8 @@ export function OwnerProfilePage() {
     .toUpperCase();
   const activeDocuments = documents.filter((document) => document.status !== "replaced");
   const latestDocumentByType = activeDocuments.reduce<Record<string, TraderProfileDocument>>((acc, document) => {
-    if (!acc[document.document_type]) acc[document.document_type] = document;
+    const canonicalType = canonicalProfileDocumentType(document.document_type);
+    if (!acc[canonicalType]) acc[canonicalType] = document;
     return acc;
   }, {});
   const profilePhoto = latestDocumentByType.profile_photo;
@@ -4237,19 +4242,20 @@ export function OwnerProfilePage() {
 
   const uploadDocument = async (documentType: string, file: File | null) => {
     if (!file) return;
+    const canonicalDocumentType = canonicalProfileDocumentType(documentType);
     const extension = file.name.split(".").pop()?.toLowerCase() || "";
     if (["heic", "heif"].includes(extension) || ["image/heic", "image/heif"].includes(file.type)) {
       toast.error("HEIC/HEIF photos are not supported yet. Please upload JPG, PNG, or WebP.");
       return;
     }
-    if (!isAllowedTraderDocumentFile(file, documentType)) {
-      toast.error(documentType === "profile_photo" ? "Profile photo must be JPG, PNG, or WebP under 5 MB." : "Document must be JPG, PNG, WebP, or PDF under 5 MB.");
+    if (!isAllowedTraderDocumentFile(file, canonicalDocumentType)) {
+      toast.error(canonicalDocumentType === "profile_photo" ? "Profile photo must be JPG, PNG, or WebP under 5 MB." : "Document must be JPG, PNG, WebP, or PDF under 5 MB.");
       return;
     }
-    setUploadingType(documentType);
+    setUploadingType(canonicalDocumentType);
     try {
       const formData = new FormData();
-      formData.append("documentType", documentType);
+      formData.append("documentType", canonicalDocumentType);
       formData.append("file", file, file.name);
       const response = await fetch("/api/v1/trader/documents", {
         method: "POST",
@@ -4258,7 +4264,7 @@ export function OwnerProfilePage() {
       });
       const result = await readApiResponse(response);
       if (!result?.ok) throw new Error(result?.message || result?.error || "Could not upload document.");
-      toast.success(`${profileDocumentLabel(documentType, lang, "Document")} ${lang === "mr" ? "पडताळणीसाठी अपलोड केले." : "uploaded for verification."}`);
+      toast.success(`${profileDocumentLabel(canonicalDocumentType, lang, "Document")} ${lang === "mr" ? "पडताळणीसाठी अपलोड केले." : "uploaded for verification."}`);
       await reload();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not upload document.");
@@ -4398,29 +4404,33 @@ export function OwnerProfilePage() {
               <h2 className="font-display font-semibold text-primary-dark">{profileCopy.requiredDocuments}</h2>
               <div className="mt-4 space-y-3">
                 {requiredDocuments.map((document) => {
-                  const uploaded = latestDocumentByType[document.documentType];
+                  const documentType = canonicalProfileDocumentType(document.documentType);
+                  const uploaded = latestDocumentByType[documentType];
                   return (
-                    <div key={document.documentType} className="rounded-lg border p-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div key={documentType} className="rounded-lg border p-3">
+                      <div className="grid gap-2 min-[420px]:grid-cols-[minmax(0,1fr)_auto] min-[420px]:items-start">
                         <div className="min-w-0">
-                          <div className="font-medium text-primary-dark">{profileDocumentLabel(document.documentType, lang, document.label)}</div>
-                          <div className="max-w-full truncate text-xs text-muted-foreground">{uploaded?.original_filename || profileCopy.notUploaded}</div>
+                          <div className="break-words font-medium text-primary-dark">{profileDocumentLabel(documentType, lang, document.label)}</div>
+                          <div className="mt-0.5 max-w-full break-all text-xs text-muted-foreground">{uploaded?.original_filename || profileCopy.notUploaded}</div>
                         </div>
                         <StatusBadge status={uploaded?.status || "pending"} label={profileDocumentStatusLabel(uploaded?.status || "pending", lang)} />
                       </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {uploaded && <Button size="sm" variant="outline" type="button" onClick={() => window.open(`/api/v1/trader/documents/${uploaded.id}/download`, "_blank")}><Eye className="mr-1 h-4 w-4" /> {profileCopy.view}</Button>}
-                        <label className="inline-flex cursor-pointer items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium transition hover:bg-secondary">
+                      <div className="mt-3 grid gap-2 min-[420px]:flex min-[420px]:flex-wrap">
+                        {uploaded && <Button size="sm" variant="outline" type="button" className="w-full min-[420px]:w-auto" onClick={() => window.open(`/api/v1/trader/documents/${uploaded.id}/download`, "_blank")}><Eye className="mr-1 h-4 w-4" /> {profileCopy.view}</Button>}
+                        <label className="inline-flex w-full cursor-pointer items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium transition hover:bg-secondary min-[420px]:w-auto">
                           <Upload className="mr-1 h-4 w-4" /> {uploaded ? profileCopy.replace : profileCopy.upload}
                           <input
                             type="file"
-                            accept={document.documentType === "profile_photo" ? "image/jpeg,image/png,image/webp" : "image/jpeg,image/png,image/webp,application/pdf"}
+                            accept={documentType === "profile_photo" ? "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" : "image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf"}
                             className="hidden"
-                            onChange={(event) => uploadDocument(document.documentType, event.target.files?.[0] || null)}
+                            onChange={(event) => {
+                              uploadDocument(documentType, event.target.files?.[0] || null);
+                              event.currentTarget.value = "";
+                            }}
                           />
                         </label>
                       </div>
-                      {uploadingType === document.documentType && <div className="mt-2 text-xs text-muted-foreground">{profileCopy.uploading}</div>}
+                      {uploadingType === documentType && <div className="mt-2 text-xs text-muted-foreground">{profileCopy.uploading}</div>}
                     </div>
                   );
                 })}
