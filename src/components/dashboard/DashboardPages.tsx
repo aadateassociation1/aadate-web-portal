@@ -524,7 +524,7 @@ const MOBILE_CHANGE_REASONS = [
 
 function PageTitle({ title, subtitle, action }: { title: string; subtitle: string; action?: React.ReactNode }) {
   return (
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6">
+    <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
         <h1 className="font-display text-xl font-bold leading-tight text-primary-dark sm:text-2xl">{title}</h1>
         <p className="mt-1 text-sm leading-5 text-muted-foreground">{subtitle}</p>
@@ -557,13 +557,13 @@ function StatCard({
     saffron: "bg-saffron text-primary-dark",
   };
   const content = (
-    <CardContent className="flex items-center gap-3 p-4 sm:gap-4 sm:p-5">
+    <CardContent className="flex min-h-24 items-center gap-3 p-4 sm:gap-4 sm:p-5">
       <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl sm:h-12 sm:w-12 ${tones[tone]}`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="font-display text-xl font-bold text-primary-dark sm:text-2xl">{value}</div>
+        <div className="line-clamp-2 text-xs leading-4 text-muted-foreground">{label}</div>
+        <div className="font-display text-xl font-bold leading-tight text-primary-dark sm:text-2xl">{value}</div>
       </div>
     </CardContent>
   );
@@ -832,15 +832,15 @@ export function AdminUsersPage() {
   return (
     <DashLayout kind="admin">
       <PageTitle title={adminLabel("Member Management", "\u0905\u0921\u0924\u0947 \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u0928")} subtitle={adminLabel("Search, verify, approve, reject, suspend, and manage all Member accounts.", "\u0938\u0930\u094d\u0935 \u0905\u0921\u0924\u0947 \u0916\u093e\u0924\u0940 \u0936\u094b\u0927\u093e, \u092a\u0921\u0924\u093e\u0933\u093e, \u092e\u0902\u091c\u0942\u0930, \u0928\u093e\u0915\u093e\u0930, \u0938\u094d\u0925\u0917\u093f\u0924 \u0906\u0923\u093f \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u093f\u0924 \u0915\u0930\u093e.")} action={<Button variant="outline" onClick={loadTraders}>{adminLabel("Refresh", "\u0930\u093f\u092b\u094d\u0930\u0947\u0936")}</Button>} />
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-4 grid gap-3 sm:mb-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Users} label={adminLabel("Total Members", "\u090f\u0915\u0942\u0923 \u0905\u0921\u0924\u0947")} value={stats.total} />
         <StatCard icon={CheckCircle2} label="Approved" value={stats.approved} tone="success" />
         <StatCard icon={ClipboardList} label="Pending" value={stats.pending} tone="warning" />
         <StatCard icon={ShieldAlert} label="Rejected / suspended" value={stats.rejected + stats.suspended} tone="danger" />
       </div>
       <Card className="border-border/60">
-        <CardContent className="p-6">
-          <div className="mb-4 flex flex-wrap gap-3">
+        <CardContent className="p-3 sm:p-6">
+          <div className="mb-4 grid gap-3 sm:flex sm:flex-wrap">
             <div className="relative min-w-0 flex-1 sm:min-w-[220px]">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input className="pl-9" placeholder="Search by name, gala, mobile..." value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") loadTraders(); }} />
@@ -855,9 +855,9 @@ export function AdminUsersPage() {
                 <SelectItem value="suspended">Suspended</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline"><Download className="mr-1 h-4 w-4" /> Export</Button>
+            <Button variant="outline" className="w-full sm:w-auto"><Download className="mr-1 h-4 w-4" /> Export</Button>
           </div>
-          <div className="overflow-x-auto">
+          <div className="-mx-3 overflow-x-auto border-y sm:mx-0 sm:rounded-lg sm:border">
             <Table className="min-w-[980px]">
               <TableHeader><TableRow><TableHead>{adminLabel("Code", "\u0915\u094b\u0921")}</TableHead><TableHead>{adminLabel("Member", "\u0905\u0921\u0924\u093e")}</TableHead><TableHead>{adminLabel("Contact", "\u0938\u0902\u092a\u0930\u094d\u0915")}</TableHead><TableHead>{adminLabel("Gala", "\u0917\u093e\u0933\u093e")}</TableHead><TableHead>{adminLabel("Category", "\u0935\u093f\u092d\u093e\u0917")}</TableHead><TableHead className="whitespace-nowrap">{adminLabel("Status", "\u0938\u094d\u0925\u093f\u0924\u0940")}</TableHead><TableHead className="whitespace-nowrap">{adminLabel("Approved", "\u092e\u0902\u091c\u0942\u0930")}</TableHead><TableHead className="whitespace-nowrap text-right">{adminLabel("Actions", "\u0915\u0943\u0924\u0940")}</TableHead></TableRow></TableHeader>
               <TableBody>

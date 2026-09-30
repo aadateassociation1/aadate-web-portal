@@ -292,9 +292,9 @@ export function DashLayout({ kind, children }: Props) {
     .toUpperCase();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-muted/40">
+    <div className="flex h-dvh min-h-dvh w-full overflow-hidden bg-muted/40">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 flex w-[min(18rem,86vw)] shrink-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground transition-transform lg:w-72 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-40 flex w-[min(18rem,84vw)] shrink-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground transition-transform lg:w-72 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex min-h-24 shrink-0 items-center border-b border-sidebar-border px-4 py-4">
           {kind === "owner" ? (
             <div className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/8 px-3 py-3">
@@ -314,9 +314,9 @@ export function DashLayout({ kind, children }: Props) {
             </div>
           ) : (
             <div className="flex h-full w-full items-center justify-center rounded-2xl border border-white/10 bg-white/8 px-3 py-3">
-              <div className="text-center">
-                <div className="text-sm font-semibold text-white">{displayText(title)}</div>
-                <div className="mt-1 text-xs text-sidebar-foreground/70">{lang === "mr" ? `लॉगिन: ${displayUserName}` : `Signed in as ${user.name}`}</div>
+              <div className="min-w-0 text-center">
+                <div className="truncate text-sm font-semibold text-white">{displayText(title)}</div>
+                <div className="mt-1 truncate text-xs text-sidebar-foreground/70">{lang === "mr" ? `लॉगिन: ${displayUserName}` : `Signed in as ${user.name}`}</div>
               </div>
             </div>
           )}
@@ -376,7 +376,7 @@ export function DashLayout({ kind, children }: Props) {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden lg:ml-72">
-        <header className="z-20 flex min-h-16 shrink-0 items-center gap-2 border-b border-border bg-background/95 px-3 py-2 backdrop-blur sm:min-h-20 sm:gap-3 sm:px-6">
+        <header className="z-20 flex min-h-16 shrink-0 flex-wrap items-center gap-x-2 gap-y-2 border-b border-border bg-background/95 px-3 py-2 backdrop-blur sm:min-h-20 sm:flex-nowrap sm:gap-3 sm:px-6">
           <button
             onClick={() => setOpen(!open)}
             className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-border lg:hidden"
@@ -384,7 +384,7 @@ export function DashLayout({ kind, children }: Props) {
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
-          <div className="min-w-0 flex-1">
+          <div className="order-2 min-w-0 basis-full sm:order-none sm:flex-1 sm:basis-auto">
             <div className="text-xs text-muted-foreground sm:text-sm">{kind === "owner" && ownerFirmName ? displayUserName : displayText(title)}</div>
             <div className="truncate font-display text-sm font-semibold text-foreground sm:text-base">
               {lang === "mr" ? `${displayText("Welcome back")}, ${displayOwnerPrimaryName}` : `Welcome back, ${ownerPrimaryName}`}
