@@ -4022,6 +4022,7 @@ const getStoredKycRecords = (ownerId: string, seedRecords: CustomerKyc[]) => {
 
 export function OwnerProfilePage() {
   const { profile, galas, documents, requiredDocuments, missingRequiredDocuments, loading, reload } = useTraderProfile();
+  const { refreshUser } = useAuth();
   const [saving, setSaving] = useState(false);
   const [uploadingType, setUploadingType] = useState<string | null>(null);
   const [bloodGroup, setBloodGroup] = useState("");
@@ -4289,6 +4290,7 @@ export function OwnerProfilePage() {
       if (!response.ok || !result.ok) throw new Error(result.error || profileCopy.saveError);
       toast.success(profileCopy.saveSuccess);
       await reload();
+      await refreshUser().catch(() => undefined);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : profileCopy.saveError);
     } finally {

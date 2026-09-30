@@ -258,11 +258,12 @@ export function DashLayout({ kind, children }: Props) {
       ? user.businessNameEn || user.businessName || ""
       : user.businessName || user.businessNameEn || ""
     : "";
-  const ownerPrimaryName = ownerFirmName || user.name;
-  const ownerSecondaryName = ownerFirmName ? user.name : displayText(title);
+  const ownerMemberName = lang === "en" ? user.nameEn || user.name : user.name || user.nameEn || "";
+  const ownerPrimaryName = ownerFirmName || ownerMemberName || user.name;
+  const ownerSecondaryName = ownerFirmName ? ownerMemberName || user.name : displayText(title);
   const displayOwnerPrimaryName = lang === "mr" ? toMarathiMemberDisplay(ownerPrimaryName) : ownerPrimaryName;
   const displayOwnerSecondaryName = lang === "mr" ? toMarathiMemberDisplay(ownerSecondaryName) : ownerSecondaryName;
-  const displayUserName = lang === "mr" ? toMarathiMemberDisplay(user.name) : user.name;
+  const displayUserName = lang === "mr" ? toMarathiMemberDisplay(user.name) : user.nameEn || user.name;
   const helpLink = kind === "owner" ? "/member/help" : "/admin/help";
   const passwordLink = kind === "owner" ? "/member/change-password" : "/admin/change-password";
 

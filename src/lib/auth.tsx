@@ -4,6 +4,7 @@ import type { UserRole } from "./mock";
 export interface AuthUser {
   role: UserRole;
   name: string;
+  nameEn?: string | null;
   username: string;
   mobile: string;
   businessName?: string | null;
@@ -14,6 +15,7 @@ export interface AuthUser {
 interface AuthCtx {
   user: AuthUser | null;
   login: (identifier: string, password: string, role: UserRole) => Promise<{ ok: boolean; message: string }>;
+  refreshUser: () => Promise<AuthUser | null>;
   logout: () => void;
   loading: boolean;
 }
@@ -21,6 +23,7 @@ interface AuthCtx {
 const Ctx = createContext<AuthCtx>({
   user: null,
   login: () => ({ ok: false, message: "" }),
+  refreshUser: async () => null,
   logout: () => {},
   loading: true,
 });
@@ -34,6 +37,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshUser: AuthCtx["refreshUser"] = async () => {
+    const storageKey = getStorageKey();
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return null;
+
+    const stored = JSON.parse(raw) as AuthUser;
+    const apiRole = stored.role === "owner" ? "TRADER" : stored.role === "main_admin" ? "MAIN_ADMIN" : "USER_ADMIN";
+    const response = await fetch(`/api/v1/auth/me?role=${apiRole}`, { credentials: "include" });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Session expired");
+
+    const apiUser = result.user || result.session;
+    if (!apiUser) throw new Error("Session expired");
+    const role: UserRole = apiUser.role === "MEMBER" ? "owner" : apiUser.role === "TRADER" ? "owner" : apiUser.role === "MAIN_ADMIN" ? "main_admin" : "user_admin";
+    const freshUser: AuthUser = {
+      role,
+      name: apiUser.name || stored.name,
+      nameEn: apiUser.nameEn || stored.nameEn || null,
+      username: apiUser.username || stored.username,
+      mobile: apiUser.mobile || stored.mobile,
+      businessName: apiUser.businessName || stored.businessName || null,
+      businessNameEn: apiUser.businessNameEn || stored.businessNameEn || null,
+      photoUrl: apiUser.photoUrl || stored.photoUrl || null,
+    };
+    setUser(freshUser);
+    localStorage.setItem(getStorageKey(role), JSON.stringify(freshUser));
+    localStorage.removeItem("auth_user");
+    return freshUser;
+  };
+
   useEffect(() => {
     const restoreSession = async () => {
       const storageKey = getStorageKey();
@@ -45,34 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const stored = JSON.parse(raw) as AuthUser;
-        const apiRole = stored.role === "owner" ? "TRADER" : stored.role === "main_admin" ? "MAIN_ADMIN" : "USER_ADMIN";
-        const response = await fetch(`/api/v1/auth/me?role=${apiRole}`, {
-          credentials: "include",
-        });
-        const result = await response.json();
-        if (!response.ok || !result.ok) {
-          localStorage.removeItem(storageKey);
-          localStorage.removeItem("auth_user");
-          setUser(null);
-          return;
-        }
-
-        const apiUser = result.user || result.session;
-        if (!apiUser) throw new Error("Session expired");
-        const role: UserRole = apiUser.role === "MEMBER" ? "owner" : apiUser.role === "TRADER" ? "owner" : apiUser.role === "MAIN_ADMIN" ? "main_admin" : "user_admin";
-        const freshUser: AuthUser = {
-          role,
-          name: apiUser.name || stored.name,
-          username: apiUser.username || stored.username,
-          mobile: apiUser.mobile || stored.mobile,
-          businessName: apiUser.businessName || stored.businessName || null,
-          businessNameEn: apiUser.businessNameEn || stored.businessNameEn || null,
-          photoUrl: apiUser.photoUrl || stored.photoUrl || null,
-        };
-        setUser(freshUser);
-        localStorage.setItem(getStorageKey(role), JSON.stringify(freshUser));
-        localStorage.removeItem("auth_user");
+        await refreshUser();
       } catch {
         localStorage.removeItem(storageKey);
         localStorage.removeItem("auth_user");
@@ -101,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const u: AuthUser = {
         role,
         name: result.user.name,
+        nameEn: result.user.nameEn || null,
         username: result.user.username,
         mobile: result.user.mobile,
         businessName: result.user.businessName || null,
@@ -129,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("auth_user");
   };
 
-  return <Ctx.Provider value={{ user, login, logout, loading }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, login, refreshUser, logout, loading }}>{children}</Ctx.Provider>;
 }
 
 export const useAuth = () => useContext(Ctx);

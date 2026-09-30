@@ -2616,7 +2616,7 @@ async function loginHandler(req, res) {
   }
 
   const [rows] = await pool.query(
-    `SELECT u.id, u.username, u.mobile, u.full_name, u.status, u.password_hash, r.code AS role,
+    `SELECT u.id, u.username, u.mobile, u.full_name, u.full_name_en, u.status, u.password_hash, r.code AS role,
             t.id AS trader_id, t.verification_status AS trader_status,
             t.business_name, t.business_name_en
        FROM users u
@@ -2663,6 +2663,7 @@ async function loginHandler(req, res) {
       username: user.username,
       mobile: user.mobile,
       name: user.full_name,
+      nameEn: user.full_name_en || null,
       role: publicRoleCode(user.role),
       traderId: user.trader_id,
       businessName: user.business_name || null,
@@ -2976,7 +2977,7 @@ app.get("/api/v1/auth/me", async (req, res) => {
 
   try {
     const [rows] = await pool.query(
-    `SELECT u.id, u.username, u.mobile, u.full_name, u.status, r.code AS role,
+    `SELECT u.id, u.username, u.mobile, u.full_name, u.full_name_en, u.status, r.code AS role,
             t.id AS trader_id, t.verification_status AS trader_status,
             t.business_name, t.business_name_en
        FROM users u
@@ -3008,6 +3009,7 @@ app.get("/api/v1/auth/me", async (req, res) => {
         username: user.username,
         mobile: user.mobile,
         name: user.full_name,
+        nameEn: user.full_name_en || null,
         role: publicRoleCode(user.role),
         traderId: user.trader_id,
         businessName: user.business_name || null,
