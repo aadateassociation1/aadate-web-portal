@@ -421,7 +421,7 @@ export function DashLayout({ kind, children }: Props) {
         </header>
         <main className={`min-w-0 flex-1 overflow-y-auto p-3 [touch-action:pan-y] [-webkit-overflow-scrolling:touch] sm:p-6 lg:p-8 ${kind === "owner" ? "pb-28 lg:pb-8" : ""}`}>{children}</main>
         {kind === "owner" && (
-          <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden" aria-label="Member quick navigation">
+          <nav className="member-mobile-nav fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden" aria-label="Member quick navigation">
             <div className="grid grid-cols-5 gap-1">
               {mobileOwnerNav.map((item) => {
                 const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);

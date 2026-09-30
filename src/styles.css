@@ -179,6 +179,14 @@
     font-size: inherit;
     line-height: inherit;
   }
+
+  input,
+  select,
+  textarea,
+  button,
+  [role="button"] {
+    touch-action: manipulation;
+  }
 }
 
 @layer utilities {
@@ -186,6 +194,29 @@
   .text-base {
     font-size: 0.95rem !important;
     line-height: 1.5rem !important;
+  }
+}
+
+@media (pointer: coarse) and (max-width: 1023.98px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  body:has(input:focus),
+  body:has(textarea:focus),
+  body:has(select:focus) {
+    -webkit-overflow-scrolling: auto;
+  }
+
+  body:has(input:focus) .member-mobile-nav,
+  body:has(textarea:focus) .member-mobile-nav,
+  body:has(select:focus) .member-mobile-nav,
+  body:has(input:focus) .pwa-install-prompt,
+  body:has(textarea:focus) .pwa-install-prompt,
+  body:has(select:focus) .pwa-install-prompt {
+    display: none;
   }
 }
 

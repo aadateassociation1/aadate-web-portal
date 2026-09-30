@@ -128,7 +128,7 @@ export function PwaInstallPrompt({
       : "Android: Chrome menu (⋮) मधून Install app / Add to Home screen निवडा.";
 
   return (
-    <div className="fixed bottom-24 left-3 right-3 z-50 mx-auto flex max-w-lg items-start gap-3 rounded-lg border border-primary/20 bg-background p-3 shadow-xl sm:left-auto sm:right-5">
+    <div className="pwa-install-prompt fixed bottom-24 left-3 right-3 z-50 mx-auto flex max-w-lg items-start gap-3 rounded-lg border border-primary/20 bg-background p-3 shadow-xl sm:left-auto sm:right-5">
       <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary">
         {platform === "ios" ? <Share2 className="h-4 w-4" /> : <Download className="h-4 w-4" />}
       </div>
