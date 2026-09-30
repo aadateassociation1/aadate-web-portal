@@ -5342,43 +5342,93 @@ export function AdminTraderKycPage() {
 
       <Card className="border-border/60">
         <CardContent className="p-6">
-          <div className="mb-4 flex flex-wrap gap-3">
-            <div className="relative min-w-0 flex-1 sm:min-w-[260px]">
+          <div className="mb-4 grid gap-3 sm:flex sm:items-center">
+            <div className="relative min-w-0 flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-9" placeholder="Search member KYC..." />
             </div>
-            <Button variant="outline" onClick={loadKycData} disabled={loading}>
+            <Button variant="outline" className="w-full sm:w-auto" onClick={loadKycData} disabled={loading}>
               Refresh
             </Button>
           </div>
           {loadError && <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">{loadError}</div>}
-          <div className="overflow-x-auto rounded-lg border">
-            <Table>
+          <div className="grid gap-3 md:hidden">
+            {filteredRecords.map((record) => (
+              <Card key={record.id} className="border-border/60 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="break-words font-medium text-primary-dark">{localizedKycName(lang, record.full_name, record.full_name_en)}</div>
+                      <div className="mt-1 break-words text-sm text-muted-foreground">{localizedKycName(lang, record.business_name, record.business_name_en)}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{record.trader_code}</div>
+                    </div>
+                    <StatusBadge status={record.verification_status} />
+                  </div>
+                  <div className="mt-3 grid gap-2 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-muted-foreground">Mobile</span>
+                      <span className="font-medium text-primary-dark">{record.mobile}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-muted-foreground">Gala</span>
+                      <span className="font-medium text-primary-dark">{record.gala_number || "-"}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-muted-foreground">Applied</span>
+                      <span className="font-medium text-primary-dark">{new Date(record.created_at).toLocaleDateString("en-IN")}</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-2">
+                    <Button size="sm" variant="outline" className="w-full" onClick={() => openDetails(record)}>
+                      <Eye className="mr-1 h-4 w-4" /> View
+                    </Button>
+                    {["submitted", "under_review", "correction_required"].includes(record.verification_status) && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button size="sm" className="bg-success text-white" disabled={saving} onClick={() => decide(record, "approve")}>
+                          <ThumbsUp className="mr-1 h-4 w-4" /> Approve
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={saving} onClick={() => decide(record, "reject")}>
+                          <ThumbsDown className="mr-1 h-4 w-4" /> Reject
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {filteredRecords.length === 0 && (
+              <div className="rounded-lg border py-8 text-center text-sm text-muted-foreground">
+                {loading ? "Loading member KYC records..." : "No member KYC records found."}
+              </div>
+            )}
+          </div>
+          <div className="hidden overflow-x-auto rounded-lg border md:block">
+            <Table className="min-w-[760px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Member</TableHead>
-                  <TableHead>Business</TableHead>
-                  <TableHead>Mobile</TableHead>
+                  <TableHead className="w-[220px]">Member</TableHead>
+                  <TableHead className="w-[240px]">Business</TableHead>
+                  <TableHead className="whitespace-nowrap">Mobile</TableHead>
                   <TableHead className="whitespace-nowrap">Status</TableHead>
-                  <TableHead>Applied</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                  <TableHead className="whitespace-nowrap">Applied</TableHead>
+                  <TableHead className="whitespace-nowrap text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRecords.map((record) => (
                   <TableRow key={record.id}>
-                    <TableCell>
+                    <TableCell className="align-top">
                       <div className="font-medium text-primary-dark">{localizedKycName(lang, record.full_name, record.full_name_en)}</div>
                       <div className="text-xs text-muted-foreground">{record.trader_code}</div>
                     </TableCell>
-                    <TableCell>
-                      <div>{localizedKycName(lang, record.business_name, record.business_name_en)}</div>
+                    <TableCell className="align-top">
+                      <div className="break-words">{localizedKycName(lang, record.business_name, record.business_name_en)}</div>
                       <div className="text-xs text-muted-foreground">{[record.business_category, record.gala_number].filter(Boolean).join(" - ") || "-"}</div>
                     </TableCell>
-                    <TableCell>{record.mobile}</TableCell>
-                    <TableCell><StatusBadge status={record.verification_status} /></TableCell>
-                    <TableCell>{new Date(record.created_at).toLocaleDateString("en-IN")}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="whitespace-nowrap align-top">{record.mobile}</TableCell>
+                    <TableCell className="align-top"><StatusBadge status={record.verification_status} /></TableCell>
+                    <TableCell className="whitespace-nowrap align-top">{new Date(record.created_at).toLocaleDateString("en-IN")}</TableCell>
+                    <TableCell className="text-right align-top">
                       <div className="flex flex-wrap justify-end gap-2">
                         <Button size="sm" variant="outline" onClick={() => openDetails(record)}>
                           <Eye className="mr-1 h-4 w-4" /> View
