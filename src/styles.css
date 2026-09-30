@@ -146,7 +146,6 @@
     -webkit-font-smoothing: antialiased;
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
-    overscroll-behavior-y: none;
   }
   img, video, canvas, svg { max-width: 100%; }
   table { width: 100%; }

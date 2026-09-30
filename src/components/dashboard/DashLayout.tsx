@@ -293,7 +293,7 @@ export function DashLayout({ kind, children }: Props) {
     .toUpperCase();
 
   return (
-    <div className="min-h-svh w-full bg-muted/40 lg:flex lg:h-screen lg:overflow-hidden">
+    <div className="flex h-[100svh] min-h-[100svh] w-full overflow-hidden bg-muted/40">
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-40 flex w-[min(18rem,84vw)] shrink-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground transition-transform lg:w-72 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex min-h-24 shrink-0 items-center border-b border-sidebar-border px-4 py-4">
@@ -376,8 +376,8 @@ export function DashLayout({ kind, children }: Props) {
       {open && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setOpen(false)} />}
 
       {/* Main */}
-      <div className="min-w-0 flex-1 lg:ml-72 lg:flex lg:min-h-0 lg:flex-col lg:overflow-hidden">
-        <header className="sticky top-0 z-20 flex min-h-16 shrink-0 flex-wrap items-center gap-x-2 gap-y-2 border-b border-border bg-background/95 px-3 py-2 backdrop-blur sm:min-h-20 sm:flex-nowrap sm:gap-3 sm:px-6 lg:static">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden lg:ml-72">
+        <header className="z-20 flex min-h-16 shrink-0 flex-wrap items-center gap-x-2 gap-y-2 border-b border-border bg-background/95 px-3 py-2 backdrop-blur sm:min-h-20 sm:flex-nowrap sm:gap-3 sm:px-6">
           <button
             onClick={() => setOpen(!open)}
             className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-border lg:hidden"
@@ -419,7 +419,7 @@ export function DashLayout({ kind, children }: Props) {
             <Link to="/"><Home className="h-4 w-4 mr-1" /><span className="hidden md:inline">{displayText("Public Site")}</span><span className="md:hidden">{displayText("Site")}</span></Link>
           </Button>
         </header>
-        <main className={`min-w-0 p-3 sm:p-6 lg:flex-1 lg:overflow-y-auto lg:p-8 ${kind === "owner" ? "pb-28 lg:pb-8" : ""}`}>{children}</main>
+        <main className={`min-w-0 flex-1 overflow-y-auto p-3 [touch-action:pan-y] [-webkit-overflow-scrolling:touch] sm:p-6 lg:p-8 ${kind === "owner" ? "pb-28 lg:pb-8" : ""}`}>{children}</main>
         {kind === "owner" && (
           <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden" aria-label="Member quick navigation">
             <div className="grid grid-cols-5 gap-1">
