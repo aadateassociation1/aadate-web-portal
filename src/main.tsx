@@ -8,7 +8,31 @@ function formatError(error: unknown) {
   return String(error);
 }
 
+function isChunkLoadError(error: unknown) {
+  const message = formatError(error);
+  return /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Loading chunk|Unable to preload CSS/i.test(message);
+}
+
+async function clearRuntimeCaches() {
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((key) => caches.delete(key)));
+  }
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.update()));
+  }
+}
+
+function recoverFromChunkLoadError(error: unknown) {
+  if (!isChunkLoadError(error) || sessionStorage.getItem("aadate_chunk_reload_v2") === "1") return false;
+  sessionStorage.setItem("aadate_chunk_reload_v2", "1");
+  clearRuntimeCaches().finally(() => window.location.reload());
+  return true;
+}
+
 function showBootError(error: unknown) {
+  if (recoverFromChunkLoadError(error)) return;
   const root = document.getElementById("root");
   if (!root) return;
   root.innerHTML = `
@@ -34,6 +58,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
 
   render() {
     if (this.state.error) {
+      if (recoverFromChunkLoadError(this.state.error)) return null;
       return (
         <div className="min-h-screen bg-background p-6 text-foreground">
           <div className="mx-auto max-w-3xl rounded-md border bg-card p-5">
@@ -53,6 +78,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
 
 window.addEventListener("error", (event) => showBootError(event.error || event.message));
 window.addEventListener("unhandledrejection", (event) => showBootError(event.reason));
+window.addEventListener("load", () => sessionStorage.removeItem("aadate_chunk_reload_v2"));
 
 async function boot() {
   registerServiceWorker();

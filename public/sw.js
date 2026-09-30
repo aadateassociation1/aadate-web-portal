@@ -1,7 +1,5 @@
-const CACHE_NAME = "vpp-market-yard-v18";
+const CACHE_NAME = "vpp-market-yard-v19";
 const APP_SHELL = [
-  "/",
-  "/index.html",
   "/favicon.png",
   "/icons/favicon.png",
   "/manifest.json",
@@ -29,6 +27,14 @@ self.addEventListener("fetch", (event) => {
   if (event.request.headers.has("range") || /\.(mp4|mov|webm)$/i.test(url.pathname)) return;
 
   event.respondWith((async () => {
+    if (event.request.mode === "navigate" || url.pathname === "/" || url.pathname.endsWith(".html")) {
+      return fetch(event.request);
+    }
+
+    if (url.pathname.startsWith("/assets/") || /\.(js|css)$/i.test(url.pathname)) {
+      return fetch(event.request);
+    }
+
     const cached = await caches.match(event.request);
     try {
       const response = await fetch(event.request);
@@ -40,7 +46,6 @@ self.addEventListener("fetch", (event) => {
       return response;
     } catch {
       if (cached) return cached;
-      if (event.request.mode === "navigate") return caches.match("/");
       throw new Error("Offline and no cached response available.");
     }
   })());
