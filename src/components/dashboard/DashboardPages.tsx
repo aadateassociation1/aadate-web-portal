@@ -1226,7 +1226,7 @@ export function AdminRegistrationsPage() {
         ))}
       </div>
       <Dialog open={!!details} onOpenChange={(open) => !open && setDetails(null)}>
-        <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
+        <DialogContent className="max-h-[85vh] w-[calc(100vw-1rem)] max-w-4xl overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl text-primary-dark">{memberName(details?.application) || "Application review"}</DialogTitle>
             <DialogDescription>{details?.application.trader_code} - registration details and status history</DialogDescription>
@@ -1258,8 +1258,47 @@ export function AdminRegistrationsPage() {
 
               <div>
                 <h3 className="font-display font-semibold text-primary-dark">Linked Galas / Shops</h3>
-                <div className="mt-3 overflow-x-auto rounded-lg border">
-                  <Table>
+                <div className="mt-3 grid gap-3 md:hidden">
+                  {details.galas.map((gala) => (
+                    <Card key={gala.id} className="border-border/60 shadow-sm">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="font-display font-semibold text-primary-dark">Gala {gala.gala_number}</div>
+                            {gala.is_primary ? <div className="mt-0.5 text-xs font-medium text-primary">Primary shop</div> : null}
+                          </div>
+                          <StatusBadge status={gala.status} />
+                        </div>
+                        <div className="mt-3 space-y-2 text-sm">
+                          <div>
+                            <div className="text-xs text-muted-foreground">Business</div>
+                            <div className="break-words font-medium text-foreground">{galaBusinessName(gala)}</div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <div className="text-xs text-muted-foreground">Section</div>
+                              <div className="font-medium text-foreground">{gala.business_category || gala.market_section || "-"}</div>
+                            </div>
+                            <div>
+                              <div className="text-xs text-muted-foreground">Registration</div>
+                              <div className="font-medium text-foreground">{gala.market_registration_number || "-"}</div>
+                            </div>
+                          </div>
+                          {gala.admin_remarks && <div className="text-xs text-destructive">{gala.admin_remarks}</div>}
+                        </div>
+                        {["submitted", "under_review", "correction_required"].includes(gala.status) && (
+                          <div className="mt-4 grid grid-cols-2 gap-2">
+                            <Button size="sm" variant="outline" onClick={() => decideGala(gala, "approve")}><ThumbsUp className="mr-1 h-4 w-4 text-success" /> Approve</Button>
+                            <Button size="sm" variant="outline" onClick={() => decideGala(gala, "reject")}><ThumbsDown className="mr-1 h-4 w-4 text-destructive" /> Reject</Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {details.galas.length === 0 && <div className="rounded-lg border p-4 text-center text-sm text-muted-foreground">No gala/shop records linked yet.</div>}
+                </div>
+                <div className="mt-3 hidden overflow-x-auto rounded-lg border md:block">
+                  <Table className="min-w-[720px]">
                     <TableHeader><TableRow><TableHead>Gala</TableHead><TableHead>Business</TableHead><TableHead>Section</TableHead><TableHead className="whitespace-nowrap">Status</TableHead><TableHead className="text-right">Review</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {details.galas.map((gala) => (
