@@ -96,7 +96,7 @@ function Chairman() {
   const displayChairmanNameMr = (name?: string | null, englishName?: string | null) => withMarathiShri(englishName && /sourabh\s+kunjir/i.test(englishName) ? "\u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930" : name || "\u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930");
   const chairmanCopy = isMr
     ? {
-        current: "\u0938\u0927\u094d\u092f\u093e\u091a\u0947 \u0905\u0927\u094d\u092f\u0915\u094d\u0937",
+        current: "\u0905\u0927\u094d\u092f\u0915\u094d\u0937",
         role: "\u0905\u0927\u094d\u092f\u0915\u094d\u0937",
         title: "\u0928\u0947\u0924\u0943\u0924\u094d\u0935",
         term: "\u0915\u093e\u0930\u094d\u092f\u0915\u093e\u0933",
