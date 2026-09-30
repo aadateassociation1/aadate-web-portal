@@ -129,6 +129,7 @@
   html {
     font-family: var(--font-sans);
     overflow-x: hidden;
+    min-height: 100%;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -137,12 +138,15 @@
     --font-display: "Mukta", ui-sans-serif, system-ui, sans-serif;
   }
   body {
+    min-height: 100svh;
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     text-align: left;
     -webkit-font-smoothing: antialiased;
+    -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
+    overscroll-behavior-y: none;
   }
   img, video, canvas, svg { max-width: 100%; }
   table { width: 100%; }
