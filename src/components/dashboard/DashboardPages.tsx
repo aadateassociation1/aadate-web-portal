@@ -2898,9 +2898,57 @@ export function AdminMobileRequestsPage() {
     <DashLayout kind="admin">
       <PageTitle title="Mobile Change Requests" subtitle="Verify owner identity before updating registered mobile numbers." />
       <Card className="border-border/60">
-        <CardContent className="p-6">
-          <div className="overflow-hidden">
-            <Table className="w-full table-fixed">
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid gap-3 md:hidden">
+            {requests.map((r) => (
+              <Card key={r.id} className="border-border/60 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="break-words font-semibold text-primary-dark">{r.trader_name}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">Gala {r.gala_number || "-"} - {r.trader_code}</div>
+                      <div className="mt-1 font-mono text-xs text-muted-foreground">{r.request_code}</div>
+                    </div>
+                    <StatusBadge status={r.status} />
+                  </div>
+                  <div className="mt-3 grid gap-2 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-muted-foreground">Old mobile</span>
+                      <span className="font-mono font-medium text-primary-dark">{r.old_mobile}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-muted-foreground">New mobile</span>
+                      <span className="font-mono font-medium text-primary-dark">{r.new_mobile}</span>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Reason</div>
+                      <div className="mt-1 break-words text-primary-dark">{r.reason || "-"}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Note</div>
+                      <div className="mt-1 break-words text-primary-dark">{r.application_note || "-"}</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {r.documents.map((document) => (
+                      <Button key={document.id} size="sm" variant="outline" onClick={() => window.open(`/api/v1/admin/mobile-change-documents/${document.id}/download?download=1`, "_blank")}>
+                        <Download className="mr-1 h-4 w-4" /> {document.document_type === "id_proof" ? "ID proof" : "Mobile proof"}
+                      </Button>
+                    ))}
+                    {r.documents.length === 0 && <span className="text-xs text-destructive">Documents missing</span>}
+                  </div>
+                  {r.status === "pending" && (
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <Button size="sm" className="bg-success text-white" onClick={() => setPendingDecision({ request: r, decision: "approve" })}>Approve</Button>
+                      <Button size="sm" variant="outline" onClick={() => setPendingDecision({ request: r, decision: "reject" })}>Reject</Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto rounded-lg border md:block">
+            <Table className="min-w-[980px]">
               <TableHeader><TableRow><TableHead className="w-[8%]">ID</TableHead><TableHead className="w-[16%]">Member</TableHead><TableHead className="w-[10%]">Old</TableHead><TableHead className="w-[10%]">New</TableHead><TableHead className="w-[10%]">Reason</TableHead><TableHead className="w-[18%]">Note</TableHead><TableHead className="w-[13%]">Docs</TableHead><TableHead className="w-[9%]">Status</TableHead><TableHead className="w-[6%] text-right">Action</TableHead></TableRow></TableHeader>
               <TableBody>
                 {requests.map((r) => (
