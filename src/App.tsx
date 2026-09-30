@@ -186,13 +186,33 @@ function RouteRenderer() {
   return Component ? <Component /> : <NotFound />;
 }
 
+function PwaInstallMount() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isAdmin = pathname.startsWith("/admin");
+
+  useEffect(() => {
+    const jsonManifest = document.querySelector<HTMLLinkElement>('link[rel="manifest"][href$=".json"], link[rel="manifest"][href="/manifest.json"]');
+    const webManifest = document.querySelector<HTMLLinkElement>('link[rel="manifest"][href$=".webmanifest"], link[rel="manifest"][href="/manifest.webmanifest"]');
+    if (jsonManifest) jsonManifest.href = isAdmin ? "/admin-manifest.json" : "/manifest.json";
+    if (webManifest) webManifest.href = isAdmin ? "/admin-manifest.webmanifest" : "/manifest.webmanifest";
+  }, [isAdmin]);
+
+  return (
+    <PwaInstallPrompt
+      appName={isAdmin ? "Admin app" : "Market Yard app"}
+      dismissedStorageKey={isAdmin ? "admin_pwa_install_dismissed_until" : "pwa_install_dismissed_until"}
+      deviceStorageKey={isAdmin ? "admin_pwa_install_device_id" : "pwa_install_device_id"}
+    />
+  );
+}
+
 export default function App() {
   return (
     <SimpleRouterProvider>
       <I18nProvider>
         <AuthProvider>
           <RouteRenderer />
-          {!import.meta.env.DEV && <PwaInstallPrompt />}
+          {!import.meta.env.DEV && <PwaInstallMount />}
           <Toaster position="top-right" richColors />
         </AuthProvider>
       </I18nProvider>

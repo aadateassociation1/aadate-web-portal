@@ -7,8 +7,7 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-function getPwaDeviceId() {
-  const storageKey = "pwa_install_device_id";
+function getPwaDeviceId(storageKey = "pwa_install_device_id") {
   const existing = localStorage.getItem(storageKey);
   if (existing) return existing;
   const id = typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -31,21 +30,33 @@ function isStandalonePwa() {
     || ("standalone" in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
 }
 
-function getDismissedUntil() {
-  const value = Number(localStorage.getItem("pwa_install_dismissed_until") || 0);
+function getDismissedUntil(storageKey = "pwa_install_dismissed_until") {
+  const value = Number(localStorage.getItem(storageKey) || 0);
   return Number.isFinite(value) ? value : 0;
 }
 
-export function PwaInstallPrompt() {
+export function PwaInstallPrompt({
+  appName = "Market Yard app",
+  dismissedStorageKey = "pwa_install_dismissed_until",
+  deviceStorageKey = "pwa_install_device_id",
+}: {
+  appName?: string;
+  dismissedStorageKey?: string;
+  deviceStorageKey?: string;
+}) {
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [platform, setPlatform] = useState<ReturnType<typeof detectPlatform>>("other");
   const [standalone, setStandalone] = useState(false);
-  const [dismissed, setDismissed] = useState(() => Date.now() < getDismissedUntil());
+  const [dismissed, setDismissed] = useState(() => Date.now() < getDismissedUntil(dismissedStorageKey));
 
   useEffect(() => {
     setPlatform(detectPlatform());
     setStandalone(isStandalonePwa());
   }, []);
+
+  useEffect(() => {
+    setDismissed(Date.now() < getDismissedUntil(dismissedStorageKey));
+  }, [dismissedStorageKey]);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event: Event) => {
@@ -64,7 +75,7 @@ export function PwaInstallPrompt() {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          deviceId: getPwaDeviceId(),
+          deviceId: getPwaDeviceId(deviceStorageKey),
           platform: detectPlatform(),
         }),
       }).catch(() => undefined);
@@ -94,7 +105,7 @@ export function PwaInstallPrompt() {
   };
 
   const dismiss = () => {
-    localStorage.setItem("pwa_install_dismissed_until", String(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    localStorage.setItem(dismissedStorageKey, String(Date.now() + 7 * 24 * 60 * 60 * 1000));
     setDismissed(true);
   };
 
@@ -104,14 +115,14 @@ export function PwaInstallPrompt() {
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        deviceId: getPwaDeviceId(),
+        deviceId: getPwaDeviceId(deviceStorageKey),
         platform: detectPlatform(),
       }),
     }).catch(() => undefined);
   };
 
   const helpText = promptEvent
-    ? "Tap Install to add this portal like an app."
+    ? `Tap Install to add ${appName} like an app.`
     : platform === "ios"
       ? "iPhone: Share icon tap करा, मग Add to Home Screen निवडा."
       : "Android: Chrome menu (⋮) मधून Install app / Add to Home screen निवडा.";
@@ -124,7 +135,7 @@ export function PwaInstallPrompt() {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 text-sm font-semibold text-primary-dark">
           <Smartphone className="h-4 w-4" />
-          Install Market Yard app
+          Install {appName}
         </div>
         <div className="mt-1 text-xs leading-relaxed text-muted-foreground">{helpText}</div>
         {platform === "ios" && (
