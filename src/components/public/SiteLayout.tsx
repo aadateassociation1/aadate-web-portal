@@ -94,8 +94,8 @@ function Header() {
   useEffect(() => setOpen(false), [pathname]);
 
   const dashLink =
-    user?.role === "main_admin" ? "/admin" :
-    user?.role === "user_admin" ? "/admin" :
+    user?.role === "main_admin" ? "/da_admin/ssk" :
+    user?.role === "user_admin" ? "/da_admin/ssk" :
     user?.role === "owner" ? "/owner" : null;
   const navLabel = (key: (typeof NAV)[number]["key"]) => (
     lang === "mr" && key === "nav.exPresident" ? "\u092e\u093e\u091c\u0940 \u0905\u0927\u094d\u092f\u0915\u094d\u0937" : t(key)
@@ -206,8 +206,8 @@ function Footer() {
     ? "अध्यक्ष, श्री छत्रपती शिवाजी मार्केट यार्ड आडते असोसिएशन"
     : "Chairman of Shree Chhatrapati Shivaji Market Yard Adte Association";
   const launchingDateLine = isMr ? "सुरू दिनांक: २१ सप्टेंबर २०२६" : "Launching Date: 21 September 2026";
-  const marketUpdatesLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/market-prices" : user?.role === "owner" ? "/member/market-prices" : "/market-prices";
-  const complaintLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/admin/complaints" : user?.role === "owner" ? "/member/new-complaint" : "/login";
+  const marketUpdatesLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/da_admin/ssk/market-prices" : user?.role === "owner" ? "/member/market-prices" : "/market-prices";
+  const complaintLink = user?.role === "main_admin" || user?.role === "user_admin" ? "/da_admin/ssk/complaints" : user?.role === "owner" ? "/member/new-complaint" : "/login";
   return (
     <footer className="mt-16 bg-primary-dark text-white/90">
       <div className="container-page grid gap-10 py-14 md:grid-cols-4">

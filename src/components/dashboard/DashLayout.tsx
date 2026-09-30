@@ -33,22 +33,22 @@ const OWNER_NAV = [
 ];
 
 const ADMIN_NAV = [
-  { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/admin/users", label: "Member Management", mrLabel: "\u0905\u0921\u0924\u0947 \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u0928", icon: Users },
-  { to: "/admin/kyc", label: "Member KYC", mrLabel: "\u0905\u0921\u0924\u0947 \u092a\u0921\u0924\u093e\u0933\u0923\u0940", icon: IdCard },
-  { to: "/admin/registrations", label: "Registration Approvals", icon: ClipboardList },
-  { to: "/admin/complaints", label: "Complaint Management", icon: MessageSquare },
-  { to: "/admin/posts", label: "Owner Posts", icon: ImagePlus },
-  { to: "/admin/reviews", label: "Portal Reviews", icon: Star },
-  { to: "/admin/gallery", label: "Gallery Management", icon: ImagePlus },
-  { to: "/admin/market-prices", label: "Daily Market Prices", icon: IndianRupee },
-  { to: "/admin/updates", label: "Market Updates", icon: Newspaper },
-  { to: "/admin/notices", label: "Notices & Documents", icon: FileStack },
-  { to: "/admin/mobile-requests", label: "Mobile Change Requests", icon: Phone },
-  { to: "/admin/committee", label: "Chairman & Committee", icon: Users },
-  { to: "/admin/ex-presidents", label: "Ex-President", icon: Users },
-  { to: "/admin/reports", label: "Reports & Analytics", icon: ChartBar },
-  { to: "/admin/audit", label: "Audit Logs", icon: ShieldAlert },
+  { to: "/da_admin/ssk", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/da_admin/ssk/users", label: "Member Management", mrLabel: "\u0905\u0921\u0924\u0947 \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u0928", icon: Users },
+  { to: "/da_admin/ssk/kyc", label: "Member KYC", mrLabel: "\u0905\u0921\u0924\u0947 \u092a\u0921\u0924\u093e\u0933\u0923\u0940", icon: IdCard },
+  { to: "/da_admin/ssk/registrations", label: "Registration Approvals", icon: ClipboardList },
+  { to: "/da_admin/ssk/complaints", label: "Complaint Management", icon: MessageSquare },
+  { to: "/da_admin/ssk/posts", label: "Owner Posts", icon: ImagePlus },
+  { to: "/da_admin/ssk/reviews", label: "Portal Reviews", icon: Star },
+  { to: "/da_admin/ssk/gallery", label: "Gallery Management", icon: ImagePlus },
+  { to: "/da_admin/ssk/market-prices", label: "Daily Market Prices", icon: IndianRupee },
+  { to: "/da_admin/ssk/updates", label: "Market Updates", icon: Newspaper },
+  { to: "/da_admin/ssk/notices", label: "Notices & Documents", icon: FileStack },
+  { to: "/da_admin/ssk/mobile-requests", label: "Mobile Change Requests", icon: Phone },
+  { to: "/da_admin/ssk/committee", label: "Chairman & Committee", icon: Users },
+  { to: "/da_admin/ssk/ex-presidents", label: "Ex-President", icon: Users },
+  { to: "/da_admin/ssk/reports", label: "Reports & Analytics", icon: ChartBar },
+  { to: "/da_admin/ssk/audit", label: "Audit Logs", icon: ShieldAlert },
 ];
 
 interface Props {
@@ -135,8 +135,8 @@ export function DashLayout({ kind, children }: Props) {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) { router.navigate({ to: kind === "admin" ? "/admin/login" : "/login" }); return; }
-    if (kind === "owner" && user.role !== "owner") { router.navigate({ to: "/admin" }); }
+    if (!user) { router.navigate({ to: kind === "admin" ? "/da_admin/ssk/login" : "/login" }); return; }
+    if (kind === "owner" && user.role !== "owner") { router.navigate({ to: "/da_admin/ssk" }); }
     if (kind === "admin" && user.role === "owner") { router.navigate({ to: "/member" }); }
   }, [user, loading, kind, router]);
 
@@ -264,8 +264,8 @@ export function DashLayout({ kind, children }: Props) {
   const displayOwnerPrimaryName = lang === "mr" ? toMarathiMemberDisplay(ownerPrimaryName) : ownerPrimaryName;
   const displayOwnerSecondaryName = lang === "mr" ? toMarathiMemberDisplay(ownerSecondaryName) : ownerSecondaryName;
   const displayUserName = lang === "mr" ? toMarathiMemberDisplay(user.name) : user.nameEn || user.name;
-  const helpLink = kind === "owner" ? "/member/help" : "/admin/help";
-  const passwordLink = kind === "owner" ? "/member/change-password" : "/admin/change-password";
+  const helpLink = kind === "owner" ? "/member/help" : "/da_admin/ssk/help";
+  const passwordLink = kind === "owner" ? "/member/change-password" : "/da_admin/ssk/change-password";
 
   const handleLogout = () => {
     logout();
@@ -327,7 +327,7 @@ export function DashLayout({ kind, children }: Props) {
             {displayText("Navigation")}
           </div>
           {nav.map((n) => {
-            const active = n.exact ? pathname === n.to : pathname.startsWith(n.to) && n.to !== "/member" && n.to !== "/admin";
+            const active = n.exact ? pathname === n.to : pathname.startsWith(n.to) && n.to !== "/member" && n.to !== "/da_admin/ssk";
             const activeExact = n.exact && pathname === n.to;
             const count = kind === "admin" ? adminCounts[n.to] || 0 : n.to === "/member/notifications" ? memberUnreadCount : 0;
             return (

@@ -28,7 +28,7 @@ function LoginForm({ role }: { role: UserRole }) {
     const res = await login(id.trim(), pw, role);
     if (!res.ok) { setErr(res.message); return; }
     toast.success(res.message);
-    router.navigate({ to: role === "owner" ? "/member" : "/admin" });
+    router.navigate({ to: role === "owner" ? "/member" : "/da_admin/ssk" });
   };
 
   return (

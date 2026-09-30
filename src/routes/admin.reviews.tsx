@@ -9,7 +9,7 @@ import { CheckCircle2, Download, Star, ThumbsDown, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/admin/reviews")({
+export const Route = createFileRoute("/da_admin/ssk/reviews")({
   head: () => ({ meta: [{ title: "Rating Reviews - Shree Chhatrapati Shivaji Market Yard Adte Association" }] }),
   component: AdminReviews,
 });

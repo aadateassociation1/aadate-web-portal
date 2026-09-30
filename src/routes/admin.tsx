@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/da_admin/ssk")({
   head: () => ({ meta: [{ title: "Admin Dashboard - Shree Chhatrapati Shivaji Market Yard Adte Association" }] }),
   component: AdminDash,
 });
@@ -46,7 +46,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function AdminDash() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (pathname !== "/admin") return <Outlet />;
+  if (pathname !== "/da_admin/ssk") return <Outlet />;
 
   const [q, setQ] = useState("");
   type AdminTrader = {
@@ -398,7 +398,7 @@ function AdminDash() {
                         </TableCell>
                         <TableCell><StatusBadge status={c.status} /></TableCell>
                         <TableCell className="text-right">
-                          <Button size="icon" variant="ghost" onClick={() => window.open("/admin/complaints", "_self")}><Eye className="h-4 w-4" /></Button>
+                          <Button size="icon" variant="ghost" onClick={() => window.open("/da_admin/ssk/complaints", "_self")}><Eye className="h-4 w-4" /></Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -490,7 +490,7 @@ function AdminDash() {
                         <TableCell className="text-sm">{r.reason}</TableCell>
                         <TableCell><StatusBadge status={r.status} /></TableCell>
                         <TableCell className="text-right">
-                          <Button size="sm" variant="outline" onClick={() => window.open("/admin/mobile-requests", "_blank")}>Open</Button>
+                          <Button size="sm" variant="outline" onClick={() => window.open("/da_admin/ssk/mobile-requests", "_blank")}>Open</Button>
                         </TableCell>
                       </TableRow>
                     ))}

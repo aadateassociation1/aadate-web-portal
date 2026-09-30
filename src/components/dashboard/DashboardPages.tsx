@@ -1887,7 +1887,7 @@ function AdminComplaintFeedbackPanel() {
                   {item.feedback_status === "pending" && <Button size="sm" variant="destructive" onClick={() => act(item, "reject")}>Reject</Button>}
                   {Boolean(item.reopen_requested) && item.reopen_request_status === "pending" && <Button size="sm" className="bg-saffron text-primary-dark" onClick={() => act(item, "reopen-approve")}>Approve Reopen</Button>}
                   {Boolean(item.reopen_requested) && item.reopen_request_status === "pending" && <Button size="sm" variant="outline" onClick={() => act(item, "reopen-reject")}>Reject Reopen</Button>}
-                  <Button size="sm" variant="outline" onClick={() => window.open("/admin/complaints", "_self")}>Open Complaint</Button>
+                  <Button size="sm" variant="outline" onClick={() => window.open("/da_admin/ssk/complaints", "_self")}>Open Complaint</Button>
                 </div>
               </div>
             ))}

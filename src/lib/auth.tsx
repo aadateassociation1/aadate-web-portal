@@ -30,7 +30,7 @@ const Ctx = createContext<AuthCtx>({
 
 function getStorageKey(role?: UserRole) {
   if (role) return role === "owner" ? "trader_auth_user" : "admin_auth_user";
-  return window.location.pathname.startsWith("/admin") ? "admin_auth_user" : "trader_auth_user";
+  return window.location.pathname.startsWith("/da_admin/ssk") ? "admin_auth_user" : "trader_auth_user";
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

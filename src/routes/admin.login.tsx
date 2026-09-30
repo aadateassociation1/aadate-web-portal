@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth";
 import type { UserRole } from "@/lib/mock";
 
-export const Route = createFileRoute("/admin/login")({
+export const Route = createFileRoute("/da_admin/ssk/login")({
   head: () => ({
     meta: [
       { title: "Admin Login - Shree Chhatrapati Shivaji Market Yard Adte Association" },
@@ -36,7 +36,7 @@ function AdminLoginForm({ role }: { role: Extract<UserRole, "main_admin" | "user
     }
 
     toast.success(res.message);
-    router.navigate({ to: "/admin" });
+    router.navigate({ to: "/da_admin/ssk" });
   };
 
   return (

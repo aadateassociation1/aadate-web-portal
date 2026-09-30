@@ -129,25 +129,25 @@ const ROUTES: Record<string, LocalRoute> = {
   "/owner/notifications": OwnerNotificationsRoute,
   "/owner/help": OwnerHelpRoute,
   "/owner/change-password": OwnerChangePasswordRoute,
-  "/admin": AdminRoute,
-  "/admin/login": AdminLoginRoute,
-  "/admin/users": AdminUsersRoute,
-  "/admin/kyc": AdminKycRoute,
-  "/admin/registrations": AdminRegistrationsRoute,
-  "/admin/complaints": AdminComplaintsRoute,
-  "/admin/posts": AdminPostsRoute,
-  "/admin/reviews": AdminReviewsRoute,
-  "/admin/gallery": AdminGalleryRoute,
-  "/admin/updates": AdminUpdatesRoute,
-  "/admin/market-prices": AdminMarketPricesRoute,
-  "/admin/notices": AdminNoticesRoute,
-  "/admin/mobile-requests": AdminMobileRequestsRoute,
-  "/admin/committee": AdminCommitteeRoute,
-  "/admin/ex-presidents": AdminExPresidentsRoute,
-  "/admin/reports": AdminReportsRoute,
-  "/admin/audit": AdminAuditRoute,
-  "/admin/help": AdminHelpRoute,
-  "/admin/change-password": AdminChangePasswordRoute,
+  "/da_admin/ssk": AdminRoute,
+  "/da_admin/ssk/login": AdminLoginRoute,
+  "/da_admin/ssk/users": AdminUsersRoute,
+  "/da_admin/ssk/kyc": AdminKycRoute,
+  "/da_admin/ssk/registrations": AdminRegistrationsRoute,
+  "/da_admin/ssk/complaints": AdminComplaintsRoute,
+  "/da_admin/ssk/posts": AdminPostsRoute,
+  "/da_admin/ssk/reviews": AdminReviewsRoute,
+  "/da_admin/ssk/gallery": AdminGalleryRoute,
+  "/da_admin/ssk/updates": AdminUpdatesRoute,
+  "/da_admin/ssk/market-prices": AdminMarketPricesRoute,
+  "/da_admin/ssk/notices": AdminNoticesRoute,
+  "/da_admin/ssk/mobile-requests": AdminMobileRequestsRoute,
+  "/da_admin/ssk/committee": AdminCommitteeRoute,
+  "/da_admin/ssk/ex-presidents": AdminExPresidentsRoute,
+  "/da_admin/ssk/reports": AdminReportsRoute,
+  "/da_admin/ssk/audit": AdminAuditRoute,
+  "/da_admin/ssk/help": AdminHelpRoute,
+  "/da_admin/ssk/change-password": AdminChangePasswordRoute,
 };
 
 function NotFound() {
@@ -188,7 +188,7 @@ function RouteRenderer() {
 
 function PwaInstallMount() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const isAdmin = pathname.startsWith("/admin");
+  const isAdmin = pathname.startsWith("/da_admin/ssk");
 
   useEffect(() => {
     const jsonManifest = document.querySelector<HTMLLinkElement>('link[rel="manifest"][href$=".json"], link[rel="manifest"][href="/manifest.json"]');
