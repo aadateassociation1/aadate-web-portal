@@ -8,7 +8,7 @@ function sanitizeEnvValue(value) {
 
 export const config = {
   port: Number(process.env.BACKEND_PORT || process.env.PORT || 4008),
-  corsOrigins: (process.env.CORS_ORIGIN || "http://127.0.0.1:8080,http://127.0.0.1:8083,http://127.0.0.1:8090,http://127.0.0.1:8091,http://127.0.0.1:8092")
+  corsOrigins: (process.env.CORS_ORIGIN || "https://digitalaadate.org,https://www.digitalaadate.org,https://admin.digitalaadate.org,http://127.0.0.1:8080,http://127.0.0.1:8083,http://127.0.0.1:8090,http://127.0.0.1:8091,http://127.0.0.1:8092")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean),
