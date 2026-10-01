@@ -4510,10 +4510,16 @@ export function OwnerProfilePage() {
               </div>
               <div>
                 <Label>{profileCopy.bloodGroup} *</Label>
-                <Select value={bloodGroup} onValueChange={setBloodGroup}>
-                  <SelectTrigger><SelectValue placeholder={profileCopy.selectBloodGroup} /></SelectTrigger>
-                  <SelectContent>{BLOOD_GROUPS.map((group) => <SelectItem key={group} value={group}>{group}</SelectItem>)}</SelectContent>
-                </Select>
+                <select
+                  name="bloodGroup"
+                  required
+                  value={bloodGroup}
+                  onChange={(event) => setBloodGroup(event.currentTarget.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-sm"
+                >
+                  <option value="">{profileCopy.selectBloodGroup}</option>
+                  {BLOOD_GROUPS.map((group) => <option key={group} value={group}>{group}</option>)}
+                </select>
               </div>
               <div>
                 <Label>{profileCopy.licenceNumber}</Label>
