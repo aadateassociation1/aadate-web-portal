@@ -183,7 +183,7 @@ export function PublicExPresidentPage() {
 
   const chairmanCopy = lang === "mr"
     ? {
-        label: "\u0938\u0927\u094d\u092f\u093e\u091a\u0947 \u0905\u0927\u094d\u092f\u0915\u094d\u0937",
+        label: "\u0905\u0927\u094d\u092f\u0915\u094d\u0937",
         role: "\u0905\u0927\u094d\u092f\u0915\u094d\u0937",
         name: chairman?.name_mr || "\u0936\u094d\u0930\u0940. \u0938\u094c\u0930\u092d \u0936\u0947\u0916\u0930 \u0915\u0941\u0902\u091c\u0940\u0930",
         secondaryName: "",
